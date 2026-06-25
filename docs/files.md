@@ -38,7 +38,7 @@ The exact schema is intentionally left for implementation design.
 
 `.rellog/entries/` stores pending changelog entries for the next release-note preparation.
 
-Pending entries are the primary input to `rellog prepare <release-id>`. They are not generated from Git history. They are explicit records written at release-note granularity.
+Pending entries are the primary input to release-note preparation. They are not generated from Git history. They are explicit records written at release-note granularity.
 
 ### Entry filenames
 
@@ -108,7 +108,7 @@ Example:
 .rellog/release-notes/v1.0.1.md
 ```
 
-A release-note file is a plain Markdown artifact created by `rellog prepare <release-id>`.
+A release-note file is a plain Markdown artifact created during release-note preparation.
 
 It is not a GitHub Release Note. `rellog` does not create GitHub Releases, but other release tooling may reuse this Markdown file.
 
@@ -161,4 +161,4 @@ No changelog-worthy changes.
 
 `CHANGELOG.md` is the cumulative release record.
 
-`rellog prepare <release-id>` appends the prepared release-note content to `CHANGELOG.md`. It should not update versions, create tags, create GitHub Releases, or publish artifacts.
+Release-note preparation appends the prepared release-note content to `CHANGELOG.md`. It should not update versions, create tags, create GitHub Releases, or publish artifacts.
