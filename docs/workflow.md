@@ -91,7 +91,7 @@ During release preparation, the prepared release-note content is appended to `CH
 
 ## Preparation guard
 
-`rellog prepare <release-id>` is the first guard.
+Release-note preparation is the first guard.
 
 It should fail when release-note preparation is impossible or unsafe, for example:
 
@@ -107,7 +107,7 @@ When there are no pending entries, the user should either add normal entries or 
 
 ## Release-note gate
 
-`rellog require release <release-id>` is the v0 publish-oriented guard.
+The release-note gate is the v0 publish-oriented guard.
 
 It should fail unless the prepared release-note file for the release id exists.
 
