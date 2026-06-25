@@ -2,7 +2,7 @@
 
 `rellog` is a runtime-independent CHANGELOG management tool.
 
-It is inspired by the changeset-file workflow, but it is not compatible with Changesets and does not manage versions. Its scope is limited to collecting, validating, and aggregating explicit changelog entries into `CHANGELOG.md`.
+It is inspired by the [changesets](https://github.com/changesets/changesets), but it is not compatible with `changesets` and does not manage versions. Its scope is limited to collecting, validating, and aggregating explicit changelog entries into `CHANGELOG.md`.
 
 ## Concept
 
