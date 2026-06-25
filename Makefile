@@ -25,7 +25,8 @@ test:
 
 .PHONY: coverage
 coverage:
-	go test -covermode=atomic -coverpkg=./... -coverprofile=coverage.out ./...
+	go test -covermode=atomic -coverpkg=./... -coverprofile=coverage.out.tmp ./...
+	cat coverage.out.tmp | grep -v "main.go" > coverage.out
 	go tool cover -func=$(CURDIR)/coverage.out
 	@go tool cover -func=$(CURDIR)/coverage.out | awk -v threshold="$(COVERAGE_THRESHOLD)" '/^total:/ { coverage=$$3; sub(/%/, "", coverage); if (coverage + 0 < threshold + 0) { printf("coverage %.1f%% is below %.1f%%\n", coverage, threshold); exit 1 } printf("coverage %.1f%% meets %.1f%% threshold\n", coverage, threshold) }'
 
@@ -41,10 +42,6 @@ tidy:
 build:
 	go build -o ./bin/rellog ./cmd/rellog
 
-.PHONY: walkthrough
-walkthrough: build
-	PATH="$(CURDIR)/bin:$$PATH" sh scripts/test/test-walkthrough.sh
-
 .PHONY: license-check
 license-check:
 	go tool go-licenses check --include_tests ./...
@@ -52,10 +49,6 @@ license-check:
 .PHONY: license-save
 license-save:
 	go tool go-licenses save ./cmd/git-kura --save_path third_party_licenses
-
-.PHONY: tools-archive
-tools-archive:
-	sh scripts/build-tools-archive.sh $(VERSION) .tools-dist
 
 .PHONY: lint
 lint:

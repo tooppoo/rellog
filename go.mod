@@ -7,6 +7,8 @@ tool (
 	golang.org/x/vuln/cmd/govulncheck
 )
 
+require github.com/rogpeppe/go-internal v1.15.0
+
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-logr/logr v1.2.0 // indirect

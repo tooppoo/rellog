@@ -1,2 +1,5 @@
 
 bin/
+
+coverage.out
+coverage.out.tmp

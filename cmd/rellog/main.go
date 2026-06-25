@@ -1,5 +1,7 @@
 package main
 
+import "github.com/tooppoo/rellog"
+
 func main() {
-	println("Hello, World!")
+	rellog.Main()
 }

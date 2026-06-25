@@ -20,7 +20,8 @@
     "vscode": {
       "extensions": [
         "golang.Go",
-        "EditorConfig.EditorConfig"
+        "EditorConfig.EditorConfig",
+        "brody715.txtar"
       ],
       "settings": {
         "editor.formatOnSave": true,

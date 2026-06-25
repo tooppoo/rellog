@@ -1,0 +1,36 @@
+
+exec rellog --help
+! stderr .
+
+exec rellog -h
+! stderr .
+
+exec rellog --version
+! stderr .
+
+exec rellog -v
+! stderr .
+
+exec rellog init
+! stderr .
+
+exec rellog add --kind changed --target rellog --scope cli --issue 12 --body "Test Entry 1"
+! stderr .
+
+exec rellog add --kind fix --target rellog --scope core --pr 15 --body "Test Entry 2"
+! stderr .
+
+exec rellog check
+! stderr .
+
+exec rellog status
+! stderr .
+
+exec rellog require release v1.0.0
+! stdout .
+
+exec rellog prepare v1.0.0
+! stderr .
+
+exec rellog require release v1.0.0
+! stderr .
