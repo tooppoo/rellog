@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,12 +14,12 @@ import (
 const appVersion = "0.0.1"
 
 type entry struct {
-	Kind   string `json:"kind"`
-	Target string `json:"target"`
-	Scope  string `json:"scope"`
-	Issue  int    `json:"issue,omitempty"`
-	PR     int    `json:"pr,omitempty"`
-	Body   string `json:"body"`
+	Kind   string
+	Target string
+	Scope  string
+	Issue  int
+	PR     int
+	Body   string
 }
 
 type releaseData struct {
@@ -99,20 +100,20 @@ func cmdAdd() *cobra.Command {
 		Short:        "Add a changelog entry",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			existing, err := os.ReadDir(entriesDir())
+			files, err := os.ReadDir(entriesDir())
 			if err != nil {
 				return err
 			}
-			id := len(existing) + 1
+			count := 0
+			for _, f := range files {
+				if strings.HasSuffix(f.Name(), ".md") {
+					count++
+				}
+			}
 
 			e := entry{Kind: kind, Target: target, Scope: scope, Issue: issue, PR: pr, Body: body}
-			data, err := json.Marshal(e)
-			if err != nil {
-				return err
-			}
-
-			filename := fmt.Sprintf("%04d_%s_%s_%s.json", id, kind, target, scope)
-			return os.WriteFile(filepath.Join(entriesDir(), filename), data, 0644)
+			filename := fmt.Sprintf("%04d.md", count+1)
+			return os.WriteFile(filepath.Join(entriesDir(), filename), []byte(formatEntry(e)), 0644)
 		},
 	}
 
@@ -249,6 +250,60 @@ func cmdRequire() *cobra.Command {
 	return requireCmd
 }
 
+func formatEntry(e entry) string {
+	var sb strings.Builder
+	sb.WriteString("---\n")
+	fmt.Fprintf(&sb, "kind: %s\n", e.Kind)
+	fmt.Fprintf(&sb, "target: %s\n", e.Target)
+	fmt.Fprintf(&sb, "scope: %s\n", e.Scope)
+	if e.Issue > 0 {
+		fmt.Fprintf(&sb, "issue: %d\n", e.Issue)
+	}
+	if e.PR > 0 {
+		fmt.Fprintf(&sb, "pr: %d\n", e.PR)
+	}
+	sb.WriteString("---\n")
+	sb.WriteString(e.Body)
+	sb.WriteString("\n")
+	return sb.String()
+}
+
+func parseEntry(data []byte) (entry, error) {
+	s := string(data)
+	if !strings.HasPrefix(s, "---\n") {
+		return entry{}, fmt.Errorf("invalid frontmatter: missing opening ---")
+	}
+	rest := s[4:]
+	frontmatter, after, ok := strings.Cut(rest, "\n---\n")
+	if !ok {
+		return entry{}, fmt.Errorf("invalid frontmatter: missing closing ---")
+	}
+	body := strings.TrimRight(after, "\n")
+
+	e := entry{Body: body}
+	for line := range strings.SplitSeq(frontmatter, "\n") {
+		k, v, ok := strings.Cut(line, ": ")
+		if !ok {
+			continue
+		}
+		switch k {
+		case "kind":
+			e.Kind = v
+		case "target":
+			e.Target = v
+		case "scope":
+			e.Scope = v
+		case "issue":
+			n, _ := strconv.Atoi(v)
+			e.Issue = n
+		case "pr":
+			n, _ := strconv.Atoi(v)
+			e.PR = n
+		}
+	}
+	return e, nil
+}
+
 func readEntries() ([]entry, error) {
 	files, err := os.ReadDir(entriesDir())
 	if err != nil {
@@ -257,15 +312,15 @@ func readEntries() ([]entry, error) {
 
 	var entries []entry
 	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), ".json") {
+		if !strings.HasSuffix(f.Name(), ".md") {
 			continue
 		}
 		data, err := os.ReadFile(filepath.Join(entriesDir(), f.Name()))
 		if err != nil {
 			return nil, err
 		}
-		var e entry
-		if err := json.Unmarshal(data, &e); err != nil {
+		e, err := parseEntry(data)
+		if err != nil {
 			return nil, err
 		}
 		entries = append(entries, e)

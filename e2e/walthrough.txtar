@@ -19,10 +19,14 @@ exists .rellog/entries
 exists .rellog/release-notes
 ! stderr .
 
-exec rellog add --kind changed --target rellog --scope cli --issue 12 --body "Test Entry 1"
+exec rellog add --kind changed --target rellog --scope cli --issue 12 --body 'Test Entry 1'
+exists .rellog/entries/0001.md
+cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
 ! stderr .
 
-exec rellog add --kind fix --target rellog --scope core --pr 15 --body "Test Entry 2"
+exec rellog add --kind fix --target rellog --scope core --pr 15 --body 'Test Entry 2'
+exists .rellog/entries/0002.md
+cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
 ! stderr .
 
 exec rellog check
@@ -39,3 +43,20 @@ exec rellog prepare v1.0.0
 
 exec rellog require release v1.0.0
 ! stderr .
+
+-- .rellog.expected/entries/0001.md --
+---
+kind: changed
+target: rellog
+scope: cli
+issue: 12
+---
+Test Entry 1
+-- .rellog.expected/entries/0002.md --
+---
+kind: fix
+target: rellog
+scope: core
+pr: 15
+---
+Test Entry 2
