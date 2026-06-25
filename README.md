@@ -48,20 +48,6 @@ Sometimes a release has no changelog-worthy changes. That should still be an exp
 
 These files are not GitHub Release Notes. They are repository-managed Markdown artifacts that can be appended to `CHANGELOG.md`, reviewed in pull requests, and reused by other release tooling.
 
-## Repository layout
-
-A typical repository using `rellog` has this layout:
-
-```text
-.rellog/
-  config.kdl
-  entries/
-    <entry-id>.md
-  release-notes/
-    <release-id>.md
-CHANGELOG.md
-```
-
 ## Basic workflow
 
 1. Add a changelog entry while implementing, reviewing, or finalizing a change.
@@ -117,6 +103,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 ## Documentation
 
+- [Files](docs/files.md)
 - [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)
 
