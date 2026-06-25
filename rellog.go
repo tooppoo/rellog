@@ -28,12 +28,16 @@ type releaseData struct {
 
 const baseDir = ".rellog"
 
-func unreleasedDir() string {
-	return filepath.Join(baseDir, "unreleased")
+func configFile() string {
+	return filepath.Join(baseDir, "config.kdl")
 }
 
-func releasesDir() string {
-	return filepath.Join(baseDir, "releases")
+func entriesDir() string {
+	return filepath.Join(baseDir, "entries")
+}
+
+func releaseNotesDir() string {
+	return filepath.Join(baseDir, "release-notes")
 }
 
 func Main() {
@@ -75,10 +79,13 @@ func cmdInit() *cobra.Command {
 		Short:        "Initialize rellog directory",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := os.MkdirAll(unreleasedDir(), 0755); err != nil {
+			if err := os.MkdirAll(entriesDir(), 0755); err != nil {
 				return err
 			}
-			return os.MkdirAll(releasesDir(), 0755)
+			if err := os.MkdirAll(releaseNotesDir(), 0755); err != nil {
+				return err
+			}
+			return os.WriteFile(configFile(), []byte("// rellog config\n"), 0644)
 		},
 	}
 }
@@ -92,7 +99,7 @@ func cmdAdd() *cobra.Command {
 		Short:        "Add a changelog entry",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			existing, err := os.ReadDir(unreleasedDir())
+			existing, err := os.ReadDir(entriesDir())
 			if err != nil {
 				return err
 			}
@@ -105,7 +112,7 @@ func cmdAdd() *cobra.Command {
 			}
 
 			filename := fmt.Sprintf("%04d_%s_%s_%s.json", id, kind, target, scope)
-			return os.WriteFile(filepath.Join(unreleasedDir(), filename), data, 0644)
+			return os.WriteFile(filepath.Join(entriesDir(), filename), data, 0644)
 		},
 	}
 
@@ -129,7 +136,7 @@ func cmdCheck() *cobra.Command {
 		Short:        "Validate unreleased entries",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			entries, err := readUnreleased()
+			entries, err := readEntries()
 			if err != nil {
 				return err
 			}
@@ -152,7 +159,7 @@ func cmdStatus() *cobra.Command {
 		Short:        "Show unreleased entries",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			entries, err := readUnreleased()
+			entries, err := readEntries()
 			if err != nil {
 				return err
 			}
@@ -173,7 +180,7 @@ func cmdPrepare() *cobra.Command {
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ver := args[0]
-			entries, err := readUnreleased()
+			entries, err := readEntries()
 			if err != nil {
 				return err
 			}
@@ -184,17 +191,17 @@ func cmdPrepare() *cobra.Command {
 				return err
 			}
 
-			path := filepath.Join(releasesDir(), ver+".json")
+			path := filepath.Join(releaseNotesDir(), ver+".json")
 			if err := os.WriteFile(path, data, 0644); err != nil {
 				return err
 			}
 
-			files, err := os.ReadDir(unreleasedDir())
+			files, err := os.ReadDir(entriesDir())
 			if err != nil {
 				return err
 			}
 			for _, f := range files {
-				_ = os.Remove(filepath.Join(unreleasedDir(), f.Name()))
+				_ = os.Remove(filepath.Join(entriesDir(), f.Name()))
 			}
 			return nil
 		},
@@ -215,7 +222,7 @@ func cmdRequire() *cobra.Command {
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ver := args[0]
-			path := filepath.Join(releasesDir(), ver+".json")
+			path := filepath.Join(releaseNotesDir(), ver+".json")
 
 			data, err := os.ReadFile(path)
 			if err != nil {
@@ -242,8 +249,8 @@ func cmdRequire() *cobra.Command {
 	return requireCmd
 }
 
-func readUnreleased() ([]entry, error) {
-	files, err := os.ReadDir(unreleasedDir())
+func readEntries() ([]entry, error) {
+	files, err := os.ReadDir(entriesDir())
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +260,7 @@ func readUnreleased() ([]entry, error) {
 		if !strings.HasSuffix(f.Name(), ".json") {
 			continue
 		}
-		data, err := os.ReadFile(filepath.Join(unreleasedDir(), f.Name()))
+		data, err := os.ReadFile(filepath.Join(entriesDir(), f.Name()))
 		if err != nil {
 			return nil, err
 		}

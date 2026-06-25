@@ -1,8 +1,10 @@
 
 exec rellog --help
+stdout 'Release log management tool\n'
 ! stderr .
 
 exec rellog -h
+stdout 'Release log management tool\n'
 ! stderr .
 
 exec rellog --version
@@ -12,6 +14,9 @@ exec rellog -v
 ! stderr .
 
 exec rellog init
+exists .rellog/config.kdl
+exists .rellog/entries
+exists .rellog/release-notes
 ! stderr .
 
 exec rellog add --kind changed --target rellog --scope cli --issue 12 --body "Test Entry 1"
