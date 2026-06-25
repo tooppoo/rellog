@@ -52,11 +52,10 @@ These files are not GitHub Release Notes. They are repository-managed Markdown a
 
 1. Add a changelog entry while implementing, reviewing, or finalizing a change.
 2. If there is nothing to mention, add an explicit empty entry.
-3. Validate pending entries in CI.
-4. Prepare release notes for a supplied release id.
-5. Append the prepared release notes to `CHANGELOG.md`.
-6. Remove consumed pending entries.
-7. Before publishing, require the prepared release-note file for the release id.
+3. Prepare release notes for a supplied release id.
+4. Append the prepared release notes to `CHANGELOG.md`.
+5. Remove consumed pending entries.
+6. Before publishing, require the prepared release-note file for the release id.
 
 See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 
