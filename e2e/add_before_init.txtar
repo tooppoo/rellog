@@ -1,0 +1,6 @@
+
+! exists .rellog
+
+! exec rellog add --kind changed --target rellog --scope cli --issue 12 --body 'Test Entry 1'
+! stdout .
+stderr 'Error: run `rellog init` first\n'

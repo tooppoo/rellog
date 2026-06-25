@@ -2,6 +2,7 @@ package rellog
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,19 @@ import (
 )
 
 const appVersion = "0.0.1"
+
+// Exit codes returned by rellog commands.
+const (
+	ExitNotInitialized   = 1 // rellog has not been initialized (run rellog init first)
+	ExitInvalidStructure = 2 // rellog directory structure is invalid (expected directory is a file)
+)
+
+type exitError struct {
+	Code int
+	Msg  string
+}
+
+func (e *exitError) Error() string { return e.Msg }
 
 type entry struct {
 	Kind   string
@@ -69,6 +83,10 @@ func Main() {
 	)
 
 	if err := root.Execute(); err != nil {
+		if ee, ok := errors.AsType[*exitError](err); ok {
+			fmt.Fprintf(os.Stderr, "Error: %s\n", ee.Msg)
+			os.Exit(ee.Code)
+		}
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
@@ -80,6 +98,11 @@ func cmdInit() *cobra.Command {
 		Short:        "Initialize rellog directory",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			for _, dir := range []string{entriesDir(), releaseNotesDir()} {
+				if info, err := os.Stat(dir); err == nil && !info.IsDir() {
+					return &exitError{ExitInvalidStructure, entriesDir() + " is not a directory"}
+				}
+			}
 			if err := os.MkdirAll(entriesDir(), 0755); err != nil {
 				return err
 			}
@@ -100,6 +123,12 @@ func cmdAdd() *cobra.Command {
 		Short:        "Add a changelog entry",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if _, err := os.Stat(baseDir); os.IsNotExist(err) {
+				return &exitError{ExitNotInitialized, "run `rellog init` first"}
+			}
+			if info, err := os.Stat(entriesDir()); err == nil && !info.IsDir() {
+				return &exitError{ExitInvalidStructure, entriesDir() + " is not a directory"}
+			}
 			files, err := os.ReadDir(entriesDir())
 			if err != nil {
 				return err

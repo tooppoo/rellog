@@ -1,0 +1,7 @@
+
+mkdir .rellog
+exec touch .rellog/entries
+
+! exec rellog init
+! stdout .
+stderr 'Error: .rellog/entries is not a directory\n'

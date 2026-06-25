@@ -20,14 +20,14 @@ exists .rellog/release-notes
 ! stderr .
 
 exec rellog add --kind changed --target rellog --scope cli --issue 12 --body 'Test Entry 1'
+! stderr .
 exists .rellog/entries/0001.md
 cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
-! stderr .
 
 exec rellog add --kind fix --target rellog --scope core --pr 15 --body 'Test Entry 2'
+! stderr .
 exists .rellog/entries/0002.md
 cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
-! stderr .
 
 exec rellog check
 ! stderr .

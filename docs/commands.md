@@ -220,3 +220,11 @@ Possible options:
 - create Git tags;
 - create GitHub Releases;
 - publish packages, binaries, or artifacts.
+
+## Exit codes
+
+| Code | Constant               | Description                                                             |
+|------|------------------------|-------------------------------------------------------------------------|
+| 0    | —                      | Success                                                                 |
+| 1    | `ExitNotInitialized`   | `rellog` has not been initialized; run `rellog init` first              |
+| 2    | `ExitInvalidStructure` | A path that must be a directory exists as a file (e.g. `.rellog/entries`) |
