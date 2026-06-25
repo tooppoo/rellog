@@ -16,10 +16,14 @@ Git history records how work was divided and performed. A CHANGELOG records what
 
 `rellog` has three major artifact lifecycles:
 
-```text
-pending entries
-  -> prepared release-note file
-  -> cumulative CHANGELOG.md entry
+```mermaid
+flowchart LR
+  entries[Pending entries]
+  notes[Prepared release-note file]
+  changelog[CHANGELOG.md section]
+
+  entries -->|prepare release id| notes
+  notes -->|append during preparation| changelog
 ```
 
 The important workflow rule is:
@@ -36,45 +40,49 @@ That is acceptable. The guard belongs near release preparation and release publi
 
 Pending entries are temporary records for the next release explanation.
 
-```text
-absent
-  -> pending normal entries
-  -> consumed by release preparation
-  -> absent
+```mermaid
+stateDiagram-v2
+  [*] --> Absent
+
+  Absent --> PendingNormal: add normal entry
+  PendingNormal --> PendingNormal: add normal entry
+  PendingNormal --> Prepared: prepare release id
+
+  Absent --> PendingEmpty: add empty entry
+  PendingEmpty --> Prepared: prepare release id
+
+  PendingNormal --> Invalid: add empty entry or malformed entry
+  PendingEmpty --> Invalid: add normal entry or malformed entry
+  Invalid --> [*]: fix entries manually
+
+  Prepared --> Absent: delete consumed entries
 ```
 
-or:
+The `Absent` state is valid during ordinary development. It means only that there is no pending release-note material yet.
 
-```text
-absent
-  -> pending empty entry
-  -> consumed by release preparation
-  -> absent
-```
+The `PendingNormal` state means that the next release has changes to mention.
 
-The `absent` state is valid during ordinary development. It means only that there is no pending release-note material yet.
+The `PendingEmpty` state means that the project explicitly records that the next release has no changelog-worthy changes.
 
-The `pending normal entries` state means that the next release has changes to mention.
-
-The `pending empty entry` state means that the project explicitly records that the next release has no changelog-worthy changes.
-
-The invalid state is a contradiction or malformed record. Examples include:
+The `Invalid` state is a contradiction or malformed record. Examples include:
 
 - an empty entry coexisting with normal entries;
 - malformed entry metadata;
 - an empty entry body;
 - an unknown kind or target, depending on project policy.
 
-Release-note preparation must fail in the invalid state.
+Release-note preparation must fail in the `Invalid` state.
 
 ## Release-note lifecycle
 
 A release-note file is created during release preparation.
 
-```text
-absent for release id
-  -> prepared for release id
-  -> required by external release workflow
+```mermaid
+stateDiagram-v2
+  [*] --> Missing
+  Missing --> Prepared: prepare release id
+  Prepared --> Required: require release release id
+  Required --> ExternalWorkflow: continue publish-oriented workflow
 ```
 
 Once prepared, the release-note file becomes the durable per-release Markdown artifact.
@@ -123,16 +131,29 @@ This guard can be placed before artifact publishing, package publishing, GitHub 
 
 A typical release preparation sequence is:
 
-```text
-1. Add normal entries, or add an explicit empty entry when there is nothing to mention.
-2. Run release-note preparation with a release id supplied by the external release process.
-3. Create the release-note file.
-4. Append the same release-note section to CHANGELOG.md.
-5. Delete consumed pending entries.
-6. Open a pull request containing only rellog-managed documentation changes.
+```mermaid
+sequenceDiagram
+  participant Dev as Developer or release operator
+  participant R as rellog
+  participant E as .rellog/entries
+  participant N as .rellog/release-notes
+  participant C as CHANGELOG.md
+  participant PR as Pull request
+
+  Dev->>E: Add normal entries or an empty entry
+  Dev->>R: Prepare release notes with a release id
+  R->>E: Validate pending entries
+  alt entries are absent or invalid
+    R-->>Dev: Fail with remediation guidance
+  else entries are valid
+    R->>N: Create release-note file
+    R->>C: Append release-note section
+    R->>E: Delete consumed entries
+    R->>PR: Open or update documentation-only PR
+  end
 ```
 
-If step 1 is skipped, release-note preparation fails. This failure is the reminder point: `rellog` does not require perfect entry maintenance throughout ordinary development, but it does require an explicit record before release notes are prepared.
+If pending entries are absent, release-note preparation fails. This failure is the reminder point: `rellog` does not require perfect entry maintenance throughout ordinary development, but it does require an explicit record before release notes are prepared.
 
 The resulting pull request should contain only `rellog`-managed documentation artifacts:
 
