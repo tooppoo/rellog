@@ -12,7 +12,6 @@ rellog add
 rellog add-empty
 rellog check
 rellog status
-rellog require entries
 rellog require release <release-id>
 rellog prepare <release-id>
 ```
@@ -109,7 +108,7 @@ rellog add-empty
 
 This command is used when there are no changelog-worthy changes for the next release.
 
-The empty entry allows `rellog require entries` to pass without pretending that an actual change exists. It is not a validation bypass option. It is an explicit repository record that means: there is nothing to mention in the changelog for the next release.
+The empty entry exists so `rellog prepare <release-id>` can produce an explicit empty release-note file without pretending that an actual change exists. It is not a validation bypass option. It is an explicit repository record that means: there is nothing to mention in the changelog for the next release.
 
 Rules:
 
@@ -183,32 +182,6 @@ Possible options:
 --kind <kind>          Show entries for a specific kind.
 ```
 
-## `rellog require entries`
-
-Require that pending changelog entries exist.
-
-```sh
-rellog require entries
-```
-
-This command is intended for release-preparation jobs. It should fail when `.rellog/entries/` contains no pending entries.
-
-An empty entry counts as an entry.
-
-Example failure message:
-
-```text
-No pending rellog entries found.
-
-Add a changelog entry:
-  rellog add
-
-If this release has no changelog-worthy changes, add an explicit empty entry:
-  rellog add-empty
-```
-
-`rellog require entries` should not update files. It is a gatekeeping command.
-
 ## `rellog require release <release-id>`
 
 Require that a prepared release-note file exists.
@@ -242,12 +215,26 @@ rellog prepare v1.0.1
 Expected behavior:
 
 - validate pending entries;
-- require at least one pending entry;
+- fail if there are no pending entries;
 - fail if normal entries and an empty entry coexist;
 - aggregate pending entries in filename order;
 - create `.rellog/release-notes/<release-id>.md` from pending entries;
 - append the prepared release-note content to `CHANGELOG.md`;
 - delete consumed files from `.rellog/entries/`.
+
+If `.rellog/entries/` is empty, the command should tell the user to either add normal entries or create an explicit empty entry.
+
+Example failure message:
+
+```text
+No pending rellog entries found.
+
+Add a changelog entry:
+  rellog add
+
+If this release has no changelog-worthy changes, add an explicit empty entry:
+  rellog add-empty
+```
 
 If `.rellog/release-notes/<release-id>.md` already exists, the command should fail by default rather than silently overwriting it.
 
