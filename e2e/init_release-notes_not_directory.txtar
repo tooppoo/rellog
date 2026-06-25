@@ -4,4 +4,4 @@ exec touch .rellog/release-notes
 
 ! exec rellog init
 ! stdout .
-stderr 'Error: .rellog/entries is not a directory\n'
+stderr 'Error: failed to create .rellog/release-notes:'

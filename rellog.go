@@ -98,16 +98,11 @@ func cmdInit() *cobra.Command {
 		Short:        "Initialize rellog directory",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			for _, dir := range []string{entriesDir(), releaseNotesDir()} {
-				if info, err := os.Stat(dir); err == nil && !info.IsDir() {
-					return &exitError{ExitInvalidStructure, entriesDir() + " is not a directory"}
-				}
-			}
 			if err := os.MkdirAll(entriesDir(), 0755); err != nil {
-				return err
+				return &exitError{ExitInvalidStructure, "failed to create .rellog/entries: " + err.Error()}
 			}
 			if err := os.MkdirAll(releaseNotesDir(), 0755); err != nil {
-				return err
+				return &exitError{ExitInvalidStructure, "failed to create .rellog/release-notes: " + err.Error()}
 			}
 			return os.WriteFile(configFile(), []byte("// rellog config\n"), 0644)
 		},
