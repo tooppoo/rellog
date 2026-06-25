@@ -1,23 +1,32 @@
 {
-  "name": "template-dev",
+  "name": "rellog-dev",
   "image": "mcr.microsoft.com/devcontainers/base:2.1.10-trixie",
-  "workspaceFolder": "/workspaces/fizz",
+  "workspaceFolder": "/workspaces/rellog",
   "remoteUser": "vscode",
   "runArgs": [
     "--init"
   ],
   "postCreateCommand": "sh scripts/setup-dev.sh",
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.26.4"
+    },
+    "ghcr.io/tooppoo/devcontainer-features/git-kura:0": {
+      "version": "v0.0.6"
+    }
   },
   "customizations": {
     "vscode": {
       "extensions": [
+        "golang.Go",
         "EditorConfig.EditorConfig"
       ],
       "settings": {
         "editor.formatOnSave": true,
-        "files.eol": "\n"
+        "files.eol": "\n",
+        "go.useLanguageServer": true,
+        "go.formatTool": "gofmt"
       }
     }
   }
