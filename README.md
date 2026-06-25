@@ -1,5 +1,11 @@
 # rellog
 
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![CI](https://github.com/tooppoo/rellog/actions/workflows/ci.yml/badge.svg)](https://github.com/tooppoo/rellog/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/tooppoo/rellog/graph/badge.svg?token=E8b5Wgllwi)](https://codecov.io/gh/tooppoo/rellog)
+[![CodeQL](https://github.com/tooppoo/rellog/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/tooppoo/rellog/actions/workflows/github-code-scanning/codeql)
+[![Dependency Graph](https://github.com/tooppoo/rellog/actions/workflows/dependabot/update-graph/badge.svg)](https://github.com/tooppoo/rellog/actions/workflows/dependabot/update-graph)
+
 Git log is not a release log.
 
 `rellog` is a runtime-independent CHANGELOG and release-note-file management tool.
