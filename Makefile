@@ -1,4 +1,3 @@
-COVERAGE_THRESHOLD ?= 90
 
 .PHONY: setup
 setup: tidy build
@@ -22,13 +21,6 @@ vet:
 .PHONY: test
 test:
 	go test ./...
-
-.PHONY: coverage
-coverage:
-	go test -covermode=atomic -coverpkg=./... -coverprofile=coverage.out.tmp ./...
-	cat coverage.out.tmp | grep -v "main.go" > coverage.out
-	go tool cover -func=$(CURDIR)/coverage.out
-	@go tool cover -func=$(CURDIR)/coverage.out | awk -v threshold="$(COVERAGE_THRESHOLD)" '/^total:/ { coverage=$$3; sub(/%/, "", coverage); if (coverage + 0 < threshold + 0) { printf("coverage %.1f%% is below %.1f%%\n", coverage, threshold); exit 1 } printf("coverage %.1f%% meets %.1f%% threshold\n", coverage, threshold) }'
 
 .PHONY: vuln
 vuln:
@@ -59,3 +51,7 @@ ci: fmt-check vet coverage vuln license-check
 
 .PHONY: check
 check: lint ci
+
+.PHONY: coverage
+coverage:
+	@bash scripts/test/coverage.sh
