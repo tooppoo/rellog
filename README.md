@@ -53,7 +53,7 @@ These files are not GitHub Release Notes. They are repository-managed Markdown a
 1. Add a changelog entry while implementing, reviewing, or finalizing a change.
 2. If there is nothing to mention, add an explicit empty entry.
 3. Prepare release notes for a supplied release id.
-4. Append the prepared release notes to `CHANGELOG.md`.
+4. Update `CHANGELOG.md` from the prepared release notes.
 5. Remove consumed pending entries.
 6. Before publishing, require the prepared release-note file for the release id.
 
