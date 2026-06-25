@@ -40,7 +40,7 @@ Versioning practices vary heavily by ecosystem:
 
 Sometimes a release has no changelog-worthy changes. That should still be an explicit repository state, not a hidden workflow override.
 
-`rellog add-empty` creates an empty changelog entry. This entry means: the project intentionally records that there is nothing to mention in the changelog for the next release. Because it is still an entry, `rellog require entries` can remain simple: release preparation requires at least one pending entry.
+`rellog add-empty` creates an empty changelog entry. This entry means: the project intentionally records that there is nothing to mention in the changelog for the next release. Because it is still an entry, `rellog prepare <release-id>` can use the same rule for normal releases and empty releases: release-note preparation consumes pending entries.
 
 ### Release notes are plain Markdown files
 
@@ -67,10 +67,10 @@ CHANGELOG.md
 1. Add a changelog entry while implementing, reviewing, or finalizing a change.
 2. If there is nothing to mention, add an explicit empty entry.
 3. Validate pending entries in CI.
-4. Require at least one pending entry before release preparation.
-5. Prepare release notes for a supplied release id.
-6. Append the prepared release notes to `CHANGELOG.md`.
-7. Remove consumed pending entries.
+4. Prepare release notes for a supplied release id.
+5. Append the prepared release notes to `CHANGELOG.md`.
+6. Remove consumed pending entries.
+7. Before publishing, require the prepared release-note file for the release id.
 
 See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 
@@ -83,7 +83,7 @@ See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 - create an explicit empty entry when there is nothing to mention;
 - validate entry format and required metadata;
 - list pending entries;
-- require at least one pending entry before release preparation;
+- reject release-note preparation when there are no pending entries;
 - prepare `.rellog/release-notes/<release-id>.md` from pending entries;
 - append prepared release notes to `CHANGELOG.md`;
 - require a prepared release-note file for a release id;
