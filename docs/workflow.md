@@ -1,205 +1,179 @@
 # rellog workflow
 
-This document describes the intended CHANGELOG management workflow for `rellog`.
+This document describes the intended lifecycle and workflow guards for `rellog`.
+
+For file layout and file formats, see [files.md](files.md). For individual command behavior, see [commands.md](commands.md).
 
 ## Principle
 
 `rellog` separates development history from release explanation.
 
-Git history records how the work was divided and performed. A CHANGELOG records what changed in a release and how that change should be communicated to users, operators, or maintainers.
+Git history records how work was divided and performed. A CHANGELOG records what changed in a release and how that change should be communicated to users, operators, or maintainers.
 
-`rellog` therefore uses explicit changelog entries as its primary input. It does not reconstruct release notes from commit history.
+`rellog` therefore uses explicit changelog entries as its primary input. It does not reconstruct final release notes from commit history.
 
-## Repository layout
+## Lifecycle overview
 
-A typical repository using `rellog` has the following files:
+`rellog` has three major artifact lifecycles:
+
+```mermaid
+flowchart LR
+  entries[Pending entries]
+  notes[Prepared release-note file]
+  changelog[CHANGELOG.md section]
+
+  entries -->|prepare release id| notes
+  notes -->|append during preparation| changelog
+```
+
+The important workflow rule is:
 
 ```text
-.rellog/
-  config.toml
-  entries/
-    <entry-id>.md
-CHANGELOG.md
+release publishing requires a prepared release-note file
 ```
 
-The exact directory names are part of the initial design and may be adjusted before the first stable release. The important distinction is that pending changelog entries are stored separately from the generated or maintained `CHANGELOG.md`.
+`rellog` does not require pending entries to exist throughout ordinary development. In many projects, entries may be added only when the developer remembers, during review, or immediately before release preparation.
 
-## Changelog entry
+That is acceptable. The guard belongs near release preparation and release publishing, not at every development step.
 
-A changelog entry is a small Markdown file that describes one release-note-level change.
+## Pending entry lifecycle
 
-Example:
+Pending entries are temporary records for the next release explanation.
 
-```md
----
-targets:
-  - rellog
-kind: changed
-scope: cli
-breaking: false
-issues:
-  - 12
----
+```mermaid
+stateDiagram-v2
+  [*] --> Absent
 
-Added validation for pending changelog entries before release preparation.
+  Absent --> PendingNormal: add normal entry
+  PendingNormal --> PendingNormal: add normal entry
+  PendingNormal --> Prepared: prepare release id
+
+  Absent --> PendingEmpty: add empty entry
+  PendingEmpty --> Prepared: prepare release id
+
+  PendingNormal --> Invalid: add empty entry or malformed entry
+  PendingEmpty --> Invalid: add normal entry or malformed entry
+  Invalid --> [*]: fix entries manually
+
+  Prepared --> Absent: delete consumed entries
 ```
 
-The entry should describe the change at the level that should appear in release notes. It should not merely restate a commit message, issue title, or implementation step.
+The `Absent` state is valid during ordinary development. It means only that there is no pending release-note material yet.
 
-## Development workflow
+The `PendingNormal` state means that the next release has changes to mention.
 
-### 1. Implement or plan a change
+The `PendingEmpty` state means that the project explicitly records that the next release has no changelog-worthy changes.
 
-A project may add a changelog entry during implementation, during review, or when a change policy is finalized.
+The `Invalid` state is a contradiction or malformed record. Examples include:
 
-The entry is not a full design document. It is a short record of how the change should be explained in a CHANGELOG.
+- an empty entry coexisting with normal entries;
+- malformed entry metadata;
+- an empty entry body;
+- an unknown kind or target, depending on project policy.
 
-### 2. Add a pending entry
+Release-note preparation must fail in the `Invalid` state.
 
-A contributor creates an entry:
+## Release-note lifecycle
 
-```sh
-rellog add
+A release-note file is created during release preparation.
+
+```mermaid
+stateDiagram-v2
+  [*] --> Missing
+  Missing --> Prepared: prepare release id
+  Prepared --> Required: require release release id
+  Required --> ExternalWorkflow: continue publish-oriented workflow
 ```
 
-Non-interactive usage may also be supported:
+Once prepared, the release-note file becomes the durable per-release Markdown artifact.
 
-```sh
-rellog add \
-  --kind changed \
-  --target rellog \
-  --scope cli \
-  --issue 12 \
-  --body "Added validation for pending changelog entries before release preparation."
+`rellog` does not publish it. External tooling may use it to create a GitHub Release, prepare package metadata, update documentation, or perform other release tasks.
+
+## CHANGELOG lifecycle
+
+`CHANGELOG.md` is the cumulative release record.
+
+During release preparation, the prepared release-note content is appended to `CHANGELOG.md`.
+
+`CHANGELOG.md` is not the source of pending release explanation. Pending entries are the source. `CHANGELOG.md` is the accumulated output.
+
+## Preparation guard
+
+Release-note preparation is the first guard.
+
+It should fail when release-note preparation is impossible or unsafe, for example:
+
+- there are no pending entries;
+- normal entries and an empty entry coexist;
+- pending entries are malformed;
+- the target release-note file already exists;
+- the release id is not path-safe.
+
+This guard is intentionally located at preparation time. `rellog` assumes that changelog entries may be written late, because the meaningful release explanation may only become clear after several pieces of work are considered together.
+
+When there are no pending entries, the user should either add normal entries or create an explicit empty entry. The empty entry records that there is nothing changelog-worthy for the release.
+
+## Release-note gate
+
+The release-note gate is the v0 publish-oriented guard.
+
+It should fail unless the prepared release-note file for the release id exists.
+
+This catches the primary failure mode `rellog` is meant to prevent:
+
+```text
+trying to release before preparing release notes
 ```
 
-### 3. Validate entries in CI
+This guard can be placed before artifact publishing, package publishing, GitHub Release creation, website publication, or any other release-oriented step.
 
-Pull requests should validate pending entries:
+## Release preparation sequence
 
-```sh
-rellog check
+A typical release preparation sequence is:
+
+```mermaid
+sequenceDiagram
+  participant Dev as Developer or release operator
+  participant R as rellog
+  participant E as .rellog/entries
+  participant N as .rellog/release-notes
+  participant C as CHANGELOG.md
+  participant PR as Pull request
+
+  Dev->>E: Add normal entries or an empty entry
+  Dev->>R: Prepare release notes with a release id
+  R->>E: Validate pending entries
+  alt entries are absent or invalid
+    R-->>Dev: Fail with remediation guidance
+  else entries are valid
+    R->>N: Create release-note file
+    R->>C: Append release-note section
+    R->>E: Delete consumed entries
+    R->>PR: Open or update documentation-only PR
+  end
 ```
 
-The check should fail if entries have invalid metadata, unknown kinds, unknown targets, or empty bodies.
+If pending entries are absent, release-note preparation fails. This failure is the reminder point: `rellog` does not require perfect entry maintenance throughout ordinary development, but it does require an explicit record before release notes are prepared.
 
-This does not mean every pull request must always include an entry. Some projects may allow documentation-only or internal-only changes without user-facing entries. That policy should be explicit in the repository's workflow.
+The resulting pull request should contain only `rellog`-managed documentation artifacts:
 
-### 4. Require changelog records before release preparation
+- create a release-note file;
+- update `CHANGELOG.md`;
+- delete consumed pending entries.
 
-At release preparation time, a project can require at least one pending entry:
+It should not update versions, update package manifests, create tags, create GitHub Releases, or publish artifacts.
 
-```sh
-rellog require
-```
-
-If no pending entry exists, the command should fail by default. This prevents accidental releases with no CHANGELOG record.
-
-If an empty release is intentional, it should require an explicit reason:
-
-```sh
-rellog require --allow-empty --empty-reason "Rebuild only; no user-visible changes."
-```
-
-The goal is not to force noise into the CHANGELOG. The goal is to distinguish an intentional no-change release from a forgotten changelog update.
-
-## Release preparation workflow
-
-### 1. Provide a release id
-
-`rellog` does not decide versions. The release id is supplied by the release process:
-
-```sh
-rellog prepare --release-id v0.1.0
-```
-
-A release id may be a semantic version, date, Git tag name, distribution label, or any string that the repository uses for CHANGELOG sections.
-
-### 2. Render release notes
-
-Before writing to `CHANGELOG.md`, release notes can be rendered for inspection:
-
-```sh
-rellog render --release-id v0.1.0
-```
-
-This should produce the markdown section that would be inserted into `CHANGELOG.md`.
-
-### 3. Update CHANGELOG.md
-
-Release preparation writes the generated section into `CHANGELOG.md`:
-
-```sh
-rellog prepare --release-id v0.1.0 --date 2026-06-25
-```
-
-This command should not create Git tags, update package manifests, or publish artifacts. It only prepares CHANGELOG changes.
-
-### 4. Consume pending entries
-
-After entries are included in `CHANGELOG.md`, they are no longer pending.
-
-The project may choose one of two policies:
-
-- delete consumed entries;
-- move consumed entries to an archive directory.
-
-The default should be conservative and easy to review in pull requests. Deleting consumed entries is simple. Archiving provides more traceability but increases repository noise.
-
-## GitHub Actions workflow
+## GitHub Actions workflow role
 
 `rellog` should provide a GitHub Action for a changesets-like experience without version management.
 
-### Validate entries on pull requests
+The action layer should be able to:
 
-```yaml
-name: Check changelog entries
+- prepare a release-note pull request from pending entries;
+- fail preparation when pending entries are absent or invalid;
+- fail publish-oriented jobs when the prepared release-note file is missing.
 
-on:
-  pull_request:
-
-jobs:
-  rellog-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: tooppoo/rellog/action/check@v0
-```
-
-### Prepare a CHANGELOG update pull request
-
-```yaml
-name: Prepare changelog
-
-on:
-  workflow_dispatch:
-    inputs:
-      release_id:
-        required: true
-        type: string
-      allow_empty:
-        required: false
-        default: "false"
-
-jobs:
-  prepare-changelog:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: tooppoo/rellog/action/prepare@v0
-        with:
-          release-id: ${{ inputs.release_id }}
-          require-entry: true
-          allow-empty: ${{ inputs.allow_empty }}
-          create-pr: true
-```
-
-The resulting pull request should contain only CHANGELOG-related changes:
-
-- update `CHANGELOG.md`;
-- delete or archive consumed entry files.
-
-It should not update versions or publish anything.
+The action does not infer final release notes from Git history. It only checks and consumes explicit `rellog` entries when preparing release notes, and later verifies that a release-note file exists before release-oriented workflow steps proceed.
 
 ## Future AI-assisted workflow
 

@@ -1,8 +1,10 @@
 # rellog
 
-`rellog` is a runtime-independent CHANGELOG management tool.
+Git log is not a release log.
 
-It is inspired by the [changesets](https://github.com/changesets/changesets), but it is not compatible with `changesets` and does not manage versions. Its scope is limited to collecting, validating, and aggregating explicit changelog entries into `CHANGELOG.md`.
+`rellog` is a runtime-independent CHANGELOG and release-note-file management tool.
+
+It is inspired by the [changesets](https://github.com/changesets/changesets) workflow, but it is not compatible with `changesets` and does not manage versions. Its scope is limited to collecting explicit changelog entries, preparing plain Markdown release-note files, and appending those release notes to `CHANGELOG.md`.
 
 ## Concept
 
@@ -12,7 +14,7 @@ A release often contains implementation commits, review fixes, issue splits, doc
 
 `rellog` treats CHANGELOG content as an edited release record, not as a mechanical summary of Git history.
 
-The central unit is a changelog entry: a small Markdown file that describes a change at the level it should be communicated in release notes. The entry is written before release preparation, reviewed with the code or policy change, and later aggregated into `CHANGELOG.md`.
+The central unit is a changelog entry: a small Markdown file that describes a change at the level it should be communicated in release notes. Entries are accumulated before release preparation and then consumed into a release-note file and `CHANGELOG.md`.
 
 ## Why rellog?
 
@@ -20,7 +22,7 @@ The central unit is a changelog entry: a small Markdown file that describes a ch
 
 Commit history, pull request titles, and merge comments are shaped by work management. They often describe how the work was divided, not what the release means as a whole.
 
-`rellog` therefore does not infer release notes from commits. It expects explicit changelog entries that summarize changes at the user-facing or operator-facing level.
+`rellog` therefore does not infer final release notes from commits. It expects explicit changelog entries that summarize changes at the user-facing, operator-facing, or maintainer-facing level.
 
 ### Version management belongs to each ecosystem
 
@@ -32,21 +34,28 @@ Versioning practices vary heavily by ecosystem:
 - CLI tools may release binaries, installers, package-manager manifests, or GitHub Releases.
 - Documentation sites and web applications may not have a package version at all.
 
-`rellog` deliberately does not decide versions, update package manifests, create Git tags, or publish artifacts. A release id is supplied from the outside when `CHANGELOG.md` is prepared.
+`rellog` deliberately does not decide versions, update package manifests, create Git tags, or publish artifacts. A release id is supplied from the outside when release notes and `CHANGELOG.md` are prepared.
 
-### Human-authored entries should still be enforced
+### Empty releases should also be explicit
 
-Human-written CHANGELOG entries are more appropriate than raw Git history for explaining the totality of a change. They are also easy to forget.
+Sometimes a release has no changelog-worthy changes. That should still be an explicit repository state, not a hidden workflow override.
 
-`rellog` is designed to pair local CLI commands with GitHub Actions so a project can require pending changelog entries before release preparation. For example, a release-preparation job may fail when no pending entry exists unless an explicit empty-release reason is provided.
+`rellog add-empty` creates an empty changelog entry. This entry means: the project intentionally records that there is nothing to mention in the changelog for the next release. Because it is still an entry, `rellog prepare <release-id>` can use the same rule for normal releases and empty releases: release-note preparation consumes pending entries.
+
+### Release notes are plain Markdown files
+
+`rellog` can prepare release notes as plain Markdown files under `.rellog/release-notes/`.
+
+These files are not GitHub Release Notes. They are repository-managed Markdown artifacts that can be appended to `CHANGELOG.md`, reviewed in pull requests, and reused by other release tooling.
 
 ## Basic workflow
 
-1. Add a changelog entry while implementing or reviewing a change.
-2. Validate pending entries in CI.
-3. At release preparation time, provide a release id.
-4. Generate or update `CHANGELOG.md` from pending entries.
-5. Remove or archive consumed entries.
+1. Add a changelog entry while implementing, reviewing, or finalizing a change.
+2. If there is nothing to mention, add an explicit empty entry.
+3. Prepare release notes for a supplied release id.
+4. Update `CHANGELOG.md` from the prepared release notes.
+5. Remove consumed pending entries.
+6. Before publishing, require the prepared release-note file for the release id.
 
 See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 
@@ -54,13 +63,15 @@ See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 
 `rellog` is intended to:
 
-- initialize a changelog-entry directory;
+- initialize `.rellog/`;
 - create changelog entry files;
+- create an explicit empty entry when there is nothing to mention;
 - validate entry format and required metadata;
 - list pending entries;
-- require at least one pending entry before release preparation;
-- render release notes from pending entries;
-- update `CHANGELOG.md` for a supplied release id;
+- reject release-note preparation when there are no pending entries;
+- prepare `.rellog/release-notes/<release-id>.md` from pending entries;
+- append prepared release notes to `CHANGELOG.md`;
+- require a prepared release-note file for a release id;
 - support GitHub Actions that create CHANGELOG update pull requests.
 
 ## What rellog does not do
@@ -70,12 +81,14 @@ See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 - decide the next version;
 - update `package.json`, `Cargo.toml`, `pyproject.toml`, or any other package manifest;
 - create Git tags;
-- publish packages or artifacts;
-- generate release notes directly from commit history;
+- publish packages, binaries, or artifacts;
+- create GitHub Releases;
+- treat `.rellog/release-notes/*.md` as GitHub Release Notes;
+- generate final release notes directly from commit history;
 - require Conventional Commits;
 - provide compatibility with Changesets file semantics.
 
-## When rellog does not fit
+## When not to use rellog
 
 `rellog` is probably not the right tool when:
 
@@ -85,13 +98,14 @@ See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 - the project needs Changesets compatibility;
 - the team wants fully automatic release-note inference without explicit changelog entries.
 
-In those cases, tools such as commit-history based changelog generators or ecosystem-specific release automation may be a better fit.
+In those cases, commit-history based changelog generators or ecosystem-specific release automation may be a better fit.
 
 ## Documentation
 
+- [Files](docs/files.md)
 - [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)
 
 ## Project status
 
-`rellog` is currently in early design. The initial goal is a small, language- and runtime-independent CLI for managing changelog entries and preparing `CHANGELOG.md` updates.
+`rellog` is currently in early design. The initial goal is a small, language- and runtime-independent CLI for managing changelog entries, preparing plain Markdown release-note files, and updating `CHANGELOG.md`.
