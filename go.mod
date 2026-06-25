@@ -9,7 +9,7 @@ tool (
 
 require (
 	github.com/rogpeppe/go-internal v1.15.0
-	github.com/spf13/cobra v1.7.0
+	github.com/spf13/cobra v1.10.2
 )
 
 require (
@@ -21,7 +21,7 @@ require (
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/otiai10/copy v1.10.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.9 // indirect
 	go.opencensus.io v0.24.0 // indirect
 	golang.org/x/mod v0.37.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
