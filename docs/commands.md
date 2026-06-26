@@ -51,7 +51,7 @@ Create a new pending changelog entry.
 rellog add
 ```
 
-The default mode may be interactive. It should guide the user through required metadata such as kind, target, scope, and body.
+The default mode may be interactive. It should guide the user through required metadata such as kind, target, and body.
 
 Non-interactive usage:
 
@@ -59,7 +59,6 @@ Non-interactive usage:
 rellog add \
   --kind changed \
   --target rellog \
-  --scope cli \
   --issue 12 \
   --body "Added validation for pending changelog entries before release preparation."
 ```
@@ -68,8 +67,7 @@ Possible options:
 
 ```text
 --kind <kind>          Changelog category, such as added, changed, fixed, removed, security.
---target <target>      Release target or component affected by the change.
---scope <scope>        Optional narrower area within the target.
+--target <target>      Release target, component, or area affected by the change.
 --breaking             Mark the entry as a breaking change.
 --issue <number>       Related GitHub issue number. May be repeated.
 --pr <number>          Related GitHub pull request number. May be repeated.

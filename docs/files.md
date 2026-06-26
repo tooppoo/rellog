@@ -69,7 +69,6 @@ Example:
 targets:
   - rellog
 kind: changed
-scope: cli
 breaking: false
 issues:
   - 12

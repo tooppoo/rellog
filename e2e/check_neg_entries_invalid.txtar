@@ -10,7 +10,7 @@ exec echo 'valid files not printed'
 rellog check: FAILED
 
 8 files
-13 errors
+12 errors
 
 .rellog/entries/0001.md
   error[entry.kind.missing]
@@ -39,9 +39,6 @@ rellog check: FAILED
   error[entry.targets.invalid]
     targets must be an array.
 
-  error[entry.scope.missing]
-    missing required metadata: scope.
-
   error[entry.issues.invalid]
     issues must be an array.
 
@@ -56,13 +53,12 @@ rellog check: FAILED
     targets must be an array.
 
 .rellog/entries/0010.md
-  error[entry.scope.missing]
-    missing required metadata: scope.
+  error[entry.targets.invalid]
+    targets must be an array.
 -- .rellog/entries/0001.md --
 ---
 targets:
   - rellog
-scope: cli
 issues:
   - 12
 ---
@@ -71,7 +67,6 @@ Kind Not Exist
 ---
 kind: changed
 targets:
-scope: cli
 issues:
   - 12
 ---
@@ -81,7 +76,6 @@ Targets empty
 kind: fix
 targets:
   - rellog
-scope: core
 prs:
   - 15
 ---
@@ -90,7 +84,6 @@ prs:
 kind:
 targets:
   - rellog
-scope: core
 prs:
   - 15
 Frontmatter Broken
@@ -99,7 +92,6 @@ Without Frontmatter
 -- .rellog/entries/0006.md --
 ---
 kind:
-scope:
 targets: 1
 issues: 1
 prs:
@@ -108,8 +100,6 @@ prs:
 -- .rellog/entries/0007.md --
 ---
 kind: test
-scope: test
-scope: test
 ---
 No issues and PRs(valid)
 -- .rellog/entries/0008.md --
@@ -117,7 +107,6 @@ No issues and PRs(valid)
 kind: test
 targets:
   - test
-scope: test
 issues:
   - 1
   - 2
@@ -130,7 +119,6 @@ Fulfilled(valid)
 ---
 kind: test
 targets: 1
-scope: test
 ---
 Array not used for targets(valid)
 -- .rellog/entries/0010.md --
@@ -138,4 +126,4 @@ Array not used for targets(valid)
 kind: test
 targets: 1
 ---
-Scope Empty
+Targets scalar

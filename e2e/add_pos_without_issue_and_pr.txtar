@@ -2,7 +2,7 @@
 exec rellog init
 ! stderr .
 
-exec rellog add --kind changed --target t1 --target t2 --scope cli --body 'No Issue and PR'
+exec rellog add --kind changed --target t1 --target t2 --body 'No Issue and PR'
 ! stderr .
 exists .rellog/entries/0001.md
 cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
@@ -13,6 +13,5 @@ kind: changed
 targets:
   - t1
   - t2
-scope: cli
 ---
 No Issue and PR

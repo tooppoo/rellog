@@ -19,12 +19,12 @@ exists .rellog/entries
 exists .rellog/release-notes
 ! stderr .
 
-exec rellog add --kind changed --target rellog --scope cli --issue 12 --body 'Test Entry 1'
+exec rellog add --kind changed --target rellog --issue 12 --body 'Test Entry 1'
 ! stderr .
 exists .rellog/entries/0001.md
 cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
 
-exec rellog add --kind fix --target rellog --scope core --pr 15 --body 'Test Entry 2'
+exec rellog add --kind fix --target rellog --pr 15 --body 'Test Entry 2'
 ! stderr .
 exists .rellog/entries/0002.md
 cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
@@ -50,7 +50,6 @@ exec rellog require release v1.0.0
 kind: changed
 targets:
   - rellog
-scope: cli
 issues:
   - 12
 ---
@@ -60,7 +59,6 @@ Test Entry 1
 kind: fix
 targets:
   - rellog
-scope: core
 prs:
   - 15
 ---

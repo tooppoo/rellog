@@ -7,7 +7,7 @@ import (
 )
 
 func cmdAdd() *cobra.Command {
-	var kind, scope, body string
+	var kind, body string
 	var targets, issues, prs []string
 
 	cmd := &cobra.Command{
@@ -32,7 +32,6 @@ func cmdAdd() *cobra.Command {
 			return addEntry(addOptions{
 				Kind:    kind,
 				Targets: targets,
-				Scope:   scope,
 				Body:    body,
 				Issues:  issueNumbers,
 				PRs:     prNumbers,
@@ -42,13 +41,11 @@ func cmdAdd() *cobra.Command {
 
 	cmd.Flags().StringVar(&kind, "kind", "", "Change kind (e.g. changed, fix)")
 	cmd.Flags().StringArrayVar(&targets, "target", nil, "Target component (repeatable)")
-	cmd.Flags().StringVar(&scope, "scope", "", "Change scope")
 	cmd.Flags().StringVar(&body, "body", "", "Change description")
 	cmd.Flags().StringArrayVar(&issues, "issue", nil, "Issue number (repeatable)")
 	cmd.Flags().StringArrayVar(&prs, "pr", nil, "PR number (repeatable)")
 	_ = cmd.MarkFlagRequired("kind")
 	_ = cmd.MarkFlagRequired("target")
-	_ = cmd.MarkFlagRequired("scope")
 	_ = cmd.MarkFlagRequired("body")
 
 	return cmd

@@ -11,13 +11,11 @@ import (
 type entry struct {
 	Kind                 string
 	Targets              []string
-	Scope                string
 	Issues               []int
 	PRs                  []int
 	Body                 string
 	targetsKeyPresent    bool
 	targetsIsScalar      bool
-	scopeKeyPresent      bool
 	issuesIsScalar       bool
 	prsHasNonNumericItem bool
 }
@@ -30,7 +28,6 @@ func formatEntry(e entry) string {
 	for _, t := range e.Targets {
 		fmt.Fprintf(&sb, "  - %s\n", t)
 	}
-	fmt.Fprintf(&sb, "scope: %s\n", e.Scope)
 	if len(e.Issues) > 0 {
 		sb.WriteString("issues:\n")
 		for _, i := range e.Issues {
@@ -88,9 +85,6 @@ func parseEntry(data []byte) (entry, error) {
 			switch k {
 			case "kind":
 				e.Kind = v
-			case "scope":
-				e.Scope = v
-				e.scopeKeyPresent = true
 			case "targets":
 				e.targetsKeyPresent = true
 				e.targetsIsScalar = true
@@ -104,8 +98,6 @@ func parseEntry(data []byte) (entry, error) {
 			switch currentList {
 			case "targets":
 				e.targetsKeyPresent = true
-			case "scope":
-				e.scopeKeyPresent = true
 			}
 		}
 	}

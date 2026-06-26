@@ -2,17 +2,17 @@
 exec rellog init
 ! stderr .
 
-exec rellog add --kind changed --target t1 --target t2 --scope cli --issue 12 --body 'Multi targets'
+exec rellog add --kind changed --target t1 --target t2 --issue 12 --body 'Multi targets'
 ! stderr .
 exists .rellog/entries/0001.md
 cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
 
-exec rellog add --kind changed --target t1 --target t2 --scope cli --issue 12 --issue 13 --body 'Multi targets + Multi issues'
+exec rellog add --kind changed --target t1 --target t2 --issue 12 --issue 13 --body 'Multi targets + Multi issues'
 ! stderr .
 exists .rellog/entries/0002.md
 cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
 
-exec rellog add --kind changed --target t1 --target t2 --scope cli --issue 12 --issue 13 --pr 14 --pr 15 --body 'Multi targets + Multi issues + Multi PRs'
+exec rellog add --kind changed --target t1 --target t2 --issue 12 --issue 13 --pr 14 --pr 15 --body 'Multi targets + Multi issues + Multi PRs'
 ! stderr .
 exists .rellog/entries/0003.md
 cmp .rellog/entries/0003.md .rellog.expected/entries/0003.md
@@ -23,7 +23,6 @@ kind: changed
 targets:
   - t1
   - t2
-scope: cli
 issues:
   - 12
 ---
@@ -34,7 +33,6 @@ kind: changed
 targets:
   - t1
   - t2
-scope: cli
 issues:
   - 12
   - 13
@@ -46,7 +44,6 @@ kind: changed
 targets:
   - t1
   - t2
-scope: cli
 issues:
   - 12
   - 13

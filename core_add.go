@@ -10,7 +10,6 @@ import (
 type addOptions struct {
 	Kind    string
 	Targets []string
-	Scope   string
 	Body    string
 	Issues  []int
 	PRs     []int
@@ -37,7 +36,6 @@ func addEntry(opts addOptions) error {
 	e := entry{
 		Kind:    opts.Kind,
 		Targets: opts.Targets,
-		Scope:   opts.Scope,
 		Issues:  opts.Issues,
 		PRs:     opts.PRs,
 		Body:    opts.Body,

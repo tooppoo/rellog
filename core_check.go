@@ -135,13 +135,10 @@ func checkRepository() ([]fileCheckResult, int, error) {
 					errs = append(errs, checkError{"error[entry.kind.missing]", "missing required metadata: kind."})
 				}
 				switch {
-				case e.targetsIsScalar && e.scopeKeyPresent:
+				case e.targetsIsScalar:
 					errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
 				case e.targetsKeyPresent && !e.targetsIsScalar && len(e.Targets) == 0:
 					errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: target."})
-				}
-				if e.Scope == "" {
-					errs = append(errs, checkError{"error[entry.scope.missing]", "missing required metadata: scope."})
 				}
 				if e.issuesIsScalar {
 					errs = append(errs, checkError{"error[entry.issues.invalid]", "issues must be an array."})
