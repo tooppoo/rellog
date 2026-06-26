@@ -22,7 +22,7 @@ flowchart LR
   notes[Prepared release-note file]
   changelog[CHANGELOG.md section]
 
-  entries -->|prepare release id| notes
+  entries -->|prepare --run release id| notes
   notes -->|append during preparation| changelog
 ```
 
@@ -46,10 +46,10 @@ stateDiagram-v2
 
   Absent --> PendingNormal: add normal entry
   PendingNormal --> PendingNormal: add normal entry
-  PendingNormal --> Prepared: prepare release id
+  PendingNormal --> Prepared: prepare --run release id
 
   Absent --> PendingEmpty: add empty entry
-  PendingEmpty --> Prepared: prepare release id
+  PendingEmpty --> Prepared: prepare --run release id
 
   PendingNormal --> Invalid: add empty entry or malformed entry
   PendingEmpty --> Invalid: add normal entry or malformed entry
@@ -75,12 +75,12 @@ Release-note preparation must fail in the `Invalid` state.
 
 ## Release-note lifecycle
 
-A release-note file is created during release preparation.
+A release-note file is created only when release preparation is executed with `--run`.
 
 ```mermaid
 stateDiagram-v2
   [*] --> Missing
-  Missing --> Prepared: prepare release id
+  Missing --> Prepared: prepare --run release id
   Prepared --> Required: require release release id
   Required --> ExternalWorkflow: continue publish-oriented workflow
 ```
@@ -93,7 +93,7 @@ Once prepared, the release-note file becomes the durable per-release Markdown ar
 
 `CHANGELOG.md` is the cumulative release record.
 
-During release preparation, the prepared release-note content is appended to `CHANGELOG.md`.
+During `rellog prepare <release-id> --run`, the prepared release-note content is appended to `CHANGELOG.md`.
 
 `CHANGELOG.md` is not the source of pending release explanation. Pending entries are the source. `CHANGELOG.md` is the accumulated output.
 
@@ -101,7 +101,9 @@ During release preparation, the prepared release-note content is appended to `CH
 
 Release-note preparation is the first guard.
 
-It should fail when release-note preparation is impossible or unsafe, for example:
+The default `rellog prepare <release-id>` command previews the generated release-note Markdown and intended file operations. It does not create a release-note file, update `CHANGELOG.md`, or delete pending entries. `rellog prepare <release-id> --run` executes those operations after the same validation passes.
+
+Both preview and execution should fail when release-note preparation is impossible or unsafe, for example:
 
 - there are no pending entries;
 - normal entries and an empty entry coexist;
@@ -141,11 +143,14 @@ sequenceDiagram
   participant PR as Pull request
 
   Dev->>E: Add normal entries or an empty entry
-  Dev->>R: Prepare release notes with a release id
+  Dev->>R: Preview release notes with a release id
   R->>E: Validate pending entries
   alt entries are absent or invalid
     R-->>Dev: Fail with remediation guidance
   else entries are valid
+    R-->>Dev: Show generated Markdown and intended operations
+    Dev->>R: Run release-note preparation
+    R->>E: Validate pending entries
     R->>N: Create release-note file
     R->>C: Append release-note section
     R->>E: Delete consumed entries

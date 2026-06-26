@@ -107,7 +107,7 @@ Example:
 .rellog/release-notes/v1.0.1.md
 ```
 
-A release-note file is a plain Markdown artifact created during release-note preparation.
+A release-note file is a plain Markdown artifact created when release-note preparation is executed with `rellog prepare <release-id> --run`.
 
 It is not a GitHub Release Note. `rellog` does not create GitHub Releases, but other release tooling may reuse this Markdown file.
 
@@ -160,4 +160,4 @@ No changelog-worthy changes.
 
 `CHANGELOG.md` is the cumulative release record.
 
-Release-note preparation appends the prepared release-note content to `CHANGELOG.md`. It should not update versions, create tags, create GitHub Releases, or publish artifacts.
+Release-note preparation appends the prepared release-note content to `CHANGELOG.md` only when executed with `rellog prepare <release-id> --run`. It should not update versions, create tags, create GitHub Releases, or publish artifacts.

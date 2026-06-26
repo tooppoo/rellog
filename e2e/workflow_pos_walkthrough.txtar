@@ -40,7 +40,22 @@ exec rellog status
 stderr 'Error: release not found: v1.0.0\n'
 
 exec rellog prepare v1.0.0
+stdout '## v1\.0\.0'
+stdout 'Test Entry 1'
+stdout 'Test Entry 2'
 ! stderr .
+! exists .rellog/release-notes/v1.0.0.md
+! exists .rellog/release-notes/v1.0.0.json
+! exists CHANGELOG.md
+exists .rellog/entries/0001.md
+exists .rellog/entries/0002.md
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+exists .rellog/release-notes/v1.0.0.md
+exists CHANGELOG.md
+! exists .rellog/entries/0001.md
+! exists .rellog/entries/0002.md
 
 exec rellog require release v1.0.0
 ! stderr .
