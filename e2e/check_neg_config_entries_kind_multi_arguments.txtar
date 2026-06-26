@@ -31,6 +31,6 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.multi_arguments]
-    The kind value must be a single argument.
+  error[rellog.entries.kinds.kind.argument_count]
+    kind node must have exactly one argument.
     But multiple arguments were provided: "Change" "Other".

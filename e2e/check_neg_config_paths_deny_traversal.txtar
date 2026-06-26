@@ -75,7 +75,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.traversal]
+  error[rellog.paths.changelog.traversal]
     "../CHANGELOG.md" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -94,7 +94,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.traversal]
+  error[rellog.paths.changelog.traversal]
     "subdir/../CHANGELOG.md" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -113,7 +113,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.traversal]
+  error[rellog.paths.changelog.traversal]
     "./CHANGELOG.md" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -132,7 +132,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.traversal]
+  error[rellog.paths.changelog.traversal]
     "subdir/./CHANGELOG.md" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -151,7 +151,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.traversal]
+  error[rellog.paths.entries.traversal]
     "../entries" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -170,7 +170,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.traversal]
+  error[rellog.paths.entries.traversal]
     "subdir/../entries" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -189,7 +189,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.traversal]
+  error[rellog.paths.entries.traversal]
     "./entries" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -208,7 +208,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.traversal]
+  error[rellog.paths.entries.traversal]
     "subdir/./entries" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -227,7 +227,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.traversal]
+  error[rellog.paths.release-notes.traversal]
     "../release-notes" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -246,7 +246,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.traversal]
+  error[rellog.paths.release-notes.traversal]
     "subdir/../release-notes" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -265,7 +265,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.traversal]
+  error[rellog.paths.release-notes.traversal]
     "./release-notes" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
@@ -284,7 +284,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.traversal]
+  error[rellog.paths.release-notes.traversal]
     "subdir/./release-notes" is not allowed.
 
     configuration paths must be repository-root-relative paths and must not contain any dot segments.

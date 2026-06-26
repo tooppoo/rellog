@@ -32,7 +32,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.duplicated]
+  error[rellog.paths.entries.conflict]
     duplicate path: "CHANGELOG.md" is used for both rellog.paths.changelog and rellog.paths.entries
 -- duplicate.changelog.release-notes.kdl --
 rellog config-version=1 {
@@ -49,7 +49,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.duplicated]
+  error[rellog.paths.release-notes.conflict]
     duplicate path: "CHANGELOG.md" is used for both rellog.paths.changelog and rellog.paths.release-notes
 -- duplicate.entries.release-notes.kdl --
 rellog config-version=1 {
@@ -66,5 +66,5 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.duplicated]
+  error[rellog.paths.release-notes.conflict]
     duplicate path: ".rellog/entries" is used for both rellog.paths.entries and rellog.paths.release-notes

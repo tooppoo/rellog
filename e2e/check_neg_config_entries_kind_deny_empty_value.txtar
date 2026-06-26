@@ -30,5 +30,5 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.empty_value]
-    The kind value cannot be empty.
+  error[rellog.entries.kinds.kind.argument_count]
+    kind node must have exactly one argument, but none was provided.

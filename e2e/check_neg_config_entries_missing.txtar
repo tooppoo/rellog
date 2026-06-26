@@ -14,10 +14,6 @@ rellog config-version=1 {
     entries ".rellog/entries"
     release-notes ".rellog/release-notes"
   }
-
-  entries {
-    target-policy "allow-unknown"
-  }
 }
 -- expected.txt --
 rellog check: FAILED
@@ -26,5 +22,5 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[rellog.entries.kinds.missing]
-    rellog.entries.kinds is required.
+  error[rellog.entries.missing]
+    rellog.entries is required but not found.

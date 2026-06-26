@@ -1,0 +1,102 @@
+
+exec rellog init
+
+# single char kind id
+mv single_char.kdl .rellog/config.kdl
+exec rellog check
+stdout 'rellog check: OK \(entries: 0\)\n'
+! stderr .
+
+# uppercase head kind id
+mv uppercase_head.kdl .rellog/config.kdl
+exec rellog check
+stdout 'rellog check: OK \(entries: 0\)\n'
+! stderr .
+
+# hyphenated kind id
+mv hyphenated.kdl .rellog/config.kdl
+exec rellog check
+stdout 'rellog check: OK \(entries: 0\)\n'
+! stderr .
+
+# uppercase head with hyphen
+mv uppercase_hyphenated.kdl .rellog/config.kdl
+exec rellog check
+stdout 'rellog check: OK \(entries: 0\)\n'
+! stderr .
+
+-- single_char.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "a"
+    }
+  }
+}
+-- uppercase_head.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "Added"
+      kind "Changed"
+      kind "Fixed"
+    }
+  }
+}
+-- hyphenated.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "breaking-change"
+      kind "security-fix"
+    }
+  }
+}
+-- uppercase_hyphenated.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "Breaking-change"
+    }
+  }
+}

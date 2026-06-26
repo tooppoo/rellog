@@ -1,0 +1,38 @@
+
+exec rellog init
+
+mv no_rellog_node.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr no_rellog_node.expected.txt
+
+mv empty_file.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr empty_file.expected.txt
+
+-- no_rellog_node.kdl --
+/- kdl-version 2
+
+some-other-node {
+}
+-- no_rellog_node.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.missing]
+    configuration file must contain exactly one top-level rellog node.
+-- empty_file.kdl --
+/- kdl-version 2
+-- empty_file.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.missing]
+    configuration file must contain exactly one top-level rellog node.

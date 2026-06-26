@@ -115,6 +115,27 @@ func Main() {
 	}
 }
 
+const initConfig = `/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+      kind "changed"
+      kind "fixed"
+    }
+  }
+}
+`
+
 func cmdInit() *cobra.Command {
 	return &cobra.Command{
 		Use:          "init",
@@ -131,7 +152,7 @@ func cmdInit() *cobra.Command {
 			if info, err := os.Stat(configFile()); err == nil && info.Mode().IsRegular() {
 				return nil
 			}
-			if err := os.WriteFile(configFile(), []byte("/- kdl-version 2\n"), 0644); err != nil {
+			if err := os.WriteFile(configFile(), []byte(initConfig), 0644); err != nil {
 				return &exitError{ExitInvalidStructure, fmt.Sprintf("failed to create %s: %s", configFile(), err)}
 			}
 			return nil
@@ -394,7 +415,7 @@ func checkConfigFile() *fileCheckResult {
 		if version != "2" {
 			return &fileCheckResult{
 				configFile(),
-				[]checkError{{"error[kdl.invalid_version]", "rellog support only KDL v2"}},
+				[]checkError{{"error[kdl-version.unsupported]", "rellog supports only KDL v2"}},
 			}
 		}
 	}
@@ -405,7 +426,7 @@ func checkConfigFile() *fileCheckResult {
 			"Fix the KDL syntax error and run `rellog check` again."
 		return &fileCheckResult{
 			configFile(),
-			[]checkError{{"error[config.parse_failed]", msg}},
+			[]checkError{{"error[config.parse_error]", msg}},
 		}
 	}
 	if errs := validateRellogConfig(doc); len(errs) > 0 {
@@ -421,9 +442,16 @@ func nodeName(n *document.Node) string {
 	return n.Name.ValueString()
 }
 
-var validKindRe = regexp.MustCompile(`^[a-z][0-9a-zA-Z_.-]+$`)
+// kind id must match [A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*
+var validKindRe = regexp.MustCompile(`^[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*$`)
 
 var builtinKinds = map[string]bool{"empty": true}
+
+var validTargetPolicies = map[string]bool{
+	"deny-unknown":  true,
+	"warn-unknown":  true,
+	"allow-unknown": true,
+}
 
 func validateRellogConfig(doc *document.Document) []checkError {
 	var rellogNode *document.Node
@@ -434,7 +462,7 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		}
 	}
 	if rellogNode == nil {
-		return nil
+		return []checkError{{"error[rellog.missing]", "configuration file must contain exactly one top-level rellog node."}}
 	}
 
 	var pathsNode *document.Node
@@ -445,10 +473,10 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		}
 	}
 	if pathsNode == nil {
-		return []checkError{{"error[config.rellog.paths]", "rellog.paths is required but not found"}}
+		return []checkError{{"error[rellog.paths.missing]", "rellog.paths is required but not found"}}
 	}
 	if len(pathsNode.Arguments) > 0 {
-		return []checkError{{"error[config.rellog.paths]", "rellog.paths must be a block, but found a value"}}
+		return []checkError{{"error[rellog.paths.missing]", "rellog.paths must be a block, but found a value"}}
 	}
 
 	type pathNodeInfo struct {
@@ -477,21 +505,21 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		info, ok := pathInfos[key]
 		if !ok {
 			errs = append(errs, checkError{
-				"error[config.rellog.paths." + key + ".missing]",
+				"error[rellog.paths." + key + ".missing]",
 				"rellog.paths." + key + " is required but not found",
 			})
 			continue
 		}
 		if info.hasChildren {
 			errs = append(errs, checkError{
-				"error[config.rellog.paths." + key + ".children]",
+				"error[rellog.paths." + key + ".unexpected_children]",
 				"rellog.paths." + key + " must not have child nodes.",
 			})
 			continue
 		}
 		if !info.hasArgs || strings.TrimFunc(info.value, unicode.IsSpace) == "" {
 			errs = append(errs, checkError{
-				"error[config.rellog.paths." + key + ".empty_value]",
+				"error[rellog.paths." + key + ".empty]",
 				"rellog.paths." + key + " value cannot be empty.",
 			})
 			continue
@@ -508,7 +536,7 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		val := pathValues[key]
 		if firstKey, ok := seen[val]; ok {
 			errs = append(errs, checkError{
-				"error[config.rellog.paths.duplicated]",
+				"error[rellog.paths." + key + ".conflict]",
 				fmt.Sprintf("duplicate path: %q is used for both rellog.paths.%s and rellog.paths.%s", val, firstKey, key),
 			})
 		} else {
@@ -525,7 +553,7 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		for _, segment := range strings.Split(val, "/") {
 			if segment == "." || segment == ".." {
 				errs = append(errs, checkError{
-					"error[config.rellog.paths." + key + ".traversal]",
+					"error[rellog.paths." + key + ".traversal]",
 					fmt.Sprintf("%q is not allowed.\n\nconfiguration paths must be repository-root-relative paths and must not contain any dot segments.", val),
 				})
 				break
@@ -571,7 +599,23 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 		}
 	}
 	if entriesNode == nil {
-		return nil
+		return []checkError{{"error[rellog.entries.missing]", "rellog.entries is required but not found."}}
+	}
+
+	// Validate target-policy if present
+	for _, n := range entriesNode.Children {
+		if nodeName(n) == "target-policy" {
+			if len(n.Arguments) > 0 {
+				val := n.Arguments[0].ValueString()
+				if !validTargetPolicies[val] {
+					return []checkError{{
+						"error[rellog.entries.target-policy.invalid]",
+						fmt.Sprintf("target-policy %q is not supported.\n\nAllowed values are: deny-unknown, warn-unknown, allow-unknown.", val),
+					}}
+				}
+			}
+			break
+		}
 	}
 
 	var kindsNode *document.Node
@@ -582,7 +626,7 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 		}
 	}
 	if kindsNode == nil {
-		return []checkError{{"error[config.entries.kinds.missing]", "rellog.entries.kinds is required."}}
+		return []checkError{{"error[rellog.entries.kinds.missing]", "rellog.entries.kinds is required."}}
 	}
 
 	var values []string
@@ -593,8 +637,8 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 		}
 		if len(n.Arguments) == 0 {
 			perNodeErrs = append(perNodeErrs, checkError{
-				"error[config.entries.kinds.empty_value]",
-				"The kind value cannot be empty.",
+				"error[rellog.entries.kinds.kind.argument_count]",
+				"kind node must have exactly one argument, but none was provided.",
 			})
 			continue
 		}
@@ -604,8 +648,8 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 				args[i] = `"` + a.ValueString() + `"`
 			}
 			perNodeErrs = append(perNodeErrs, checkError{
-				"error[config.entries.kinds.multi_arguments]",
-				"The kind value must be a single argument.\nBut multiple arguments were provided: " + strings.Join(args, " ") + ".",
+				"error[rellog.entries.kinds.kind.argument_count]",
+				"kind node must have exactly one argument.\nBut multiple arguments were provided: " + strings.Join(args, " ") + ".",
 			})
 			continue
 		}
@@ -620,8 +664,8 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 	for _, v := range values {
 		if seen[v] {
 			dupErrs = append(dupErrs, checkError{
-				"error[config.entries.kinds.duplicated]",
-				fmt.Sprintf("The kind value %q is duplicated.", v),
+				"error[rellog.entries.kinds.kind.id.duplicate]",
+				fmt.Sprintf("The kind id %q is duplicated.", v),
 			})
 		}
 		seen[v] = true
@@ -634,19 +678,18 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 	for _, v := range values {
 		if builtinKinds[v] {
 			valErrs = append(valErrs, checkError{
-				"error[config.entries.kinds.builtin_kind]",
-				fmt.Sprintf("%q is a built-in kind and cannot be defined by the user.", v),
+				"error[rellog.entries.kinds.kind.id.reserved]",
+				fmt.Sprintf("%q is a reserved kind id and cannot be defined by the user.", v),
 			})
 		} else if !validKindRe.MatchString(v) {
 			valErrs = append(valErrs, checkError{
-				"error[config.entries.kinds.invalid_format]",
-				fmt.Sprintf("The kind value %q is invalid.\n\nkind value is identifier.\nit must satisfy /^[a-z][0-9a-zA-Z_-.]+$/", v),
+				"error[rellog.entries.kinds.kind.id.invalid]",
+				fmt.Sprintf("The kind id %q is invalid.\n\nkind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/", v),
 			})
 		}
 	}
 	return valErrs
 }
-
 
 func reportCheckResults(results []fileCheckResult, totalMd int) error {
 	if len(results) == 0 {

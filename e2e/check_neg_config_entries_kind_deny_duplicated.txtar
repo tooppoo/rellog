@@ -32,5 +32,5 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.duplicated]
-    The kind value "Add" is duplicated.
+  error[rellog.entries.kinds.kind.id.duplicate]
+    The kind id "Add" is duplicated.

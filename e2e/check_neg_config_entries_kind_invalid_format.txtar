@@ -6,11 +6,6 @@ mv rellog.entries.kinds.multibyte.kdl .rellog/config.kdl
 ! stdout .
 cmp stderr rellog.entries.kinds.multibyte.expected.txt
 
-mv rellog.entries.kinds.uppercase_head.kdl .rellog/config.kdl
-! exec rellog check
-! stdout .
-cmp stderr rellog.entries.kinds.uppercase_head.expected.txt
-
 mv rellog.entries.kinds.number_head.kdl .rellog/config.kdl
 ! exec rellog check
 ! stdout .
@@ -31,10 +26,20 @@ mv rellog.entries.kinds.dot_head.kdl .rellog/config.kdl
 ! stdout .
 cmp stderr rellog.entries.kinds.dot_head.expected.txt
 
-mv rellog.entries.kinds.one_char.kdl .rellog/config.kdl
+mv rellog.entries.kinds.underscore_mid.kdl .rellog/config.kdl
 ! exec rellog check
 ! stdout .
-cmp stderr rellog.entries.kinds.one_char.expected.txt
+cmp stderr rellog.entries.kinds.underscore_mid.expected.txt
+
+mv rellog.entries.kinds.camelcase.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.camelcase.expected.txt
+
+mv rellog.entries.kinds.trailing_hyphen.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.trailing_hyphen.expected.txt
 
 mv rellog.entries.kinds.space.kdl .rellog/config.kdl
 ! exec rellog check
@@ -73,42 +78,10 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "テスト" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "テスト" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
--- rellog.entries.kinds.uppercase_head.kdl --
-/- kdl-version 2
-
-rellog config-version=1 {
-  paths {
-    changelog "CHANGELOG.md"
-    entries ".rellog/entries"
-    release-notes ".rellog/release-notes"
-  }
-
-  entries {
-    kinds {
-      kind "add"
-      kind "Change" // invalid
-    }
-
-    target-policy "allow-unknown"
-  }
-}
--- rellog.entries.kinds.uppercase_head.expected.txt --
-rellog check: FAILED
-
-1 files
-1 errors
-
-.rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "Change" is invalid.
-
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
 -- rellog.entries.kinds.number_head.kdl --
 /- kdl-version 2
 
@@ -135,11 +108,10 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "1change" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "1change" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
 -- rellog.entries.kinds.underscore_head.kdl --
 /- kdl-version 2
 
@@ -166,11 +138,10 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "_change" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "_change" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
 -- rellog.entries.kinds.hyphen_head.kdl --
 /- kdl-version 2
 
@@ -197,11 +168,10 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "-change" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "-change" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
 -- rellog.entries.kinds.dot_head.kdl --
 /- kdl-version 2
 
@@ -228,12 +198,11 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value ".change" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id ".change" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
--- rellog.entries.kinds.one_char.kdl --
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
+-- rellog.entries.kinds.underscore_mid.kdl --
 /- kdl-version 2
 
 rellog config-version=1 {
@@ -245,24 +214,84 @@ rellog config-version=1 {
 
   entries {
     kinds {
-      kind "a" // invalid
+      kind "add"
+      kind "fix_bug" // invalid: underscore not allowed
     }
 
     target-policy "allow-unknown"
   }
 }
--- rellog.entries.kinds.one_char.expected.txt --
+-- rellog.entries.kinds.underscore_mid.expected.txt --
 rellog check: FAILED
 
 1 files
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "a" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "fix_bug" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
+-- rellog.entries.kinds.camelcase.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "fixBug" // invalid: uppercase after head
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.camelcase.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "fixBug" is invalid.
+
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
+-- rellog.entries.kinds.trailing_hyphen.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "fixed-" // invalid: trailing hyphen
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.trailing_hyphen.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "fixed-" is invalid.
+
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
 -- rellog.entries.kinds.space.kdl --
 /- kdl-version 2
 
@@ -289,11 +318,10 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "change log" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "change log" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/
 -- rellog.entries.kinds.slash.kdl --
 /- kdl-version 2
 
@@ -320,8 +348,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.invalid_format]
-    The kind value "change/log" is invalid.
+  error[rellog.entries.kinds.kind.id.invalid]
+    The kind id "change/log" is invalid.
 
-    kind value is identifier.
-    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+    kind id must match /[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*/

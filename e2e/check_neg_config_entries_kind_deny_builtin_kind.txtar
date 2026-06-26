@@ -30,5 +30,5 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.entries.kinds.builtin_kind]
-    "empty" is a built-in kind and cannot be defined by the user.
+  error[rellog.entries.kinds.kind.id.reserved]
+    "empty" is a reserved kind id and cannot be defined by the user.

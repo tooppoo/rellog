@@ -117,7 +117,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths]
+  error[rellog.paths.missing]
     rellog.paths must be a block, but found a value
 -- paths.empty.kdl --
 rellog config-version=1 {
@@ -131,13 +131,13 @@ rellog check: FAILED
 3 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.missing]
+  error[rellog.paths.changelog.missing]
     rellog.paths.changelog is required but not found
 
-  error[config.rellog.paths.entries.missing]
+  error[rellog.paths.entries.missing]
     rellog.paths.entries is required but not found
 
-  error[config.rellog.paths.release-notes.missing]
+  error[rellog.paths.release-notes.missing]
     rellog.paths.release-notes is required but not found
 -- paths.changelog.empty.kdl --
 rellog config-version=1 {
@@ -154,7 +154,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.empty_value]
+  error[rellog.paths.changelog.empty]
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.blank.kdl --
 rellog config-version=1 {
@@ -171,7 +171,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.empty_value]
+  error[rellog.paths.changelog.empty]
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.emtpy_string.kdl --
 rellog config-version=1 {
@@ -188,7 +188,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.empty_value]
+  error[rellog.paths.changelog.empty]
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.multibyte_blank.kdl --
 rellog config-version=1 {
@@ -205,7 +205,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.empty_value]
+  error[rellog.paths.changelog.empty]
     rellog.paths.changelog value cannot be empty.
 -- pahs.changelog.mixed_blank.kdl --
 rellog config-version=1 {
@@ -222,7 +222,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.empty_value]
+  error[rellog.paths.changelog.empty]
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.children.kdl --
 rellog config-version=1 {
@@ -241,7 +241,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.children]
+  error[rellog.paths.changelog.unexpected_children]
     rellog.paths.changelog must not have child nodes.
 -- paths.entries.empty.kdl --
 rellog config-version=1 {
@@ -258,7 +258,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.empty_value]
+  error[rellog.paths.entries.empty]
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty_string.kdl --
 rellog config-version=1 {
@@ -275,7 +275,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.empty_value]
+  error[rellog.paths.entries.empty]
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.blank.kdl --
 rellog config-version=1 {
@@ -292,7 +292,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.empty_value]
+  error[rellog.paths.entries.empty]
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.multibyte_blank.kdl --
 rellog config-version=1 {
@@ -309,7 +309,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.empty_value]
+  error[rellog.paths.entries.empty]
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.mixed_blank.kdl --
 rellog config-version=1 {
@@ -326,7 +326,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.empty_value]
+  error[rellog.paths.entries.empty]
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.children.kdl --
 rellog config-version=1 {
@@ -345,7 +345,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.children]
+  error[rellog.paths.entries.unexpected_children]
     rellog.paths.entries must not have child nodes.
 -- paths.release-notes.empty.kdl --
 rellog config-version=1 {
@@ -362,7 +362,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.empty_value]
+  error[rellog.paths.release-notes.empty]
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty_string.kdl --
 rellog config-version=1 {
@@ -379,7 +379,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.empty_value]
+  error[rellog.paths.release-notes.empty]
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.blank.kdl --
 rellog config-version=1 {
@@ -396,7 +396,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.empty_value]
+  error[rellog.paths.release-notes.empty]
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.multibyte_blank.kdl --
 rellog config-version=1 {
@@ -413,7 +413,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.empty_value]
+  error[rellog.paths.release-notes.empty]
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.mixed_blank.kdl --
 rellog config-version=1 {
@@ -430,7 +430,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.empty_value]
+  error[rellog.paths.release-notes.empty]
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.children.kdl --
 rellog config-version=1 {
@@ -449,5 +449,5 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.children]
+  error[rellog.paths.release-notes.unexpected_children]
     rellog.paths.release-notes must not have child nodes.

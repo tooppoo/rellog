@@ -3,17 +3,8 @@ exec rellog init
 
 ! exec rellog check
 ! stdout .
+stderr 'error\[config\.parse_error\]'
+stderr 'Failed to parse rellog configuration file\.'
 
 -- .rellog/config.kdl --
 = invalid kdl content
--- expected.txt --
-rellog check: FAILED
-
-1 files
-1 errors
-
-.rellog/config.kdl
-  error[config.parse_failed]
-    Failed to parse rellog configuration file.
-
-    Fix the KDL syntax error and run `rellog check` again.

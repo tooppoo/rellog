@@ -32,7 +32,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths]
+  error[rellog.paths.missing]
     rellog.paths is required but not found
 -- paths.changelog.missing.kdl --
 rellog config-version=1 {
@@ -48,7 +48,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.changelog.missing]
+  error[rellog.paths.changelog.missing]
     rellog.paths.changelog is required but not found
 -- paths.entries.missing.kdl --
 rellog config-version=1 {
@@ -64,7 +64,7 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.entries.missing]
+  error[rellog.paths.entries.missing]
     rellog.paths.entries is required but not found
 -- paths.release-notes.missing.kdl --
 rellog config-version=1 {
@@ -80,5 +80,5 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[config.rellog.paths.release-notes.missing]
+  error[rellog.paths.release-notes.missing]
     rellog.paths.release-notes is required but not found

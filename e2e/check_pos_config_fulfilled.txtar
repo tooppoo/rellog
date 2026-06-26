@@ -16,7 +16,7 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "known-only"
+    target-policy "deny-unknown"
 
     kinds {
       kind "added" title="Added"
