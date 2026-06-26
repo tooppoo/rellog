@@ -377,13 +377,14 @@ A `kind` node must:
 A kind id must match:
 
 ```text
-[a-z][a-z0-9-]*
+[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*
 ```
 
 Valid examples:
 
 ```kdl
 kind "added"
+kind "Added"
 kind "fixed"
 kind "security"
 kind "breaking-change"
@@ -394,8 +395,8 @@ Invalid examples:
 ```kdl
 kind ""
 kind " "
-kind "Added"
 kind "fix_bug"
+kind "fixBug"
 kind "fix bug"
 kind "-fixed"
 kind "fixed-"
@@ -585,89 +586,97 @@ rellog config-version=1 {
 
 ### Root
 
-| Code                             | Condition                                               |
-| -------------------------------- | ------------------------------------------------------- |
-| `config.parse_error`             | The file cannot be parsed as KDL v2.                    |
-| `config.unsupported_kdl_version` | The KDL version marker is present but is not version 2. |
-| `config.root_missing`            | The `rellog` root node is missing.                      |
-| `config.root_duplicate`          | More than one `rellog` root node exists.                |
-| `config.version_missing`         | `config-version` is missing.                            |
-| `config.version_unsupported`     | `config-version` is not supported.                      |
-| `config.unknown_node`            | An unknown node is present.                             |
-| `config.unknown_property`        | An unknown property is present.                         |
-| `config.duplicate_property`      | A property appears more than once in the same node.     |
+Error codes use the dotted path to the configuration node or property where the problem occurred, followed by an error id.
+
+| Code                                | Condition                                               |
+| ----------------------------------- | ------------------------------------------------------- |
+| `config.parse_error`                | The file cannot be parsed as KDL v2.                    |
+| `kdl-version.unsupported`           | The KDL version marker is present but is not version 2. |
+| `rellog.missing`                    | The `rellog` root node is missing.                      |
+| `rellog.duplicate`                  | More than one `rellog` root node exists.                |
+| `rellog.config-version.missing`     | `config-version` is missing.                            |
+| `rellog.config-version.unsupported` | `config-version` is not supported.                      |
+| `<path>.unknown_node`               | An unknown node is present.                             |
+| `<path>.unknown_property`           | An unknown property is present.                         |
+| `<path>.<property>.duplicate`       | A property appears more than once in the same node.     |
 
 ### Paths
 
-| Code                         | Condition                                       |
-| ---------------------------- | ----------------------------------------------- |
-| `config.paths.missing`       | `paths` is missing.                             |
-| `config.path.missing`        | A required path node is missing.                |
-| `config.path.argument_count` | A path node does not have exactly one argument. |
-| `config.path.type`           | A path value is not a string.                   |
-| `config.path.empty`          | A path value is empty.                          |
-| `config.path.absolute`       | A path is absolute.                             |
-| `config.path.backslash`      | A path contains `\`.                            |
-| `config.path.empty_segment`  | A path contains an empty segment.               |
-| `config.path.dot_segment`    | A path contains a `.` segment.                  |
-| `config.path.traversal`      | A path contains a `..` segment.                 |
-| `config.path.trailing_slash` | A path ends with `/`.                           |
-| `config.path.conflict`       | Configured paths conflict with each other.      |
+| Code                                      | Condition                                       |
+| ----------------------------------------- | ----------------------------------------------- |
+| `rellog.paths.missing`                    | `paths` is missing.                             |
+| `rellog.paths.<path>.missing`             | A required path node is missing.                |
+| `rellog.paths.<path>.argument_count`      | A path node does not have exactly one argument. |
+| `rellog.paths.<path>.type`                | A path value is not a string.                   |
+| `rellog.paths.<path>.empty`               | A path value is empty.                          |
+| `rellog.paths.<path>.absolute`            | A path is absolute.                             |
+| `rellog.paths.<path>.backslash`           | A path contains `\`.                            |
+| `rellog.paths.<path>.empty_segment`       | A path contains an empty segment.               |
+| `rellog.paths.<path>.dot_segment`         | A path contains a `.` segment.                  |
+| `rellog.paths.<path>.traversal`           | A path contains a `..` segment.                 |
+| `rellog.paths.<path>.trailing_slash`      | A path ends with `/`.                           |
+| `rellog.paths.<path>.conflict`            | A configured path conflicts with another path.  |
+| `rellog.paths.<path>.unexpected_children` | A path node has children.                       |
 
 ### Entries
 
-| Code                                   | Condition                                             |
-| -------------------------------------- | ----------------------------------------------------- |
-| `config.entries.missing`               | `entries` is missing.                                 |
-| `config.entries.target_policy.invalid` | `target-policy` has an unsupported value.             |
-| `config.entries.targets.required`      | `targets` is required by `target-policy` but missing. |
+| Code                                            | Condition                                             |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| `rellog.entries.missing`                        | `entries` is missing.                                 |
+| `rellog.entries.target-policy.invalid`          | `target-policy` has an unsupported value.             |
+| `rellog.entries.target-policy.type`             | `target-policy` is not a string.                      |
+| `rellog.entries.target-policy.duplicate`        | `target-policy` appears more than once.               |
+| `rellog.entries.targets.required`               | `targets` is required by `target-policy` but missing. |
+| `rellog.entries.unexpected_children`            | `entries` has unexpected children.                    |
 
 ### Kinds
 
-| Code                                            | Condition                                         |
-| ----------------------------------------------- | ------------------------------------------------- |
-| `config.entries.kinds.missing`                  | `kinds` is missing.                               |
-| `config.entries.kinds.empty`                    | `kinds` contains no `kind` nodes.                 |
-| `config.entries.kinds.kind.argument_count`      | A `kind` node does not have exactly one argument. |
-| `config.entries.kinds.kind.id_type`             | A kind id is not a string.                        |
-| `config.entries.kinds.kind.id_empty`            | A kind id is empty or whitespace-only.            |
-| `config.entries.kinds.kind.id_invalid`          | A kind id does not match the required format.     |
-| `config.entries.kinds.kind.id_reserved`         | A kind id is reserved.                            |
-| `config.entries.kinds.kind.id_duplicate`        | A kind id is duplicated.                          |
-| `config.entries.kinds.kind.title_type`          | `title` is not a string.                          |
-| `config.entries.kinds.kind.title_empty`         | `title` is empty or whitespace-only.              |
-| `config.entries.kinds.kind.title_duplicate`     | An effective title is duplicated.                 |
-| `config.entries.kinds.kind.description_type`    | `description` is not a string.                    |
-| `config.entries.kinds.kind.unknown_property`    | A `kind` node has an unknown property.            |
-| `config.entries.kinds.kind.unexpected_children` | A `kind` node has children.                       |
+| Code                                             | Condition                                         |
+| ------------------------------------------------ | ------------------------------------------------- |
+| `rellog.entries.kinds.missing`                   | `kinds` is missing.                               |
+| `rellog.entries.kinds.empty`                     | `kinds` contains no `kind` nodes.                 |
+| `rellog.entries.kinds.kind.argument_count`       | A `kind` node does not have exactly one argument. |
+| `rellog.entries.kinds.kind.id.type`              | A kind id is not a string.                        |
+| `rellog.entries.kinds.kind.id.empty`             | A kind id is empty or whitespace-only.            |
+| `rellog.entries.kinds.kind.id.invalid`           | A kind id does not match the required format.     |
+| `rellog.entries.kinds.kind.id.reserved`          | A kind id is reserved.                            |
+| `rellog.entries.kinds.kind.id.duplicate`         | A kind id is duplicated.                          |
+| `rellog.entries.kinds.kind.title.type`           | `title` is not a string.                          |
+| `rellog.entries.kinds.kind.title.empty`          | `title` is empty or whitespace-only.              |
+| `rellog.entries.kinds.kind.title.duplicate`      | An effective title is duplicated.                 |
+| `rellog.entries.kinds.kind.description.type`     | `description` is not a string.                    |
+| `rellog.entries.kinds.kind.unknown_property`     | A `kind` node has an unknown property.            |
+| `rellog.entries.kinds.kind.unexpected_children`  | A `kind` node has children.                       |
 
 ### Targets
 
-| Code                                                | Condition                                            |
-| --------------------------------------------------- | ---------------------------------------------------- |
-| `config.entries.targets.empty`                      | `targets` is present but contains no `target` nodes. |
-| `config.entries.targets.target.argument_count`      | A `target` node does not have exactly one argument.  |
-| `config.entries.targets.target.id_type`             | A target id is not a string.                         |
-| `config.entries.targets.target.id_empty`            | A target id is empty or whitespace-only.             |
-| `config.entries.targets.target.id_invalid`          | A target id does not match the required format.      |
-| `config.entries.targets.target.id_duplicate`        | A target id is duplicated.                           |
-| `config.entries.targets.target.title_type`          | `title` is not a string.                             |
-| `config.entries.targets.target.title_empty`         | `title` is empty or whitespace-only.                 |
-| `config.entries.targets.target.title_duplicate`     | An effective title is duplicated.                    |
-| `config.entries.targets.target.description_type`    | `description` is not a string.                       |
-| `config.entries.targets.target.unknown_property`    | A `target` node has an unknown property.             |
-| `config.entries.targets.target.unexpected_children` | A `target` node has children.                        |
+| Code                                                 | Condition                                            |
+| ---------------------------------------------------- | ---------------------------------------------------- |
+| `rellog.entries.targets.empty`                       | `targets` is present but contains no `target` nodes. |
+| `rellog.entries.targets.target.argument_count`       | A `target` node does not have exactly one argument.  |
+| `rellog.entries.targets.target.id.type`              | A target id is not a string.                         |
+| `rellog.entries.targets.target.id.empty`             | A target id is empty or whitespace-only.             |
+| `rellog.entries.targets.target.id.invalid`           | A target id does not match the required format.      |
+| `rellog.entries.targets.target.id.duplicate`         | A target id is duplicated.                           |
+| `rellog.entries.targets.target.title.type`           | `title` is not a string.                             |
+| `rellog.entries.targets.target.title.empty`          | `title` is empty or whitespace-only.                 |
+| `rellog.entries.targets.target.title.duplicate`      | An effective target title is duplicated.             |
+| `rellog.entries.targets.target.description.type`     | `description` is not a string.                       |
+| `rellog.entries.targets.target.unknown_property`     | A `target` node has an unknown property.             |
+| `rellog.entries.targets.target.unexpected_children`  | A `target` node has children.                        |
 
 ### Rendering
 
-| Code                                           | Condition                                                            |
-| ---------------------------------------------- | -------------------------------------------------------------------- |
-| `config.rendering.release_heading_level.type`  | `release-heading-level` is not an integer.                           |
-| `config.rendering.release_heading_level.range` | `release-heading-level` is outside 1 to 6.                           |
-| `config.rendering.section_heading_level.type`  | `section-heading-level` is not an integer.                           |
-| `config.rendering.section_heading_level.range` | `section-heading-level` is outside 1 to 6.                           |
-| `config.rendering.section_heading_level.order` | `section-heading-level` is not greater than `release-heading-level`. |
-| `config.rendering.empty_message.type`          | `empty-message` is not a string.                                     |
+| Code                                            | Condition                                                            |
+| ----------------------------------------------- | -------------------------------------------------------------------- |
+| `rellog.rendering.release-heading-level.type`   | `release-heading-level` is not an integer.                           |
+| `rellog.rendering.release-heading-level.range`  | `release-heading-level` is outside 1 to 6.                           |
+| `rellog.rendering.section-heading-level.type`   | `section-heading-level` is not an integer.                           |
+| `rellog.rendering.section-heading-level.range`  | `section-heading-level` is outside 1 to 6.                           |
+| `rellog.rendering.section-heading-level.order`  | `section-heading-level` is not greater than `release-heading-level`. |
+| `rellog.rendering.empty-message.type`           | `empty-message` is not a string.                                     |
+| `rellog.rendering.unknown_node`                 | An unknown rendering node is present.                                |
+| `rellog.rendering.<property>.unknown_property`  | An unknown rendering property is present.                            |
 
 ## References
 
