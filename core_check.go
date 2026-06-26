@@ -1,6 +1,7 @@
 package rellog
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,8 +109,18 @@ func checkRepository() ([]fileCheckResult, int, error) {
 	}
 
 	// Step 5: Check config file
+	var entryConfig entryValidationConfig
+	configOK := true
 	if r := checkConfigFile(); r != nil {
 		results = append(results, *r)
+		configOK = false
+	}
+	if configOK {
+		var err error
+		entryConfig, err = readEntryValidationConfig()
+		if err != nil {
+			return nil, 0, err
+		}
 	}
 
 	// Step 6: Process entry files (only if entries dir is accessible)
@@ -133,12 +144,35 @@ func checkRepository() ([]fileCheckResult, int, error) {
 			} else {
 				if e.Kind == "" {
 					errs = append(errs, checkError{"error[entry.kind.missing]", "missing required metadata: kind."})
+				} else if configOK && e.Kind != "empty" && !entryConfig.allowedKinds[e.Kind] {
+					errs = append(errs, checkError{
+						"error[entry.kind.unknown]",
+						fmt.Sprintf("kind %q is not defined in rellog.entries.kinds.", e.Kind),
+					})
 				}
+				targetsValidForLookup := true
 				switch {
 				case e.targetsIsScalar:
 					errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
+					targetsValidForLookup = false
 				case e.targetsKeyPresent && !e.targetsIsScalar && len(e.Targets) == 0:
 					errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: target."})
+					targetsValidForLookup = false
+				}
+				if configOK && targetsValidForLookup && e.targetsKeyPresent && entryConfig.targetPolicy != "allow-unknown" {
+					for _, target := range e.Targets {
+						if entryConfig.knownTargets[target] {
+							continue
+						}
+						code := "error[entry.targets.unknown]"
+						if entryConfig.targetPolicy == "warn-unknown" {
+							code = "warning[entry.targets.unknown]"
+						}
+						errs = append(errs, checkError{
+							code,
+							fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target),
+						})
+					}
 				}
 				if e.issuesIsScalar {
 					errs = append(errs, checkError{"error[entry.issues.invalid]", "issues must be an array."})

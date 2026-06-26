@@ -30,10 +30,38 @@ func reportCheckResults(results []fileCheckResult, totalMd int) error {
 	}
 
 	totalErrs := 0
+	totalWarnings := 0
 	for _, r := range results {
-		totalErrs += len(r.Errors)
+		for _, ce := range r.Errors {
+			if isCheckWarning(ce) {
+				totalWarnings++
+			} else {
+				totalErrs++
+			}
+		}
 	}
-	fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n\n", len(results), totalErrs)
+	if totalErrs == 0 {
+		fmt.Printf("rellog check: OK (entries: %d)\n", totalMd)
+		fmt.Fprintf(os.Stderr, "rellog check: WARNING\n\n%d files\n%d warnings\n\n", len(results), totalWarnings)
+		printCheckDiagnostics(results)
+		return nil
+	}
+
+	if totalWarnings == 0 {
+		fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n\n", len(results), totalErrs)
+	} else {
+		fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n%d warnings\n\n", len(results), totalErrs, totalWarnings)
+	}
+	printCheckDiagnostics(results)
+
+	return &exitError{ExitCheckFailed, ""}
+}
+
+func isCheckWarning(ce checkError) bool {
+	return strings.HasPrefix(ce.Code, "warning[")
+}
+
+func printCheckDiagnostics(results []fileCheckResult) {
 	for i, r := range results {
 		fmt.Fprintf(os.Stderr, "%s\n", r.Path)
 		for j, ce := range r.Errors {
@@ -50,6 +78,4 @@ func reportCheckResults(results []fileCheckResult, totalMd int) error {
 			}
 		}
 	}
-
-	return &exitError{ExitCheckFailed, ""}
 }

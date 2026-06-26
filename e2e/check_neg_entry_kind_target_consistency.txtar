@@ -1,0 +1,223 @@
+exec mkdir -p .rellog/entries .rellog/release-notes
+
+exec cp unknown_kind.kdl .rellog/config.kdl
+exec cp unknown_kind.md .rellog/entries/0001.md
+! exec rellog check
+! stdout .
+cmp stderr unknown_kind.expected.txt
+
+exec cp deny_unknown_target.kdl .rellog/config.kdl
+exec cp unknown_target.md .rellog/entries/0001.md
+! exec rellog check
+! stdout .
+cmp stderr deny_unknown_target.expected.txt
+
+exec cp warn_unknown_target.kdl .rellog/config.kdl
+exec cp unknown_target.md .rellog/entries/0001.md
+exec rellog check
+cmp stdout warn_unknown_target.stdout.txt
+cmp stderr warn_unknown_target.stderr.txt
+
+exec cp allow_unknown_target.kdl .rellog/config.kdl
+exec cp unknown_target.md .rellog/entries/0001.md
+exec rellog check
+stdout 'rellog check: OK \(entries: 1\)\n'
+! stderr .
+
+exec cp invalid_config.kdl .rellog/config.kdl
+exec cp unknown_kind_and_target.md .rellog/entries/0001.md
+! exec rellog check
+! stdout .
+cmp stderr invalid_config.expected.txt
+
+exec cp deny_unknown_target.kdl .rellog/config.kdl
+exec cp scalar_targets.md .rellog/entries/0001.md
+exec cp empty_targets.md .rellog/entries/0002.md
+! exec rellog check
+! stdout .
+cmp stderr invalid_targets_shape.expected.txt
+
+-- unknown_kind.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- deny_unknown_target.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "deny-unknown"
+
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}
+-- warn_unknown_target.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "warn-unknown"
+
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}
+-- allow_unknown_target.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- invalid_config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "known-only"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- unknown_kind.md --
+---
+kind: fixed
+targets:
+  - api
+---
+Unknown kind
+-- unknown_target.md --
+---
+kind: changed
+targets:
+  - api
+---
+Unknown target
+-- unknown_kind_and_target.md --
+---
+kind: fixed
+targets:
+  - api
+---
+Config errors should suppress config-dependent entry checks
+-- scalar_targets.md --
+---
+kind: changed
+targets: 1
+---
+Scalar targets
+-- empty_targets.md --
+---
+kind: changed
+targets:
+---
+Empty targets
+-- unknown_kind.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/0001.md
+  error[entry.kind.unknown]
+    kind "fixed" is not defined in rellog.entries.kinds.
+-- deny_unknown_target.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/0001.md
+  error[entry.targets.unknown]
+    target "api" is not defined in rellog.entries.targets.
+-- warn_unknown_target.stdout.txt --
+rellog check: OK (entries: 1)
+-- warn_unknown_target.stderr.txt --
+rellog check: WARNING
+
+1 files
+1 warnings
+
+.rellog/entries/0001.md
+  warning[entry.targets.unknown]
+    target "api" is not defined in rellog.entries.targets.
+-- invalid_config.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.entries.target-policy.invalid]
+    target-policy "known-only" is not supported.
+
+    Allowed values are: deny-unknown, warn-unknown, allow-unknown.
+-- invalid_targets_shape.expected.txt --
+rellog check: FAILED
+
+2 files
+2 errors
+
+.rellog/entries/0001.md
+  error[entry.targets.invalid]
+    targets must be an array.
+
+.rellog/entries/0002.md
+  error[entry.targets.missing]
+    missing required metadata: target.

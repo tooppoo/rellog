@@ -87,6 +87,69 @@ var validTargetPolicies = map[string]bool{
 	"allow-unknown": true,
 }
 
+type entryValidationConfig struct {
+	allowedKinds map[string]bool
+	knownTargets map[string]bool
+	targetPolicy string
+}
+
+func readEntryValidationConfig() (entryValidationConfig, error) {
+	data, err := os.ReadFile(configFile())
+	if err != nil {
+		return entryValidationConfig{}, err
+	}
+	doc, err := kdl.Parse(strings.NewReader(string(data)))
+	if err != nil {
+		return entryValidationConfig{}, err
+	}
+
+	cfg := entryValidationConfig{
+		allowedKinds: map[string]bool{},
+		knownTargets: map[string]bool{},
+		targetPolicy: "deny-unknown",
+	}
+
+	var entriesNode *document.Node
+	for _, n := range doc.Nodes {
+		if nodeName(n) != "rellog" {
+			continue
+		}
+		for _, child := range n.Children {
+			if nodeName(child) == "entries" {
+				entriesNode = child
+				break
+			}
+		}
+		break
+	}
+	if entriesNode == nil {
+		return cfg, nil
+	}
+
+	for _, n := range entriesNode.Children {
+		switch nodeName(n) {
+		case "target-policy":
+			if len(n.Arguments) > 0 {
+				cfg.targetPolicy = n.Arguments[0].ValueString()
+			}
+		case "kinds":
+			for _, kindNode := range n.Children {
+				if nodeName(kindNode) == "kind" && len(kindNode.Arguments) == 1 {
+					cfg.allowedKinds[kindNode.Arguments[0].ValueString()] = true
+				}
+			}
+		case "targets":
+			for _, targetNode := range n.Children {
+				if nodeName(targetNode) == "target" && len(targetNode.Arguments) == 1 {
+					cfg.knownTargets[targetNode.Arguments[0].ValueString()] = true
+				}
+			}
+		}
+	}
+
+	return cfg, nil
+}
+
 func validateRellogConfig(doc *document.Document) []checkError {
 	var rellogNode *document.Node
 	for _, n := range doc.Nodes {

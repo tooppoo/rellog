@@ -24,7 +24,7 @@ exec rellog add --kind changed --target rellog --issue 12 --body 'Test Entry 1'
 exists .rellog/entries/0001.md
 cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
 
-exec rellog add --kind fix --target rellog --pr 15 --body 'Test Entry 2'
+exec rellog add --kind fixed --target rellog --pr 15 --body 'Test Entry 2'
 ! stderr .
 exists .rellog/entries/0002.md
 cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
@@ -56,7 +56,7 @@ issues:
 Test Entry 1
 -- .rellog.expected/entries/0002.md --
 ---
-kind: fix
+kind: fixed
 targets:
   - rellog
 prs:
