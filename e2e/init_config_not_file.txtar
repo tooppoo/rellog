@@ -1,0 +1,8 @@
+
+mkdir .rellog
+mkdir .rellog/config.kdl
+
+! exec rellog init
+! stdout .
+stderr 'Error: failed to create .rellog/config.kdl:'
+

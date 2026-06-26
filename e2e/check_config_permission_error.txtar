@@ -1,0 +1,17 @@
+
+exec rellog init
+exec chmod 000 .rellog/config.kdl
+
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config_file.permission]
+    permission denied: .rellog/config.kdl

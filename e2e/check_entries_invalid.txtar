@@ -1,4 +1,6 @@
 
+exec rellog init
+
 ! exec rellog check
 ! stdout .
 cmp stderr expected.txt

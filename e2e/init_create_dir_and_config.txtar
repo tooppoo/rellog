@@ -1,0 +1,13 @@
+
+! exists .rellog
+
+exec rellog init
+
+exists .rellog/config.kdl
+exists .rellog/entries
+exists .rellog/release-notes
+
+cmp .rellog/config.kdl expected.config.kdl
+
+-- expected.config.kdl --
+/- kdl-version 2

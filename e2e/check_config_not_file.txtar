@@ -1,0 +1,21 @@
+
+mkdir .rellog/entries
+mkdir .rellog/release-notes
+mkdir .rellog/config.kdl
+
+! exec rellog check
+! stdout .
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.not_file]
+    rellog configuration file is not a regular file.
+
+    Expected a KDL file for config, but found a directory.
+    Remove the directory, then create a file:
+      touch .rellog/config.kdl

@@ -1,0 +1,17 @@
+
+exec rellog init
+exec chmod 000 .rellog/release-notes
+
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/release-notes
+  error[release_notes.permission]
+    permission denied: .rellog/release-notes

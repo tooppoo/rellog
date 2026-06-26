@@ -1,0 +1,17 @@
+
+exec rellog init
+rm .rellog/release-notes
+
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/release-notes
+  error[release_notes_dir.missing]
+    missing required directory: .rellog/release-notes

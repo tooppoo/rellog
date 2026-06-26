@@ -1,0 +1,7 @@
+
+mkdir .rellog/entries
+mkdir .rellog/release-notes
+
+! exec rellog check
+-- .rellog/config.kdl --
+TEST

@@ -1,0 +1,17 @@
+
+exec rellog init
+exec chmod 000 .rellog/entries
+
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries
+  error[entries_file.permission]
+    permission denied: .rellog/entries
