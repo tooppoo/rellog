@@ -4,4 +4,4 @@ mkdir .rellog/release-notes
 
 ! exec rellog check
 -- .rellog/config.kdl --
-TEST
+= invalid kdl content

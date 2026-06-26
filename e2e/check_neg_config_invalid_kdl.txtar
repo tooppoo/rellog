@@ -5,7 +5,7 @@ exec rellog init
 ! stdout .
 
 -- .rellog/config.kdl --
-TEST
+= invalid kdl content
 -- expected.txt --
 rellog check: FAILED
 
