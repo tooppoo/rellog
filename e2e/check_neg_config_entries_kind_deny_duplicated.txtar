@@ -1,0 +1,36 @@
+
+exec rellog init
+
+exec rellog check
+! stdout .
+stderr expected.txt
+
+-- .rellog/config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "Add"
+      kind "Change"
+      kind "Add" // duplicated
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.duplicated]
+    The kind value "Add" is duplicated.

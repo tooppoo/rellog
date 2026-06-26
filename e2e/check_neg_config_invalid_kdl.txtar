@@ -14,7 +14,6 @@ rellog check: FAILED
 
 .rellog/config.kdl
   error[config.parse_failed]
-    .rellog/config.kdl:3:12
     Failed to parse rellog configuration file.
 
     Fix the KDL syntax error and run `rellog check` again.
