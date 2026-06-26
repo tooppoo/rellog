@@ -1,9 +1,8 @@
-
 exec rellog init
 ! stderr .
 ! exists CHANGELOG.md
 
-exec rellog add --kind changed --target rellog --body 'Previewed entry'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Previewed entry'
 ! stderr .
 
 exec rellog prepare v1.0.0
@@ -11,10 +10,10 @@ stdout '## v1\.0\.0'
 stdout 'Previewed entry'
 stdout 'create .rellog/release-notes/v1\.0\.0\.md'
 stdout 'append CHANGELOG\.md'
-stdout 'delete .rellog/entries/0001\.md'
+stdout 'delete .rellog/entries/20260626T123456\.000000001Z\.json'
 ! stderr .
 
 ! exists .rellog/release-notes/v1.0.0.md
 ! exists .rellog/release-notes/v1.0.0.json
 ! exists CHANGELOG.md
-exists .rellog/entries/0001.md
+exists .rellog/entries/20260626T123456.000000001Z.json

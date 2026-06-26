@@ -38,10 +38,6 @@ rellog check: FAILED
   error[entry.json.parse_failed]
     invalid JSON entry.
 
-.rellog/entries/notes.md
-  error[entry.file.unsupported]
-    pending entry files must use the .json extension.
-
 .rellog/entries/20260626T123456.000000008Z.json
   error[entry.kind.missing]
     missing required metadata: kind.
@@ -58,6 +54,10 @@ rellog check: FAILED
 
   error[entry.empty.prs.invalid]
     empty entry prs must be an empty array.
+
+.rellog/entries/notes.md
+  error[entry.file.unsupported]
+    pending entry files must use the .json extension.
 -- .rellog/entries/20260626T123456.000000001Z.json --
 {
   "kind": "changed",
@@ -106,11 +106,6 @@ rellog check: FAILED
 -- .rellog/entries/20260626T123456.000000007Z.json --
 {
   "kind": "changed",
--- .rellog/entries/notes.md --
----
-kind: changed
----
-Markdown entry
 -- .rellog/entries/20260626T123456.000000008Z.json --
 {
   "kind": "",
@@ -127,3 +122,8 @@ Markdown entry
   "prs": ["https://github.com/tooppoo/rellog/pull/15"],
   "body": "No changelog-worthy changes."
 }
+-- .rellog/entries/notes.md --
+---
+kind: changed
+---
+Markdown entry

@@ -1,4 +1,3 @@
-
 exec rellog init
 
 ! exec rellog check
@@ -9,30 +8,30 @@ exec echo 'valid files not printed'
 -- expected.txt --
 rellog check: FAILED
 
-8 files
-12 errors
+7 files
+11 errors
 
-.rellog/entries/0001.md
+.rellog/entries/0001.json
   error[entry.kind.missing]
     missing required metadata: kind.
 
-.rellog/entries/0002.md
+.rellog/entries/0002.json
   error[entry.targets.missing]
-    missing required metadata: target.
+    missing required metadata: targets.
 
-.rellog/entries/0003.md
+.rellog/entries/0003.json
   error[entry.body.empty]
     entry body must not be empty.
 
-.rellog/entries/0004.md
-  error[entry.frontmatter.parse_failed]
-    missing closing ---
+.rellog/entries/0004.json
+  error[entry.json.parse_failed]
+    invalid JSON entry.
 
-.rellog/entries/0005.md
-  error[entry.frontmatter.parse_failed]
-    missing opening ---
+.rellog/entries/0005.json
+  error[entry.json.parse_failed]
+    invalid JSON entry.
 
-.rellog/entries/0006.md
+.rellog/entries/0006.json
   error[entry.kind.missing]
     missing required metadata: kind.
 
@@ -42,88 +41,74 @@ rellog check: FAILED
   error[entry.issues.invalid]
     issues must be an array.
 
-  error[entry.prs.invalid]
-    prs item must be a canonical GitHub pull request URL.
+  error[entry.prs.missing]
+    missing required metadata: prs.
 
   error[entry.body.empty]
     entry body must not be empty.
 
-.rellog/entries/0009.md
+.rellog/entries/0009.json
   error[entry.targets.invalid]
     targets must be an array.
-
-.rellog/entries/0010.md
-  error[entry.targets.invalid]
-    targets must be an array.
--- .rellog/entries/0001.md --
----
-targets:
-  - rellog
-issues:
-  - https://github.com/tooppoo/rellog/issues/12
----
-Kind Not Exist
--- .rellog/entries/0002.md --
----
-kind: changed
-targets:
-issues:
-  - https://github.com/tooppoo/rellog/issues/12
----
-Targets empty
--- .rellog/entries/0003.md --
----
-kind: changed
-targets:
-  - rellog
-prs:
-  - https://github.com/tooppoo/rellog/pull/15
----
--- .rellog/entries/0004.md --
----
-kind:
-targets:
-  - rellog
-prs:
-  - https://github.com/tooppoo/rellog/pull/15
-Frontmatter Broken
--- .rellog/entries/0005.md --
+-- .rellog/entries/0001.json --
+{
+  "kind": "",
+  "targets": ["rellog"],
+  "issues": ["https://github.com/tooppoo/rellog/issues/12"],
+  "prs": [],
+  "body": "Kind Not Exist"
+}
+-- .rellog/entries/0002.json --
+{
+  "kind": "changed",
+  "issues": ["https://github.com/tooppoo/rellog/issues/12"],
+  "prs": [],
+  "body": "Targets missing"
+}
+-- .rellog/entries/0003.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": [],
+  "prs": ["https://github.com/tooppoo/rellog/pull/15"],
+  "body": ""
+}
+-- .rellog/entries/0004.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "prs": ["https://github.com/tooppoo/rellog/pull/15"],
+  "body": "Frontmatter Broken
+-- .rellog/entries/0005.json --
 Without Frontmatter
--- .rellog/entries/0006.md --
----
-kind:
-targets: 1
-issues: 1
-prs:
-  - "abc"
----
--- .rellog/entries/0007.md --
----
-kind: changed
----
-No issues and PRs(valid)
--- .rellog/entries/0008.md --
----
-kind: changed
-targets:
-  - test
-issues:
-  - https://github.com/tooppoo/rellog/issues/1
-  - https://github.com/tooppoo/rellog/issues/2
-prs:
-  - https://github.com/tooppoo/rellog/pull/3
-  - https://github.com/tooppoo/rellog/pull/4
----
-Fulfilled(valid)
--- .rellog/entries/0009.md --
----
-kind: changed
-targets: 1
----
-Array not used for targets(valid)
--- .rellog/entries/0010.md --
----
-kind: changed
-targets: 1
----
-Targets scalar
+-- .rellog/entries/0006.json --
+{
+  "kind": "",
+  "targets": "rellog",
+  "issues": "https://github.com/tooppoo/rellog/issues/12",
+  "body": ""
+}
+-- .rellog/entries/0007.json --
+{
+  "kind": "changed",
+  "targets": [],
+  "issues": [],
+  "prs": [],
+  "body": "No issues and PRs(valid)"
+}
+-- .rellog/entries/0008.json --
+{
+  "kind": "changed",
+  "targets": ["test"],
+  "issues": ["https://github.com/tooppoo/rellog/issues/1", "https://github.com/tooppoo/rellog/issues/2"],
+  "prs": ["https://github.com/tooppoo/rellog/pull/3", "https://github.com/tooppoo/rellog/pull/4"],
+  "body": "Fulfilled(valid)"
+}
+-- .rellog/entries/0009.json --
+{
+  "kind": "changed",
+  "targets": "rellog",
+  "issues": [],
+  "prs": [],
+  "body": "Targets scalar"
+}

@@ -23,23 +23,19 @@ rellog config-version=1 {
   }
 }
 -- .rellog/release-notes/.keep --
--- .rellog/entries/0001.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://github.com/tooppoo/rellog/issues/12
-  - https://github.com/tooppoo/rellog/issues/13
-prs:
-  - https://github.com/tooppoo/rellog/pull/15
-  - https://github.com/tooppoo/rellog/pull/16
----
-Canonical issue and pull request URLs
--- .rellog/entries/0002.md --
----
-kind: changed
-targets:
-  - rellog
----
-No references is still valid
+-- .rellog/entries/0001.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": ["https://github.com/tooppoo/rellog/issues/12", "https://github.com/tooppoo/rellog/issues/13"],
+  "prs": ["https://github.com/tooppoo/rellog/pull/15", "https://github.com/tooppoo/rellog/pull/16"],
+  "body": "Canonical issue and pull request URLs"
+}
+-- .rellog/entries/0002.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": [],
+  "prs": [],
+  "body": "No references is still valid"
+}

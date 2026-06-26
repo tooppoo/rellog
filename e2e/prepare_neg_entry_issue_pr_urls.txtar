@@ -5,14 +5,14 @@
 cmp stderr expected.txt
 ! exists .rellog/release-notes/v1.0.0.md
 ! exists CHANGELOG.md
-exists .rellog/entries/0001.md
+exists .rellog/entries/0001.json
 
 ! exec rellog prepare v1.0.0 --run
 ! stdout .
 cmp stderr expected.txt
 ! exists .rellog/release-notes/v1.0.0.md
 ! exists CHANGELOG.md
-exists .rellog/entries/0001.md
+exists .rellog/entries/0001.json
 
 -- expected.txt --
 rellog check: FAILED
@@ -20,7 +20,7 @@ rellog check: FAILED
 1 files
 1 errors
 
-.rellog/entries/0001.md
+.rellog/entries/0001.json
   error[entry.issues.invalid]
     issue URL repository "https://github.com/other/repo" does not match github-url "https://github.com/tooppoo/rellog".
 -- .rellog/config.kdl --
@@ -44,12 +44,11 @@ rellog config-version=1 {
   }
 }
 -- .rellog/release-notes/.keep --
--- .rellog/entries/0001.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://github.com/other/repo/issues/12
----
-Prepare must reject invalid issue URLs before writing
+-- .rellog/entries/0001.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": ["https://github.com/other/repo/issues/12"],
+  "prs": [],
+  "body": "Prepare must reject invalid issue URLs before writing"
+}

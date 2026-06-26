@@ -8,41 +8,41 @@ rellog check: FAILED
 8 files
 10 errors
 
-.rellog/entries/0001.md
+.rellog/entries/0001.json
   error[entry.issues.invalid]
     issue URL repository "https://github.com/other/repo" does not match github-url "https://github.com/tooppoo/rellog".
 
-.rellog/entries/0002.md
+.rellog/entries/0002.json
   error[entry.prs.invalid]
     pull request URL repository "https://github.com/other/repo" does not match github-url "https://github.com/tooppoo/rellog".
 
-.rellog/entries/0003.md
+.rellog/entries/0003.json
   error[entry.issues.invalid]
     pull request URL was used in issues; use prs for https://github.com/tooppoo/rellog/pull/12.
 
-.rellog/entries/0004.md
+.rellog/entries/0004.json
   error[entry.prs.invalid]
     issue URL was used in prs; use issues for https://github.com/tooppoo/rellog/issues/15.
 
-.rellog/entries/0005.md
+.rellog/entries/0005.json
   error[entry.issues.invalid]
     issue URL host must be github.com.
 
-.rellog/entries/0006.md
+.rellog/entries/0006.json
   error[entry.issues.invalid]
     issue URL must be canonical and must not have a trailing slash.
 
   error[entry.prs.invalid]
     pull request URL must be canonical and must not include query or fragment.
 
-.rellog/entries/0007.md
+.rellog/entries/0007.json
   error[entry.issues.invalid]
     issue URL must be canonical and must not include query or fragment.
 
   error[entry.prs.invalid]
     pull request URL number must be a positive integer.
 
-.rellog/entries/0008.md
+.rellog/entries/0008.json
   error[entry.issues.invalid]
     issues must be an array.
 
@@ -69,79 +69,67 @@ rellog config-version=1 {
   }
 }
 -- .rellog/release-notes/.keep --
--- .rellog/entries/0001.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://github.com/other/repo/issues/12
----
-Wrong issue repository
--- .rellog/entries/0002.md --
----
-kind: changed
-targets:
-  - rellog
-prs:
-  - https://github.com/other/repo/pull/15
----
-Wrong pull request repository
--- .rellog/entries/0003.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://github.com/tooppoo/rellog/pull/12
----
-Issue field contains pull request URL
--- .rellog/entries/0004.md --
----
-kind: changed
-targets:
-  - rellog
-prs:
-  - https://github.com/tooppoo/rellog/issues/15
----
-Pull request field contains issue URL
--- .rellog/entries/0005.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://example.com/tooppoo/rellog/issues/12
----
-Wrong host
--- .rellog/entries/0006.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://github.com/tooppoo/rellog/issues/12/
-prs:
-  - https://github.com/tooppoo/rellog/pull/15?tab=files
----
-Trailing slash and query
--- .rellog/entries/0007.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://github.com/tooppoo/rellog/issues/12#discussion
-prs:
-  - https://github.com/tooppoo/rellog/pull/not-a-number
----
-Fragment and non-numeric pull request id
--- .rellog/entries/0008.md --
----
-kind: changed
-targets:
-  - rellog
-issues: https://github.com/tooppoo/rellog/issues/12
-prs: https://github.com/tooppoo/rellog/pull/15
----
-Scalar references
+-- .rellog/entries/0001.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": ["https://github.com/other/repo/issues/12"],
+  "prs": [],
+  "body": "Wrong issue repository"
+}
+-- .rellog/entries/0002.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": [],
+  "prs": ["https://github.com/other/repo/pull/15"],
+  "body": "Wrong pull request repository"
+}
+-- .rellog/entries/0003.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": ["https://github.com/tooppoo/rellog/pull/12"],
+  "prs": [],
+  "body": "Issue field contains pull request URL"
+}
+-- .rellog/entries/0004.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": [],
+  "prs": ["https://github.com/tooppoo/rellog/issues/15"],
+  "body": "Pull request field contains issue URL"
+}
+-- .rellog/entries/0005.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": ["https://example.com/tooppoo/rellog/issues/12"],
+  "prs": [],
+  "body": "Wrong host"
+}
+-- .rellog/entries/0006.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": ["https://github.com/tooppoo/rellog/issues/12/"],
+  "prs": ["https://github.com/tooppoo/rellog/pull/15?tab=files"],
+  "body": "Trailing slash and query"
+}
+-- .rellog/entries/0007.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": ["https://github.com/tooppoo/rellog/issues/12#discussion"],
+  "prs": ["https://github.com/tooppoo/rellog/pull/not-a-number"],
+  "body": "Fragment and non-numeric pull request id"
+}
+-- .rellog/entries/0008.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": "https://github.com/tooppoo/rellog/issues/12",
+  "prs": "https://github.com/tooppoo/rellog/pull/15",
+  "body": "Scalar references"
+}

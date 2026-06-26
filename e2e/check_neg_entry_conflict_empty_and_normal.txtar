@@ -1,4 +1,3 @@
-
 exec rellog init
 ! stderr .
 
@@ -12,19 +11,22 @@ rellog check: FAILED
 1 files
 1 errors
 
-.rellog/entries/0001.md
+.rellog/entries/0001.json
   error[entry.conflict.empty_and_normal]
     entry conflict: empty entry cannot coexist with normal entries.
--- .rellog/entries/0001.md --
----
-kind: empty
----
-
-No changelog-worthy changes.
--- .rellog/entries/0002.md --
----
-kind: changed
-targets:
-  - rellog
----
-Normal entry
+-- .rellog/entries/0001.json --
+{
+  "kind": "empty",
+  "targets": [],
+  "issues": [],
+  "prs": [],
+  "body": "No changelog-worthy changes."
+}
+-- .rellog/entries/0002.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "issues": [],
+  "prs": [],
+  "body": "Normal entry"
+}
