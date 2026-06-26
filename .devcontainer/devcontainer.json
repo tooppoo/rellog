@@ -21,7 +21,8 @@
       "extensions": [
         "golang.Go",
         "EditorConfig.EditorConfig",
-        "brody715.txtar"
+        "brody715.txtar",
+        "kdl-org.kdl"
       ],
       "settings": {
         "editor.formatOnSave": true,
