@@ -1,0 +1,155 @@
+/- kdl-version 2
+document {
+    info {
+        title "rellog configuration"
+        description "KDL Schema for .rellog/config.kdl."
+        link "docs/configuration.md" rel=documentation
+        version "1.0.0"
+    }
+
+    node rellog description="Repository-level rellog configuration." {
+        min 1
+        max 1
+
+        prop config-version description="Configuration schema version. Only version 1 is supported." {
+            required
+            type number
+            enum 1
+        }
+
+        children {
+            node paths description="Repository-root-relative paths used by rellog." {
+                min 1
+                max 1
+
+                children {
+                    node changelog description="Path to the changelog file." {
+                        min 1
+                        max 1
+                        value ref=#"[id="repository-relative-path"]"#
+                    }
+
+                    node entries description="Path to the pending changelog entry directory." {
+                        min 1
+                        max 1
+                        value ref=#"[id="repository-relative-path"]"#
+                    }
+
+                    node release-notes description="Path to the release note directory." {
+                        min 1
+                        max 1
+                        value ref=#"[id="repository-relative-path"]"#
+                    }
+                }
+            }
+
+            node entries description="Allowed changelog entry kinds and targets." {
+                min 1
+                max 1
+
+                children {
+                    node target-policy description="How rellog handles entry targets not listed in entries.targets." {
+                        max 1
+                        value {
+                            min 1
+                            max 1
+                            type string
+                            enum "deny-unknown" "warn-unknown" "allow-unknown"
+                        }
+                    }
+
+                    node kinds description="Allowed normal changelog entry kinds, in rendering order." {
+                        min 1
+                        max 1
+
+                        children {
+                            node kind description="One normal changelog entry kind." {
+                                min 1
+                                value {
+                                    min 1
+                                    max 1
+                                    type string
+                                    pattern #"^(?!empty$)[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*$"#
+                                }
+                                prop title description="Rendered heading for this kind. Defaults to the kind id." {
+                                    type string
+                                    pattern #"\S"#
+                                }
+                                prop description description="Human-readable description for this kind." {
+                                    type string
+                                }
+                            }
+                        }
+                    }
+
+                    // Required unless target-policy is "allow-unknown"; that conditional rule is enforced by rellog.
+                    node targets description="Known entry targets." {
+                        max 1
+
+                        children {
+                            node target description="One known entry target." {
+                                min 1
+                                value {
+                                    min 1
+                                    max 1
+                                    type string
+                                    pattern #"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"#
+                                }
+                                prop title description="Rendered heading for this target. Defaults to the target id." {
+                                    type string
+                                    pattern #"\S"#
+                                }
+                                prop description description="Human-readable description for this target." {
+                                    type string
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            node rendering description="Markdown rendering options." {
+                max 1
+
+                children {
+                    node release-heading-level description="Markdown heading level used for each release." {
+                        max 6
+                        value ref=#"[id="heading-level"]"#
+                    }
+
+                    // Must be greater than release-heading-level; that cross-field rule is enforced by rellog.
+                    node section-heading-level description="Markdown heading level used for kind sections." {
+                        max 6
+                        value ref=#"[id="heading-level"]"#
+                    }
+
+                    node empty-message description="Message used when rendering an empty release." {
+                        max 1
+                        value {
+                            min 1
+                            max 1
+                            type string
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    definitions {
+        // Path conflict checks between changelog, entries, and release-notes are enforced by rellog.
+        value id=repository-relative-path description="Canonical repository-root-relative logical path." {
+            min 1
+            max 1
+            type string
+            pattern #"^(?!\s*$)(?!/)(?![A-Za-z]:/)(?!.*\\)(?!.*//)(?!.*(?:^|/)\.{1,2}(?:/|$))(?!.*\/$).+$"#
+        }
+
+        value id=heading-level description="Markdown heading level from 1 through 6." {
+            min 1
+            max 6
+            type number
+            format u8
+        }
+    }
+}
