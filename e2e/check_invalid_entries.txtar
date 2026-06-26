@@ -1,0 +1,33 @@
+
+! exec rellog check
+! stdout .
+stderr 'error\[entry\.kind\.missing\] \.rellog/entries/0001\.md'
+stderr 'error\[entry\.targets\.missing\] \.rellog/entries/0002\.md'
+stderr 'error\[entry\.body\.empty\] \.rellog/entries/0003\.md'
+
+-- .rellog/entries/0001.md --
+---
+targets:
+  - rellog
+scope: cli
+issues:
+  - 12
+---
+Test Entry 1
+-- .rellog/entries/0002.md --
+---
+kind: changed
+scope: cli
+issues:
+  - 12
+---
+Test Entry 2
+-- .rellog/entries/0003.md --
+---
+kind: fix
+targets:
+  - rellog
+scope: core
+prs:
+  - 15
+---

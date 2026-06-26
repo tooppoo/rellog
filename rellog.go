@@ -18,6 +18,8 @@ const appVersion = "0.0.1"
 const (
 	ExitNotInitialized   = 1 // rellog has not been initialized (run rellog init first)
 	ExitInvalidStructure = 2 // rellog directory structure is invalid (expected directory is a file)
+	ExitCheckFailed      = 3 // rellog check found validation errors
+	ExitReleaseNotFound  = 4 // required release-note file does not exist
 )
 
 type exitError struct {
@@ -28,12 +30,12 @@ type exitError struct {
 func (e *exitError) Error() string { return e.Msg }
 
 type entry struct {
-	Kind   string
-	Target string
-	Scope  string
-	Issue  int
-	PR     int
-	Body   string
+	Kind    string
+	Targets []string
+	Scope   string
+	Issues  []int
+	PRs     []int
+	Body    string
 }
 
 type releaseData struct {
@@ -84,7 +86,9 @@ func Main() {
 
 	if err := root.Execute(); err != nil {
 		if ee, ok := errors.AsType[*exitError](err); ok {
-			fmt.Fprintf(os.Stderr, "Error: %s\n", ee.Msg)
+			if ee.Msg != "" {
+				fmt.Fprintf(os.Stderr, "Error: %s\n", ee.Msg)
+			}
 			os.Exit(ee.Code)
 		}
 		fmt.Fprintln(os.Stderr, err)
@@ -99,10 +103,10 @@ func cmdInit() *cobra.Command {
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := os.MkdirAll(entriesDir(), 0755); err != nil {
-				return &exitError{ExitInvalidStructure, "failed to create .rellog/entries: " + err.Error()}
+				return &exitError{ExitInvalidStructure, fmt.Sprintf("failed to create %s: %s", entriesDir(), err)}
 			}
 			if err := os.MkdirAll(releaseNotesDir(), 0755); err != nil {
-				return &exitError{ExitInvalidStructure, "failed to create .rellog/release-notes: " + err.Error()}
+				return &exitError{ExitInvalidStructure, fmt.Sprintf("failed to create %s: %s", releaseNotesDir(), err)}
 			}
 			return os.WriteFile(configFile(), []byte("// rellog config\n"), 0644)
 		},
@@ -135,7 +139,18 @@ func cmdAdd() *cobra.Command {
 				}
 			}
 
-			e := entry{Kind: kind, Target: target, Scope: scope, Issue: issue, PR: pr, Body: body}
+			e := entry{
+				Kind:    kind,
+				Targets: []string{target},
+				Scope:   scope,
+				Body:    body,
+			}
+			if issue != 0 {
+				e.Issues = []int{issue}
+			}
+			if pr != 0 {
+				e.PRs = []int{pr}
+			}
 			filename := fmt.Sprintf("%04d.md", count+1)
 			return os.WriteFile(filepath.Join(entriesDir(), filename), []byte(formatEntry(e)), 0644)
 		},
@@ -161,18 +176,47 @@ func cmdCheck() *cobra.Command {
 		Short:        "Validate unreleased entries",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			entries, err := readEntries()
+			files, err := os.ReadDir(entriesDir())
 			if err != nil {
 				return err
 			}
-			for _, e := range entries {
+
+			var checkErrs []string
+			count := 0
+			for _, f := range files {
+				if !strings.HasSuffix(f.Name(), ".md") {
+					continue
+				}
+				count++
+				path := filepath.Join(entriesDir(), f.Name())
+				data, err := os.ReadFile(path)
+				if err != nil {
+					return err
+				}
+				e, err := parseEntry(data)
+				if err != nil {
+					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.parse] %s: %s", path, err))
+					continue
+				}
 				if e.Kind == "" {
-					return fmt.Errorf("entry missing kind")
+					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.kind.missing] %s", path))
+				}
+				if len(e.Targets) == 0 {
+					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.targets.missing] %s", path))
 				}
 				if e.Body == "" {
-					return fmt.Errorf("entry missing body")
+					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.body.empty] %s", path))
 				}
 			}
+
+			if len(checkErrs) > 0 {
+				for _, msg := range checkErrs {
+					fmt.Fprintln(os.Stderr, msg)
+				}
+				return &exitError{ExitCheckFailed, ""}
+			}
+
+			fmt.Printf("rellog check: OK (entries: %d)\n", count)
 			return nil
 		},
 	}
@@ -242,7 +286,7 @@ func cmdRequire() *cobra.Command {
 
 	releaseCmd := &cobra.Command{
 		Use:          "release <version>",
-		Short:        "Show release if it exists",
+		Short:        "Require that a release-note file exists",
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -252,7 +296,7 @@ func cmdRequire() *cobra.Command {
 			data, err := os.ReadFile(path)
 			if err != nil {
 				if os.IsNotExist(err) {
-					return nil
+					return &exitError{ExitReleaseNotFound, "release not found: " + ver}
 				}
 				return err
 			}
@@ -278,13 +322,22 @@ func formatEntry(e entry) string {
 	var sb strings.Builder
 	sb.WriteString("---\n")
 	fmt.Fprintf(&sb, "kind: %s\n", e.Kind)
-	fmt.Fprintf(&sb, "target: %s\n", e.Target)
-	fmt.Fprintf(&sb, "scope: %s\n", e.Scope)
-	if e.Issue > 0 {
-		fmt.Fprintf(&sb, "issue: %d\n", e.Issue)
+	sb.WriteString("targets:\n")
+	for _, t := range e.Targets {
+		fmt.Fprintf(&sb, "  - %s\n", t)
 	}
-	if e.PR > 0 {
-		fmt.Fprintf(&sb, "pr: %d\n", e.PR)
+	fmt.Fprintf(&sb, "scope: %s\n", e.Scope)
+	if len(e.Issues) > 0 {
+		sb.WriteString("issues:\n")
+		for _, i := range e.Issues {
+			fmt.Fprintf(&sb, "  - %d\n", i)
+		}
+	}
+	if len(e.PRs) > 0 {
+		sb.WriteString("prs:\n")
+		for _, p := range e.PRs {
+			fmt.Fprintf(&sb, "  - %d\n", p)
+		}
 	}
 	sb.WriteString("---\n")
 	sb.WriteString(e.Body)
@@ -305,24 +358,33 @@ func parseEntry(data []byte) (entry, error) {
 	body := strings.TrimRight(after, "\n")
 
 	e := entry{Body: body}
-	for line := range strings.SplitSeq(frontmatter, "\n") {
-		k, v, ok := strings.Cut(line, ": ")
-		if !ok {
+	var currentList string
+	for _, line := range strings.Split(frontmatter, "\n") {
+		if strings.HasPrefix(line, "  - ") {
+			item := strings.TrimPrefix(line, "  - ")
+			switch currentList {
+			case "targets":
+				e.Targets = append(e.Targets, item)
+			case "issues":
+				n, _ := strconv.Atoi(item)
+				e.Issues = append(e.Issues, n)
+			case "prs":
+				n, _ := strconv.Atoi(item)
+				e.PRs = append(e.PRs, n)
+			}
 			continue
 		}
-		switch k {
-		case "kind":
-			e.Kind = v
-		case "target":
-			e.Target = v
-		case "scope":
-			e.Scope = v
-		case "issue":
-			n, _ := strconv.Atoi(v)
-			e.Issue = n
-		case "pr":
-			n, _ := strconv.Atoi(v)
-			e.PR = n
+		currentList = ""
+		k, v, hasVal := strings.Cut(line, ": ")
+		if hasVal {
+			switch k {
+			case "kind":
+				e.Kind = v
+			case "scope":
+				e.Scope = v
+			}
+		} else if strings.HasSuffix(line, ":") {
+			currentList = strings.TrimSuffix(line, ":")
 		}
 	}
 	return e, nil

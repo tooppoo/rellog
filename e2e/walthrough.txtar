@@ -30,13 +30,14 @@ exists .rellog/entries/0002.md
 cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
 
 exec rellog check
+stdout 'rellog check: OK \(entries: 2\)'
 ! stderr .
 
 exec rellog status
 ! stderr .
 
-exec rellog require release v1.0.0
-! stdout .
+! exec rellog require release v1.0.0
+stderr 'Error: release not found: v1.0.0\n'
 
 exec rellog prepare v1.0.0
 ! stderr .
@@ -47,16 +48,20 @@ exec rellog require release v1.0.0
 -- .rellog.expected/entries/0001.md --
 ---
 kind: changed
-target: rellog
+targets:
+  - rellog
 scope: cli
-issue: 12
+issues:
+  - 12
 ---
 Test Entry 1
 -- .rellog.expected/entries/0002.md --
 ---
 kind: fix
-target: rellog
+targets:
+  - rellog
 scope: core
-pr: 15
+prs:
+  - 15
 ---
 Test Entry 2

@@ -1,0 +1,9 @@
+
+exec rellog init
+! stderr .
+exec rellog init
+! stderr .
+
+exists .rellog
+exists .rellog/entries
+exists .rellog/release-notes
