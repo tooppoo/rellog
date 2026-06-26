@@ -1,15 +1,18 @@
 exec rellog init
 ! stderr .
 
-exec rellog add --kind changed --target api --body 'Allowed unknown target'
+exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target api --body 'Allowed unknown target'
 ! stderr .
-exists .rellog/entries/0001.md
-cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+exists .rellog/entries/20260626T123456.123456789Z.json
+cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/20260626T123456.123456789Z.json
 
--- .rellog.expected/entries/0001.md --
----
-kind: changed
-targets:
-  - api
----
-Allowed unknown target
+-- .rellog.expected/entries/20260626T123456.123456789Z.json --
+{
+  "kind": "changed",
+  "targets": [
+    "api"
+  ],
+  "issues": [],
+  "prs": [],
+  "body": "Allowed unknown target"
+}

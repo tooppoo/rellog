@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tooppoo/rellog/schema/entry.schema.json",
+  "title": "rellog entry",
+  "description": "Schema for one pending rellog changelog entry.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "targets", "issues", "prs", "body"],
+  "allOf": [
+    {
+      "if": {
+        "required": ["kind"],
+        "properties": {
+          "kind": {
+            "const": "empty"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "targets": {
+            "maxItems": 0
+          },
+          "issues": {
+            "maxItems": 0
+          },
+          "prs": {
+            "maxItems": 0
+          }
+        }
+      }
+    }
+  ],
+  "properties": {
+    "kind": {
+      "type": "string"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "body": {
+      "type": "string"
+    }
+  }
+}

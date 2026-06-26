@@ -89,7 +89,7 @@ Possible options:
 
 Rules:
 
-- `rellog add` creates a normal entry using the next generated sequence filename.
+- `rellog add` creates a normal JSON entry using the next generated UTC timestamp filename.
 - If an empty entry already exists, `rellog add` should fail with `ExitEntryConflict`.
 - `rellog add` should not silently remove an empty entry.
 - Users cannot specify the entry filename.
@@ -104,6 +104,8 @@ Rules:
   `https://github.com/tooppoo/rellog/pull/15`.
 - `rellog add` does not contact GitHub and does not verify whether an issue or
   pull request number exists.
+- Entry JSON always includes `targets`, `issues`, and `prs` as arrays. Empty
+  fields are written as `[]`.
 - Interactive and non-interactive mode must validate `kind` against
   `rellog.entries.kinds`. An undefined kind is an error and no entry file is
   created.
@@ -130,6 +132,10 @@ Rules:
 - if no entry exists, create an empty entry;
 - if an empty entry already exists, do nothing;
 - if a normal entry already exists, fail with `ExitEntryConflict`.
+- the empty entry is a JSON entry with `targets`, `issues`, and `prs` set to
+  empty arrays.
+- an entry with `kind: "empty"` and non-empty `targets`, `issues`, or `prs` is
+  invalid.
 
 A normal entry and an empty entry should not coexist.
 
@@ -146,9 +152,11 @@ rellog check
 Expected checks:
 
 - configuration file exists and is valid;
-- pending entry files are parseable;
-- pending entry filenames follow the generated sequence format;
+- pending entry files are parseable JSON;
+- pending entry filenames follow the generated UTC timestamp format;
 - required metadata is present;
+- `targets`, `issues`, and `prs` are present and are arrays;
+- `targets`, `issues`, and `prs` are empty arrays when `kind` is `empty`;
 - entry kind is allowed;
 - target is known, unless the project allows unknown targets;
 - body is not empty;

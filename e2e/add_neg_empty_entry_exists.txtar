@@ -2,20 +2,22 @@
 exec rellog init
 ! stderr .
 
-exec rellog add-empty
+exec rellog add-empty --debug-datetime 20260626T123456.123456789Z
 ! stderr .
-exists .rellog/entries/0001.md
+exists .rellog/entries/20260626T123456.123456789Z.json
 
-exec sh -c 'rellog add --kind changed --target rellog --body "Normal entry"; test "$?" -eq 5'
+exec sh -c 'rellog add --debug-datetime 20260626T123457.000000001Z --kind changed --target rellog --body "Normal entry"; test "$?" -eq 5'
 ! stdout .
 stderr 'Error: entry conflict: empty entry already exists; normal entry cannot be added\n'
 
-cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
-! exists .rellog/entries/0002.md
+cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/20260626T123456.123456789Z.json
+! exists .rellog/entries/20260626T123457.000000001Z.json
 
--- .rellog.expected/entries/0001.md --
----
-kind: empty
----
-
-No changelog-worthy changes.
+-- .rellog.expected/entries/20260626T123456.123456789Z.json --
+{
+  "kind": "empty",
+  "targets": [],
+  "issues": [],
+  "prs": [],
+  "body": "No changelog-worthy changes."
+}

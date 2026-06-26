@@ -19,15 +19,15 @@ exists .rellog/entries
 exists .rellog/release-notes
 ! stderr .
 
-exec rellog add --kind changed --target rellog --issue 12 --body 'Test Entry 1'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --issue 12 --body 'Test Entry 1'
 ! stderr .
-exists .rellog/entries/0001.md
-cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/20260626T123456.000000001Z.json
 
-exec rellog add --kind fixed --target rellog --pr 15 --body 'Test Entry 2'
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target rellog --pr 15 --body 'Test Entry 2'
 ! stderr .
-exists .rellog/entries/0002.md
-cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
+exists .rellog/entries/20260626T123456.000000002Z.json
+cmp .rellog/entries/20260626T123456.000000002Z.json .rellog.expected/entries/20260626T123456.000000002Z.json
 
 exec rellog check
 stdout 'rellog check: OK \(entries: 2\)'
@@ -47,34 +47,40 @@ stdout 'Test Entry 2'
 ! exists .rellog/release-notes/v1.0.0.md
 ! exists .rellog/release-notes/v1.0.0.json
 ! exists CHANGELOG.md
-exists .rellog/entries/0001.md
-exists .rellog/entries/0002.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+exists .rellog/entries/20260626T123456.000000002Z.json
 
 exec rellog prepare v1.0.0 --run
 ! stderr .
 exists .rellog/release-notes/v1.0.0.md
 exists CHANGELOG.md
-! exists .rellog/entries/0001.md
-! exists .rellog/entries/0002.md
+! exists .rellog/entries/20260626T123456.000000001Z.json
+! exists .rellog/entries/20260626T123456.000000002Z.json
 
 exec rellog require release v1.0.0
 ! stderr .
 
--- .rellog.expected/entries/0001.md --
----
-kind: changed
-targets:
-  - rellog
-issues:
-  - https://github.com/tooppoo/rellog/issues/12
----
-Test Entry 1
--- .rellog.expected/entries/0002.md --
----
-kind: fixed
-targets:
-  - rellog
-prs:
-  - https://github.com/tooppoo/rellog/pull/15
----
-Test Entry 2
+-- .rellog.expected/entries/20260626T123456.000000001Z.json --
+{
+  "kind": "changed",
+  "targets": [
+    "rellog"
+  ],
+  "issues": [
+    "https://github.com/tooppoo/rellog/issues/12"
+  ],
+  "prs": [],
+  "body": "Test Entry 1"
+}
+-- .rellog.expected/entries/20260626T123456.000000002Z.json --
+{
+  "kind": "fixed",
+  "targets": [
+    "rellog"
+  ],
+  "issues": [],
+  "prs": [
+    "https://github.com/tooppoo/rellog/pull/15"
+  ],
+  "body": "Test Entry 2"
+}

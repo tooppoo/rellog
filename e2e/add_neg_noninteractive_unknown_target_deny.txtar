@@ -4,7 +4,7 @@ exec cp deny_unknown_target.kdl .rellog/config.kdl
 
 ! exec rellog add --kind changed --target api --body 'Unknown target'
 stderr 'target "api" is not defined in rellog.entries.targets\.'
-! exists .rellog/entries/0001.md
+exec sh -c 'test -z "$(ls .rellog/entries)"'
 
 -- deny_unknown_target.kdl --
 /- kdl-version 2
