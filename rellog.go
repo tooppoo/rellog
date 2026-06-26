@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 
 	kdl "github.com/njreid/gokdl2"
 	"github.com/njreid/gokdl2/document"
@@ -419,6 +421,10 @@ func nodeName(n *document.Node) string {
 	return n.Name.ValueString()
 }
 
+var validKindRe = regexp.MustCompile(`^[a-z][0-9a-zA-Z_.-]+$`)
+
+var builtinKinds = map[string]bool{"empty": true}
+
 func validateRellogConfig(doc *document.Document) []checkError {
 	var rellogNode *document.Node
 	for _, n := range doc.Nodes {
@@ -445,23 +451,52 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		return []checkError{{"error[config.rellog.paths]", "rellog.paths must be a block, but found a value"}}
 	}
 
-	// Collect path values and check for missing required paths
-	pathValues := map[string]string{}
+	type pathNodeInfo struct {
+		present     bool
+		hasChildren bool
+		hasArgs     bool
+		value       string
+	}
+	pathInfos := map[string]pathNodeInfo{}
 	for _, n := range pathsNode.Children {
-		if len(n.Arguments) > 0 {
-			pathValues[nodeName(n)] = n.Arguments[0].ValueString()
+		info := pathNodeInfo{present: true}
+		if len(n.Children) > 0 {
+			info.hasChildren = true
 		}
+		if len(n.Arguments) > 0 {
+			info.hasArgs = true
+			info.value = n.Arguments[0].ValueString()
+		}
+		pathInfos[nodeName(n)] = info
 	}
 
+	pathValues := map[string]string{}
 	var errs []checkError
 	required := []string{"changelog", "entries", "release-notes"}
 	for _, key := range required {
-		if _, ok := pathValues[key]; !ok {
+		info, ok := pathInfos[key]
+		if !ok {
 			errs = append(errs, checkError{
 				"error[config.rellog.paths." + key + ".missing]",
 				"rellog.paths." + key + " is required but not found",
 			})
+			continue
 		}
+		if info.hasChildren {
+			errs = append(errs, checkError{
+				"error[config.rellog.paths." + key + ".children]",
+				"rellog.paths." + key + " must not have child nodes.",
+			})
+			continue
+		}
+		if !info.hasArgs || strings.TrimFunc(info.value, unicode.IsSpace) == "" {
+			errs = append(errs, checkError{
+				"error[config.rellog.paths." + key + ".empty_value]",
+				"rellog.paths." + key + " value cannot be empty.",
+			})
+			continue
+		}
+		pathValues[key] = info.value
 	}
 	if len(errs) > 0 {
 		return errs
@@ -520,7 +555,96 @@ func validateRellogConfig(doc *document.Document) []checkError {
 			"rellog.paths.release-notes must be a directory, but found a file",
 		})
 	}
-	return errs
+	if len(errs) > 0 {
+		return errs
+	}
+
+	return validateEntriesConfig(rellogNode)
+}
+
+func validateEntriesConfig(rellogNode *document.Node) []checkError {
+	var entriesNode *document.Node
+	for _, n := range rellogNode.Children {
+		if nodeName(n) == "entries" {
+			entriesNode = n
+			break
+		}
+	}
+	if entriesNode == nil {
+		return nil
+	}
+
+	var kindsNode *document.Node
+	for _, n := range entriesNode.Children {
+		if nodeName(n) == "kinds" {
+			kindsNode = n
+			break
+		}
+	}
+	if kindsNode == nil {
+		return []checkError{{"error[config.entries.kinds.missing]", "rellog.entries.kinds is required."}}
+	}
+
+	var values []string
+	var perNodeErrs []checkError
+	for _, n := range kindsNode.Children {
+		if nodeName(n) != "kind" {
+			continue
+		}
+		if len(n.Arguments) == 0 {
+			perNodeErrs = append(perNodeErrs, checkError{
+				"error[config.entries.kinds.empty_value]",
+				"The kind value cannot be empty.",
+			})
+			continue
+		}
+		if len(n.Arguments) > 1 {
+			args := make([]string, len(n.Arguments))
+			for i, a := range n.Arguments {
+				args[i] = `"` + a.ValueString() + `"`
+			}
+			perNodeErrs = append(perNodeErrs, checkError{
+				"error[config.entries.kinds.multi_arguments]",
+				"The kind value must be a single argument.\nBut multiple arguments were provided: " + strings.Join(args, " ") + ".",
+			})
+			continue
+		}
+		values = append(values, n.Arguments[0].ValueString())
+	}
+	if len(perNodeErrs) > 0 {
+		return perNodeErrs
+	}
+
+	seen := map[string]bool{}
+	var dupErrs []checkError
+	for _, v := range values {
+		if seen[v] {
+			dupErrs = append(dupErrs, checkError{
+				"error[config.entries.kinds.duplicated]",
+				fmt.Sprintf("The kind value %q is duplicated.", v),
+			})
+		}
+		seen[v] = true
+	}
+	if len(dupErrs) > 0 {
+		return dupErrs
+	}
+
+	var valErrs []checkError
+	for _, v := range values {
+		if builtinKinds[v] {
+			valErrs = append(valErrs, checkError{
+				"error[config.entries.kinds.builtin_kind]",
+				fmt.Sprintf("%q is a built-in kind and cannot be defined by the user.", v),
+			})
+		} else if !validKindRe.MatchString(v) {
+			valErrs = append(valErrs, checkError{
+				"error[config.entries.kinds.invalid_format]",
+				fmt.Sprintf("The kind value %q is invalid.\n\nkind value is identifier.\nit must satisfy /^[a-z][0-9a-zA-Z_-.]+$/", v),
+			})
+		}
+	}
+	return valErrs
 }
 
 
