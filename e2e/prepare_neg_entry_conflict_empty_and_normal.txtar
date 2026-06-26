@@ -1,0 +1,43 @@
+
+exec rellog init
+! stderr .
+! exists CHANGELOG.md
+
+exec sh -c 'rellog prepare v1.0.0; test "$?" -eq 5'
+! stdout .
+stderr 'Error: entry conflict: empty entry .rellog/entries/0001.md cannot coexist with normal entries\n'
+
+! exists .rellog/release-notes/v1.0.0.md
+! exists .rellog/release-notes/v1.0.0.json
+! exists CHANGELOG.md
+exists .rellog/entries/0001.md
+exists .rellog/entries/0002.md
+cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
+
+-- .rellog/entries/0001.md --
+---
+kind: empty
+---
+
+No changelog-worthy changes.
+-- .rellog/entries/0002.md --
+---
+kind: changed
+targets:
+  - rellog
+---
+Normal entry
+-- .rellog.expected/entries/0001.md --
+---
+kind: empty
+---
+
+No changelog-worthy changes.
+-- .rellog.expected/entries/0002.md --
+---
+kind: changed
+targets:
+  - rellog
+---
+Normal entry

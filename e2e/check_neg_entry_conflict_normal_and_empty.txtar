@@ -1,0 +1,30 @@
+
+exec rellog init
+! stderr .
+
+exec sh -c 'rellog check; test "$?" -eq 5'
+! stdout .
+cmp stderr expected.txt
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/0002.md
+  error[entry.conflict.empty_and_normal]
+    entry conflict: empty entry cannot coexist with normal entries.
+-- .rellog/entries/0001.md --
+---
+kind: changed
+targets:
+  - rellog
+---
+Normal entry
+-- .rellog/entries/0002.md --
+---
+kind: empty
+---
+
+No changelog-worthy changes.

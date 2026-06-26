@@ -1,0 +1,15 @@
+
+exec rellog init
+! stderr .
+
+exec rellog add-empty
+! stderr .
+exists .rellog/entries/0001.md
+cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+
+-- .rellog.expected/entries/0001.md --
+---
+kind: empty
+---
+
+No changelog-worthy changes.

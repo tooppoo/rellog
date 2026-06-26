@@ -1,0 +1,22 @@
+
+exec rellog init
+! stderr .
+
+exec rellog add --kind changed --target rellog --body 'Normal entry'
+! stderr .
+exists .rellog/entries/0001.md
+
+exec sh -c 'rellog add-empty; test "$?" -eq 5'
+! stdout .
+stderr 'Error: entry conflict: normal entries already exist; empty entry cannot be added\n'
+
+cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+! exists .rellog/entries/0002.md
+
+-- .rellog.expected/entries/0001.md --
+---
+kind: changed
+targets:
+  - rellog
+---
+Normal entry

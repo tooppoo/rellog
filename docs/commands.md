@@ -77,7 +77,7 @@ Possible options:
 Rules:
 
 - `rellog add` creates a normal entry using the next generated sequence filename.
-- If an empty entry already exists, `rellog add` should fail.
+- If an empty entry already exists, `rellog add` should fail with `ExitEntryConflict`.
 - `rellog add` should not silently remove an empty entry.
 - Users cannot specify the entry filename.
 
@@ -97,9 +97,11 @@ Rules:
 
 - if no entry exists, create an empty entry;
 - if an empty entry already exists, do nothing;
-- if a normal entry already exists, fail.
+- if a normal entry already exists, fail with `ExitEntryConflict`.
 
 A normal entry and an empty entry should not coexist.
+
+`rellog add` and `rellog add-empty` are the entry points that prevent users from creating an entry conflict through `rellog`.
 
 ## `rellog check`
 
@@ -120,6 +122,8 @@ Expected checks:
 - body is not empty;
 - breaking-change metadata is consistent;
 - normal entries and an empty entry do not coexist.
+
+If normal entries and an empty entry coexist because of manual file edits, this is an entry conflict and `rellog check` should fail with `ExitEntryConflict`.
 
 Possible options:
 
@@ -179,7 +183,7 @@ Expected behavior:
 
 - validate pending entries;
 - fail if there are no pending entries;
-- fail if normal entries and an empty entry coexist;
+- fail with `ExitEntryConflict` if normal entries and an empty entry coexist;
 - aggregate pending entries in filename order;
 - create the release-note file for the release id;
 - append the prepared release-note content to `CHANGELOG.md`;
@@ -200,6 +204,8 @@ If this release has no changelog-worthy changes, add an explicit empty entry:
 ```
 
 If the release-note file for the release id already exists, the command should fail by default rather than silently overwriting it.
+
+If manual file edits create an entry conflict, `rellog prepare <release-id>` should fail before writing a release-note file, appending to `CHANGELOG.md`, or deleting pending entries.
 
 Possible options:
 
@@ -226,5 +232,6 @@ Possible options:
 | 0    | —                      | Success                                                                 |
 | 1    | `ExitNotInitialized`   | `rellog` has not been initialized; run `rellog init` first              |
 | 2    | `ExitInvalidStructure` | A path that must be a directory exists as a file (e.g. `.rellog/entries`) |
-| 3    | `ExitCheckFailed`      | `rellog check` found one or more validation errors in pending entries   |
+| 3    | `ExitCheckFailed`      | `rellog check` found one or more non-conflict validation errors in pending entries |
 | 4    | `ExitReleaseNotFound`  | The required release-note file does not exist; run `rellog prepare` first |
+| 5    | `ExitEntryConflict`    | Empty and normal pending entries would coexist or already coexist        |
