@@ -51,7 +51,19 @@ Create a new pending changelog entry.
 rellog add
 ```
 
-The default mode may be interactive. It should guide the user through required metadata such as kind, target, and body.
+When no flags are provided, `rellog add` should run in interactive mode. It
+should guide the user through the entry fields in this order:
+
+1. `kind`
+2. `target`
+3. `body`
+4. `issues`
+5. `prs`
+
+The interactive guide for `issues` and `prs` must say that the field may be
+left empty. It must also say that multiple values can be entered either as a
+comma-separated list or as a space-separated list. The guide is user-facing
+help text on stdout; tests should not rely on its exact wording.
 
 Non-interactive usage:
 
@@ -80,6 +92,15 @@ Rules:
 - If an empty entry already exists, `rellog add` should fail with `ExitEntryConflict`.
 - `rellog add` should not silently remove an empty entry.
 - Users cannot specify the entry filename.
+- When any flag is provided, `rellog add` runs in non-interactive mode.
+- Interactive and non-interactive mode must validate `kind` against
+  `rellog.entries.kinds`. An undefined kind is an error and no entry file is
+  created.
+- Interactive and non-interactive mode must handle targets that are not listed
+  in `rellog.entries.targets` according to `target-policy`:
+  - `deny-unknown`: fail with an error and do not create an entry file.
+  - `warn-unknown`: print a warning to stderr and create the entry file.
+  - `allow-unknown`: create the entry file without a warning.
 
 ## `rellog add-empty`
 

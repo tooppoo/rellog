@@ -1,0 +1,38 @@
+exec rellog init
+! stderr .
+exec cp warn_unknown_target.kdl .rellog/config.kdl
+
+exec rellog add --kind changed --target api --body 'Warned unknown target'
+stderr 'target "api" is not defined in rellog.entries.targets\.'
+exists .rellog/entries/0001.md
+cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+
+-- warn_unknown_target.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "warn-unknown"
+
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}
+-- .rellog.expected/entries/0001.md --
+---
+kind: changed
+targets:
+  - api
+---
+Warned unknown target

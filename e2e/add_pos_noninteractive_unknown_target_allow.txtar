@@ -1,0 +1,15 @@
+exec rellog init
+! stderr .
+
+exec rellog add --kind changed --target api --body 'Allowed unknown target'
+! stderr .
+exists .rellog/entries/0001.md
+cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+
+-- .rellog.expected/entries/0001.md --
+---
+kind: changed
+targets:
+  - api
+---
+Allowed unknown target

@@ -1,0 +1,13 @@
+exec rellog init
+! stderr .
+
+stdin answers.txt
+! exec rellog add
+stderr 'kind "experimental" is not defined in rellog.entries.kinds\.'
+! exists .rellog/entries/0001.md
+
+-- answers.txt --
+experimental
+rellog
+Unknown kind
+

@@ -1,0 +1,6 @@
+exec rellog init
+! stderr .
+
+! exec rellog add --kind experimental --target rellog --body 'Unknown kind'
+stderr 'kind "experimental" is not defined in rellog.entries.kinds\.'
+! exists .rellog/entries/0001.md
