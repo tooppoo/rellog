@@ -114,8 +114,8 @@ func cmdInit() *cobra.Command {
 }
 
 func cmdAdd() *cobra.Command {
-	var kind, target, scope, body string
-	var issue, pr int
+	var kind, scope, body string
+	var targets, issues, prs []string
 
 	cmd := &cobra.Command{
 		Use:          "add",
@@ -141,15 +141,21 @@ func cmdAdd() *cobra.Command {
 
 			e := entry{
 				Kind:    kind,
-				Targets: []string{target},
+				Targets: targets,
 				Scope:   scope,
 				Body:    body,
 			}
-			if issue != 0 {
-				e.Issues = []int{issue}
+			for _, s := range issues {
+				n, _ := strconv.Atoi(s)
+				if n != 0 {
+					e.Issues = append(e.Issues, n)
+				}
 			}
-			if pr != 0 {
-				e.PRs = []int{pr}
+			for _, s := range prs {
+				n, _ := strconv.Atoi(s)
+				if n != 0 {
+					e.PRs = append(e.PRs, n)
+				}
 			}
 			filename := fmt.Sprintf("%04d.md", count+1)
 			return os.WriteFile(filepath.Join(entriesDir(), filename), []byte(formatEntry(e)), 0644)
@@ -157,11 +163,11 @@ func cmdAdd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&kind, "kind", "", "Change kind (e.g. changed, fix)")
-	cmd.Flags().StringVar(&target, "target", "", "Target component")
+	cmd.Flags().StringArrayVar(&targets, "target", nil, "Target component (repeatable)")
 	cmd.Flags().StringVar(&scope, "scope", "", "Change scope")
 	cmd.Flags().StringVar(&body, "body", "", "Change description")
-	cmd.Flags().IntVar(&issue, "issue", 0, "Issue number")
-	cmd.Flags().IntVar(&pr, "pr", 0, "PR number")
+	cmd.Flags().StringArrayVar(&issues, "issue", nil, "Issue number (repeatable)")
+	cmd.Flags().StringArrayVar(&prs, "pr", nil, "PR number (repeatable)")
 	_ = cmd.MarkFlagRequired("kind")
 	_ = cmd.MarkFlagRequired("target")
 	_ = cmd.MarkFlagRequired("scope")
