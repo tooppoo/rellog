@@ -473,11 +473,28 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		val := pathValues[key]
 		if firstKey, ok := seen[val]; ok {
 			errs = append(errs, checkError{
-				"error[config.rellog.paths.duplicate]",
+				"error[config.rellog.paths.duplicated]",
 				fmt.Sprintf("duplicate path: %q is used for both rellog.paths.%s and rellog.paths.%s", val, firstKey, key),
 			})
 		} else {
 			seen[val] = key
+		}
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+
+	// Check for dot segments in path values (traversal prevention)
+	for _, key := range required {
+		val := pathValues[key]
+		for _, segment := range strings.Split(val, "/") {
+			if segment == "." || segment == ".." {
+				errs = append(errs, checkError{
+					"error[config.rellog.paths." + key + ".traversal]",
+					fmt.Sprintf("%q is not allowed.\n\nconfiguration paths must be repository-root-relative paths and must not contain any dot segments.", val),
+				})
+				break
+			}
 		}
 	}
 	if len(errs) > 0 {
