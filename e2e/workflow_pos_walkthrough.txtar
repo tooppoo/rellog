@@ -66,7 +66,7 @@ kind: changed
 targets:
   - rellog
 issues:
-  - 12
+  - https://github.com/tooppoo/rellog/issues/12
 ---
 Test Entry 1
 -- .rellog.expected/entries/0002.md --
@@ -75,6 +75,6 @@ kind: fixed
 targets:
   - rellog
 prs:
-  - 15
+  - https://github.com/tooppoo/rellog/pull/15
 ---
 Test Entry 2

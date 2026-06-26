@@ -43,7 +43,7 @@ rellog check: FAILED
     issues must be an array.
 
   error[entry.prs.invalid]
-    prs item must be a number.
+    prs item must be a canonical GitHub pull request URL.
 
   error[entry.body.empty]
     entry body must not be empty.
@@ -60,7 +60,7 @@ rellog check: FAILED
 targets:
   - rellog
 issues:
-  - 12
+  - https://github.com/tooppoo/rellog/issues/12
 ---
 Kind Not Exist
 -- .rellog/entries/0002.md --
@@ -68,7 +68,7 @@ Kind Not Exist
 kind: changed
 targets:
 issues:
-  - 12
+  - https://github.com/tooppoo/rellog/issues/12
 ---
 Targets empty
 -- .rellog/entries/0003.md --
@@ -77,7 +77,7 @@ kind: changed
 targets:
   - rellog
 prs:
-  - 15
+  - https://github.com/tooppoo/rellog/pull/15
 ---
 -- .rellog/entries/0004.md --
 ---
@@ -85,7 +85,7 @@ kind:
 targets:
   - rellog
 prs:
-  - 15
+  - https://github.com/tooppoo/rellog/pull/15
 Frontmatter Broken
 -- .rellog/entries/0005.md --
 Without Frontmatter
@@ -108,11 +108,11 @@ kind: changed
 targets:
   - test
 issues:
-  - 1
-  - 2
+  - https://github.com/tooppoo/rellog/issues/1
+  - https://github.com/tooppoo/rellog/issues/2
 prs:
-  - 3
-  - 4
+  - https://github.com/tooppoo/rellog/pull/3
+  - https://github.com/tooppoo/rellog/pull/4
 ---
 Fulfilled(valid)
 -- .rellog/entries/0009.md --

@@ -24,7 +24,7 @@ targets:
   - t1
   - t2
 issues:
-  - 12
+  - https://github.com/tooppoo/rellog/issues/12
 ---
 Multi targets
 -- .rellog.expected/entries/0002.md --
@@ -34,8 +34,8 @@ targets:
   - t1
   - t2
 issues:
-  - 12
-  - 13
+  - https://github.com/tooppoo/rellog/issues/12
+  - https://github.com/tooppoo/rellog/issues/13
 ---
 Multi targets + Multi issues
 -- .rellog.expected/entries/0003.md --
@@ -45,10 +45,10 @@ targets:
   - t1
   - t2
 issues:
-  - 12
-  - 13
+  - https://github.com/tooppoo/rellog/issues/12
+  - https://github.com/tooppoo/rellog/issues/13
 prs:
-  - 14
-  - 15
+  - https://github.com/tooppoo/rellog/pull/14
+  - https://github.com/tooppoo/rellog/pull/15
 ---
 Multi targets + Multi issues + Multi PRs

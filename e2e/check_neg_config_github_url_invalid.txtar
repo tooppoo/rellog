@@ -1,0 +1,299 @@
+exec rellog init
+! stderr .
+
+mv github_url_missing.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_missing.expected.txt
+
+mv github_url_empty.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_empty.expected.txt
+
+mv github_url_dot_git.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_dot_git.expected.txt
+
+mv github_url_ssh.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_ssh.expected.txt
+
+mv github_url_http.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_http.expected.txt
+
+mv github_url_trailing_slash.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_trailing_slash.expected.txt
+
+mv github_url_query.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_query.expected.txt
+
+mv github_url_fragment.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_fragment.expected.txt
+
+mv github_url_other_host.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr github_url_other_host.expected.txt
+
+-- github_url_missing.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_missing.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.missing]
+    github-url is required.
+-- github_url_empty.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url ""
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_empty.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.
+-- github_url_dot_git.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog.git"
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_dot_git.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.
+-- github_url_ssh.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "git@github.com:tooppoo/rellog.git"
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_ssh.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.
+-- github_url_http.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "http://github.com/tooppoo/rellog"
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_http.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.
+-- github_url_trailing_slash.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog/"
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_trailing_slash.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.
+-- github_url_query.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog?tab=readme"
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_query.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.
+-- github_url_fragment.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog#readme"
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_fragment.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.
+-- github_url_other_host.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://example.com/tooppoo/rellog"
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- github_url_other_host.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.github-url.invalid]
+    github-url must be a canonical GitHub repository URL.

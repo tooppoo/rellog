@@ -11,6 +11,7 @@ cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
 /- kdl-version 2
 
 rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
