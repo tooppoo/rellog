@@ -1,0 +1,13 @@
+
+! exists .rellog
+! exec rellog check
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog
+  error[rellog.not_initialized]
+    run `rellog init` first

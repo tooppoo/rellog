@@ -1,0 +1,17 @@
+
+exec touch .rellog
+! exec rellog check
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog
+  error[rellog_dir.not_directory]
+    .rellog path is not a directory.
+
+    Expected a directory for .rellog, but found a file.
+    Remove or rename the file, then create the directory:
+      mkdir .rellog
