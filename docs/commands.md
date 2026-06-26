@@ -151,6 +151,8 @@ Expected checks:
 - required metadata is present;
 - entry kind is allowed;
 - target is known, unless the project allows unknown targets;
+- issue and pull request references are canonical GitHub URLs for the
+  configured `github-url`;
 - body is not empty;
 - breaking-change metadata is consistent;
 - normal entries and an empty entry do not coexist.
@@ -221,7 +223,8 @@ rellog prepare v1.0.1 --run
 
 Expected behavior:
 
-- validate pending entries;
+- validate pending entries using the same checks and human-readable stderr
+  diagnostics as `rellog check`;
 - fail if there are no pending entries;
 - fail with `ExitEntryConflict` if normal entries and an empty entry coexist;
 - aggregate pending entries in filename order;

@@ -1,0 +1,55 @@
+! exists CHANGELOG.md
+
+! exec rellog prepare v1.0.0
+! stdout .
+cmp stderr expected.txt
+! exists .rellog/release-notes/v1.0.0.md
+! exists CHANGELOG.md
+exists .rellog/entries/0001.md
+
+! exec rellog prepare v1.0.0 --run
+! stdout .
+cmp stderr expected.txt
+! exists .rellog/release-notes/v1.0.0.md
+! exists CHANGELOG.md
+exists .rellog/entries/0001.md
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/0001.md
+  error[entry.issues.invalid]
+    issue URL repository "https://github.com/other/repo" does not match github-url "https://github.com/tooppoo/rellog".
+-- .rellog/config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
+
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- .rellog/release-notes/.keep --
+-- .rellog/entries/0001.md --
+---
+kind: changed
+targets:
+  - rellog
+issues:
+  - https://github.com/other/repo/issues/12
+---
+Prepare must reject invalid issue URLs before writing

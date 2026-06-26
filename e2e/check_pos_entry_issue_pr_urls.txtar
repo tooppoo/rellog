@@ -1,0 +1,45 @@
+exec rellog check
+stdout 'rellog check: OK \(entries: 2\)\n'
+! stderr .
+
+-- .rellog/config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
+
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- .rellog/release-notes/.keep --
+-- .rellog/entries/0001.md --
+---
+kind: changed
+targets:
+  - rellog
+issues:
+  - https://github.com/tooppoo/rellog/issues/12
+  - https://github.com/tooppoo/rellog/issues/13
+prs:
+  - https://github.com/tooppoo/rellog/pull/15
+  - https://github.com/tooppoo/rellog/pull/16
+---
+Canonical issue and pull request URLs
+-- .rellog/entries/0002.md --
+---
+kind: changed
+targets:
+  - rellog
+---
+No references is still valid
