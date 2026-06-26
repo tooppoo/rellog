@@ -12,47 +12,23 @@ Git log is not a release log.
 
 It is inspired by the [changesets](https://github.com/changesets/changesets) workflow, but it is not compatible with `changesets` and does not manage versions. Its scope is limited to collecting explicit changelog entries, preparing plain Markdown release-note files, and appending those release notes to `CHANGELOG.md`.
 
+## Position
+
+`rellog` is based on a small distinction: Git history records how work happened, while changelogs and release notes explain what changed.
+
+It does not try to infer final release notes from commits, pull requests, or Conventional Commits. Instead, it expects explicit changelog entries written by humans at the level the change should be communicated.
+
+It also leaves version numbers, package manifests, tags, publishing, and GitHub Releases to the tools and conventions of each project. A release id is supplied from the outside when release notes and `CHANGELOG.md` are prepared.
+
+The background for this position is described in [docs/philosophy.md](docs/philosophy.md).
+
 ## Concept
-
-Git records how work happened. It does not reliably explain the totality of a release.
-
-A release often contains implementation commits, review fixes, issue splits, documentation adjustments, refactors, CI changes, and small follow-up corrections. Those records are useful as development history, but they are a weak substrate for explaining what changed for users.
-
-`rellog` treats CHANGELOG content as an edited release record, not as a mechanical summary of Git history.
 
 The central unit is a changelog entry: a small Markdown file that describes a change at the level it should be communicated in release notes. Entries are accumulated before release preparation and then consumed into a release-note file and `CHANGELOG.md`.
 
-## Why rellog?
+`rellog add-empty` can create an explicit empty changelog entry when there is nothing changelog-worthy to mention. This lets normal releases and intentionally empty releases follow the same preparation flow.
 
-### Git history is not the same as a changelog
-
-Commit history, pull request titles, and merge comments are shaped by work management. They often describe how the work was divided, not what the release means as a whole.
-
-`rellog` therefore does not infer final release notes from commits. It expects explicit changelog entries that summarize changes at the user-facing, operator-facing, or maintainer-facing level.
-
-### Version management belongs to each ecosystem
-
-Versioning practices vary heavily by ecosystem:
-
-- Node projects use `package.json`, workspaces, and registry-specific conventions.
-- Rust projects use `Cargo.toml`, crates, and tags.
-- Go projects often rely on module tags.
-- CLI tools may release binaries, installers, package-manager manifests, or GitHub Releases.
-- Documentation sites and web applications may not have a package version at all.
-
-`rellog` deliberately does not decide versions, update package manifests, create Git tags, or publish artifacts. A release id is supplied from the outside when release notes and `CHANGELOG.md` are prepared.
-
-### Empty releases should also be explicit
-
-Sometimes a release has no changelog-worthy changes. That should still be an explicit repository state, not a hidden workflow override.
-
-`rellog add-empty` creates an empty changelog entry. This entry means: the project intentionally records that there is nothing to mention in the changelog for the next release. Because it is still an entry, `rellog prepare <release-id>` can use the same rule for normal releases and empty releases: release-note preparation consumes pending entries.
-
-### Release notes are plain Markdown files
-
-`rellog` can prepare release notes as plain Markdown files under `.rellog/release-notes/`.
-
-These files are not GitHub Release Notes. They are repository-managed Markdown artifacts that can be appended to `CHANGELOG.md`, reviewed in pull requests, and reused by other release tooling.
+Release notes prepared by `rellog` are plain Markdown files under `.rellog/release-notes/`. They are repository-managed artifacts that can be appended to `CHANGELOG.md`, reviewed in pull requests, and reused by other release tooling.
 
 ## Basic workflow
 
@@ -108,6 +84,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 ## Documentation
 
+- [Philosophy](docs/philosophy.md)
 - [Files](docs/files.md)
 - [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)
