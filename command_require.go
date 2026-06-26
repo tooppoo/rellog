@@ -1,10 +1,7 @@
 package rellog
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -22,19 +19,8 @@ func cmdRequire() *cobra.Command {
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ver := args[0]
-			path := filepath.Join(releaseNotesDir(), ver+".json")
-
-			data, err := os.ReadFile(path)
+			rel, err := requireRelease(args[0])
 			if err != nil {
-				if os.IsNotExist(err) {
-					return &exitError{ExitReleaseNotFound, "release not found: " + ver}
-				}
-				return err
-			}
-
-			var rel releaseData
-			if err := json.Unmarshal(data, &rel); err != nil {
 				return err
 			}
 
