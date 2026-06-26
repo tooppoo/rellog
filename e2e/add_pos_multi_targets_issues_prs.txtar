@@ -2,53 +2,62 @@
 exec rellog init
 ! stderr .
 
-exec rellog add --kind changed --target t1 --target t2 --issue 12 --body 'Multi targets'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target t1 --target t2 --issue 12 --body 'Multi targets'
 ! stderr .
-exists .rellog/entries/0001.md
-cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/20260626T123456.000000001Z.json
 
-exec rellog add --kind changed --target t1 --target t2 --issue 12 --issue 13 --body 'Multi targets + Multi issues'
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target t1 --target t2 --issue 12 --issue 13 --body 'Multi targets + Multi issues'
 ! stderr .
-exists .rellog/entries/0002.md
-cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
+exists .rellog/entries/20260626T123456.000000002Z.json
+cmp .rellog/entries/20260626T123456.000000002Z.json .rellog.expected/entries/20260626T123456.000000002Z.json
 
-exec rellog add --kind changed --target t1 --target t2 --issue 12 --issue 13 --pr 14 --pr 15 --body 'Multi targets + Multi issues + Multi PRs'
+exec rellog add --debug-datetime 20260626T123456.000000003Z --kind changed --target t1 --target t2 --issue 12 --issue 13 --pr 14 --pr 15 --body 'Multi targets + Multi issues + Multi PRs'
 ! stderr .
-exists .rellog/entries/0003.md
-cmp .rellog/entries/0003.md .rellog.expected/entries/0003.md
+exists .rellog/entries/20260626T123456.000000003Z.json
+cmp .rellog/entries/20260626T123456.000000003Z.json .rellog.expected/entries/20260626T123456.000000003Z.json
 
--- .rellog.expected/entries/0001.md --
----
-kind: changed
-targets:
-  - t1
-  - t2
-issues:
-  - https://github.com/tooppoo/rellog/issues/12
----
-Multi targets
--- .rellog.expected/entries/0002.md --
----
-kind: changed
-targets:
-  - t1
-  - t2
-issues:
-  - https://github.com/tooppoo/rellog/issues/12
-  - https://github.com/tooppoo/rellog/issues/13
----
-Multi targets + Multi issues
--- .rellog.expected/entries/0003.md --
----
-kind: changed
-targets:
-  - t1
-  - t2
-issues:
-  - https://github.com/tooppoo/rellog/issues/12
-  - https://github.com/tooppoo/rellog/issues/13
-prs:
-  - https://github.com/tooppoo/rellog/pull/14
-  - https://github.com/tooppoo/rellog/pull/15
----
-Multi targets + Multi issues + Multi PRs
+-- .rellog.expected/entries/20260626T123456.000000001Z.json --
+{
+  "kind": "changed",
+  "targets": [
+    "t1",
+    "t2"
+  ],
+  "issues": [
+    "https://github.com/tooppoo/rellog/issues/12"
+  ],
+  "prs": [],
+  "body": "Multi targets"
+}
+-- .rellog.expected/entries/20260626T123456.000000002Z.json --
+{
+  "kind": "changed",
+  "targets": [
+    "t1",
+    "t2"
+  ],
+  "issues": [
+    "https://github.com/tooppoo/rellog/issues/12",
+    "https://github.com/tooppoo/rellog/issues/13"
+  ],
+  "prs": [],
+  "body": "Multi targets + Multi issues"
+}
+-- .rellog.expected/entries/20260626T123456.000000003Z.json --
+{
+  "kind": "changed",
+  "targets": [
+    "t1",
+    "t2"
+  ],
+  "issues": [
+    "https://github.com/tooppoo/rellog/issues/12",
+    "https://github.com/tooppoo/rellog/issues/13"
+  ],
+  "prs": [
+    "https://github.com/tooppoo/rellog/pull/14",
+    "https://github.com/tooppoo/rellog/pull/15"
+  ],
+  "body": "Multi targets + Multi issues + Multi PRs"
+}
