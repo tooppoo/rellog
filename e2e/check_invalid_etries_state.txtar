@@ -1,0 +1,21 @@
+
+mkdir .rellog
+exec touch .rellog/entries
+
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries
+  error[entry_dir.not_directory]
+    Pending entry path is not a directory.
+
+    Expected a directory for pending changelog entries, but found a file.
+    Remove or rename the file, then create the directory:
+      mkdir -p .rellog/entries

@@ -1,10 +1,61 @@
 
 ! exec rellog check
 ! stdout .
-stderr 'error\[entry\.kind\.missing\] \.rellog/entries/0001\.md'
-stderr 'error\[entry\.targets\.missing\] \.rellog/entries/0002\.md'
-stderr 'error\[entry\.body\.empty\] \.rellog/entries/0003\.md'
+cmp stderr expected.txt
+exec echo 'valid files not printed'
 
+-- expected.txt --
+rellog check: FAILED
+
+8 files
+13 errors
+
+.rellog/entries/0001.md
+  error[entry.kind.missing]
+    missing required metadata: kind.
+
+.rellog/entries/0002.md
+  error[entry.targets.missing]
+    missing required metadata: target.
+
+.rellog/entries/0003.md
+  error[entry.body.empty]
+    entry body must not be empty.
+
+.rellog/entries/0004.md
+  error[entry.frontmatter.parse_failed]
+    missing closing ---
+
+.rellog/entries/0005.md
+  error[entry.frontmatter.parse_failed]
+    missing opening ---
+
+.rellog/entries/0006.md
+  error[entry.kind.missing]
+    missing required metadata: kind.
+
+  error[entry.targets.invalid]
+    targets must be an array.
+
+  error[entry.scope.missing]
+    missing required metadata: scope.
+
+  error[entry.issues.invalid]
+    issues must be an array.
+
+  error[entry.prs.invalid]
+    prs item must be a number.
+
+  error[entry.body.empty]
+    entry body must not be empty.
+
+.rellog/entries/0009.md
+  error[entry.targets.invalid]
+    targets must be an array.
+
+.rellog/entries/0010.md
+  error[entry.scope.missing]
+    missing required metadata: scope.
 -- .rellog/entries/0001.md --
 ---
 targets:
@@ -13,15 +64,16 @@ scope: cli
 issues:
   - 12
 ---
-Test Entry 1
+Kind Not Exist
 -- .rellog/entries/0002.md --
 ---
 kind: changed
+targets:
 scope: cli
 issues:
   - 12
 ---
-Test Entry 2
+Targets empty
 -- .rellog/entries/0003.md --
 ---
 kind: fix
@@ -31,3 +83,57 @@ scope: core
 prs:
   - 15
 ---
+-- .rellog/entries/0004.md --
+---
+kind:
+targets:
+  - rellog
+scope: core
+prs:
+  - 15
+Frontmatter Broken
+-- .rellog/entries/0005.md --
+Without Frontmatter
+-- .rellog/entries/0006.md --
+---
+kind:
+scope:
+targets: 1
+issues: 1
+prs:
+  - "abc"
+---
+-- .rellog/entries/0007.md --
+---
+kind: test
+scope: test
+scope: test
+---
+No issues and PRs(valid)
+-- .rellog/entries/0008.md --
+---
+kind: test
+targets:
+  - test
+scope: test
+issues:
+  - 1
+  - 2
+prs:
+  - 3
+  - 4
+---
+Fulfilled(valid)
+-- .rellog/entries/0009.md --
+---
+kind: test
+targets: 1
+scope: test
+---
+Array not used for targets(valid)
+-- .rellog/entries/0010.md --
+---
+kind: test
+targets: 1
+---
+Scope Empty

@@ -30,12 +30,27 @@ type exitError struct {
 func (e *exitError) Error() string { return e.Msg }
 
 type entry struct {
-	Kind    string
-	Targets []string
-	Scope   string
-	Issues  []int
-	PRs     []int
-	Body    string
+	Kind                 string
+	Targets              []string
+	Scope                string
+	Issues               []int
+	PRs                  []int
+	Body                 string
+	targetsKeyPresent    bool
+	targetsIsScalar      bool
+	scopeKeyPresent      bool
+	issuesIsScalar       bool
+	prsHasNonNumericItem bool
+}
+
+type checkError struct {
+	Code    string
+	Message string
+}
+
+type fileCheckResult struct {
+	Path   string
+	Errors []checkError
 }
 
 type releaseData struct {
@@ -182,48 +197,99 @@ func cmdCheck() *cobra.Command {
 		Short:        "Validate unreleased entries",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			files, err := os.ReadDir(entriesDir())
-			if err != nil {
-				return err
-			}
+			var results []fileCheckResult
+			totalMd := 0
 
-			var checkErrs []string
-			count := 0
-			for _, f := range files {
-				if !strings.HasSuffix(f.Name(), ".md") {
-					continue
-				}
-				count++
-				path := filepath.Join(entriesDir(), f.Name())
-				data, err := os.ReadFile(path)
+			if info, statErr := os.Stat(entriesDir()); statErr == nil && !info.IsDir() {
+				msg := "Pending entry path is not a directory.\n\n" +
+					"Expected a directory for pending changelog entries, but found a file.\n" +
+					"Remove or rename the file, then create the directory:\n" +
+					"  mkdir -p " + entriesDir()
+				results = append(results, fileCheckResult{
+					entriesDir(),
+					[]checkError{{"error[entry_dir.not_directory]", msg}},
+				})
+			} else {
+				files, err := os.ReadDir(entriesDir())
 				if err != nil {
 					return err
 				}
-				e, err := parseEntry(data)
-				if err != nil {
-					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.parse] %s: %s", path, err))
-					continue
-				}
-				if e.Kind == "" {
-					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.kind.missing] %s", path))
-				}
-				if len(e.Targets) == 0 {
-					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.targets.missing] %s", path))
-				}
-				if e.Body == "" {
-					checkErrs = append(checkErrs, fmt.Sprintf("error[entry.body.empty] %s", path))
+
+				for _, f := range files {
+					if !strings.HasSuffix(f.Name(), ".md") {
+						continue
+					}
+					totalMd++
+					path := filepath.Join(entriesDir(), f.Name())
+					data, err := os.ReadFile(path)
+					if err != nil {
+						return err
+					}
+
+					var errs []checkError
+					e, parseErr := parseEntry(data)
+					if parseErr != nil {
+						msg := strings.TrimPrefix(parseErr.Error(), "invalid frontmatter: ")
+						errs = append(errs, checkError{"error[entry.frontmatter.parse_failed]", msg})
+					} else {
+						if e.Kind == "" {
+							errs = append(errs, checkError{"error[entry.kind.missing]", "missing required metadata: kind."})
+						}
+						switch {
+						case e.targetsIsScalar && e.scopeKeyPresent:
+							errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
+						case e.targetsKeyPresent && !e.targetsIsScalar && len(e.Targets) == 0:
+							errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: target."})
+						}
+						if e.Scope == "" {
+							errs = append(errs, checkError{"error[entry.scope.missing]", "missing required metadata: scope."})
+						}
+						if e.issuesIsScalar {
+							errs = append(errs, checkError{"error[entry.issues.invalid]", "issues must be an array."})
+						}
+						if e.prsHasNonNumericItem {
+							errs = append(errs, checkError{"error[entry.prs.invalid]", "prs item must be a number."})
+						}
+						if e.Body == "" {
+							errs = append(errs, checkError{"error[entry.body.empty]", "entry body must not be empty."})
+						}
+					}
+
+					if len(errs) > 0 {
+						results = append(results, fileCheckResult{path, errs})
+					}
 				}
 			}
 
-			if len(checkErrs) > 0 {
-				for _, msg := range checkErrs {
-					fmt.Fprintln(os.Stderr, msg)
-				}
-				return &exitError{ExitCheckFailed, ""}
+			if len(results) == 0 {
+				fmt.Printf("rellog check: OK (entries: %d)\n", totalMd)
+				return nil
 			}
 
-			fmt.Printf("rellog check: OK (entries: %d)\n", count)
-			return nil
+			totalErrs := 0
+			for _, r := range results {
+				totalErrs += len(r.Errors)
+			}
+
+			fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n\n", len(results), totalErrs)
+			for i, r := range results {
+				fmt.Fprintf(os.Stderr, "%s\n", r.Path)
+				for j, ce := range r.Errors {
+					fmt.Fprintf(os.Stderr, "  %s\n", ce.Code)
+					for _, msgLine := range strings.Split(ce.Message, "\n") {
+						if msgLine == "" {
+							fmt.Fprintln(os.Stderr)
+						} else {
+							fmt.Fprintf(os.Stderr, "    %s\n", msgLine)
+						}
+					}
+					if i < len(results)-1 || j < len(r.Errors)-1 {
+						fmt.Fprintln(os.Stderr)
+					}
+				}
+			}
+
+			return &exitError{ExitCheckFailed, ""}
 		},
 	}
 }
@@ -375,8 +441,12 @@ func parseEntry(data []byte) (entry, error) {
 				n, _ := strconv.Atoi(item)
 				e.Issues = append(e.Issues, n)
 			case "prs":
-				n, _ := strconv.Atoi(item)
-				e.PRs = append(e.PRs, n)
+				n, err := strconv.Atoi(item)
+				if err != nil {
+					e.prsHasNonNumericItem = true
+				} else {
+					e.PRs = append(e.PRs, n)
+				}
 			}
 			continue
 		}
@@ -388,9 +458,23 @@ func parseEntry(data []byte) (entry, error) {
 				e.Kind = v
 			case "scope":
 				e.Scope = v
+				e.scopeKeyPresent = true
+			case "targets":
+				e.targetsKeyPresent = true
+				e.targetsIsScalar = true
+				_ = v
+			case "issues":
+				e.issuesIsScalar = true
+				_ = v
 			}
 		} else if strings.HasSuffix(line, ":") {
 			currentList = strings.TrimSuffix(line, ":")
+			switch currentList {
+			case "targets":
+				e.targetsKeyPresent = true
+			case "scope":
+				e.scopeKeyPresent = true
+			}
 		}
 	}
 	return e, nil
