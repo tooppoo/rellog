@@ -1,0 +1,36 @@
+
+exec rellog init
+
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+-- .rellog/config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "Add"
+      kind "Change" "Other" // multi-arguments
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.multi_arguments]
+    The kind value must be a single argument.
+    But multiple arguments were provided: "Change" "Other".

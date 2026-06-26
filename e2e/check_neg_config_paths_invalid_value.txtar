@@ -1,0 +1,453 @@
+
+exec rellog init
+! stderr .
+
+## paths
+mv paths.not-block.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.not-block.expected.txt
+
+mv paths.empty.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.empty.expected.txt
+
+## paths.changelog
+mv paths.changelog.empty.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.changelog.empty.expected.txt
+
+mv paths.changelog.blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.changelog.blank.expected.txt
+
+mv paths.changelog.emtpy_string.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.changelog.emtpy_string.expected.txt
+
+mv paths.changelog.multibyte_blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.changelog.multibyte_blank.expected.txt
+
+mv pahs.changelog.mixed_blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr pahs.changelog.mixed_blank.expected.txt
+
+mv paths.changelog.children.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.changelog.children.expected.txt
+
+## paths.entries
+mv paths.entries.empty.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.entries.empty.expected.txt
+
+mv paths.entries.empty_string.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.entries.empty_string.expected.txt
+
+mv paths.entries.empty.blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.entries.empty.blank.expected.txt
+
+mv paths.entries.empty.multibyte_blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.entries.empty.multibyte_blank.expected.txt
+
+mv paths.entries.empty.mixed_blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.entries.empty.mixed_blank.expected.txt
+
+mv paths.entries.empty.children.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.entries.empty.children.expected.txt
+
+## paths.release-notes
+mv paths.release-notes.empty.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.release-notes.empty.expected.txt
+
+mv paths.release-notes.empty_string.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.release-notes.empty_string.expected.txt
+
+mv paths.release-notes.empty.blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.release-notes.empty.blank.expected.txt
+
+mv paths.release-notes.empty.multibyte_blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.release-notes.empty.multibyte_blank.expected.txt
+
+mv paths.release-notes.empty.mixed_blank.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.release-notes.empty.mixed_blank.expected.txt
+
+mv paths.release-notes.empty.children.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.release-notes.empty.children.expected.txt
+
+-- paths.not-block.kdl --
+rellog config-version=1 {
+  paths "some-path-value"
+}
+-- paths.not-block.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths]
+    rellog.paths must be a block, but found a value
+-- paths.empty.kdl --
+rellog config-version=1 {
+  paths {
+  }
+}
+-- paths.empty.expected.txt --
+rellog check: FAILED
+
+1 files
+3 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.missing]
+    rellog.paths.changelog is required but not found
+
+  error[config.rellog.paths.entries.missing]
+    rellog.paths.entries is required but not found
+
+  error[config.rellog.paths.release-notes.missing]
+    rellog.paths.release-notes is required but not found
+-- paths.changelog.empty.kdl --
+rellog config-version=1 {
+  paths {
+    changelog
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.changelog.empty.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.empty_value]
+    rellog.paths.changelog value cannot be empty.
+-- paths.changelog.blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "   "
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.changelog.blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.empty_value]
+    rellog.paths.changelog value cannot be empty.
+-- paths.changelog.emtpy_string.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ""
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.changelog.emtpy_string.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.empty_value]
+    rellog.paths.changelog value cannot be empty.
+-- paths.changelog.multibyte_blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "　"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.changelog.multibyte_blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.empty_value]
+    rellog.paths.changelog value cannot be empty.
+-- pahs.changelog.mixed_blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog " 　"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- pahs.changelog.mixed_blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.empty_value]
+    rellog.paths.changelog value cannot be empty.
+-- paths.changelog.children.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md" {
+      format "markdown"
+    }
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.changelog.children.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.children]
+    rellog.paths.changelog must not have child nodes.
+-- paths.entries.empty.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.entries.empty.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.empty_value]
+    rellog.paths.entries value cannot be empty.
+-- paths.entries.empty_string.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ""
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.entries.empty_string.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.empty_value]
+    rellog.paths.entries value cannot be empty.
+-- paths.entries.empty.blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries "   "
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.entries.empty.blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.empty_value]
+    rellog.paths.entries value cannot be empty.
+-- paths.entries.empty.multibyte_blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries "　"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.entries.empty.multibyte_blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.empty_value]
+    rellog.paths.entries value cannot be empty.
+-- paths.entries.empty.mixed_blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries " 　"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.entries.empty.mixed_blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.empty_value]
+    rellog.paths.entries value cannot be empty.
+-- paths.entries.empty.children.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries" {
+      format "markdown"
+    }
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.entries.empty.children.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.children]
+    rellog.paths.entries must not have child nodes.
+-- paths.release-notes.empty.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes
+  }
+}
+-- paths.release-notes.empty.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.empty_value]
+    rellog.paths.release-notes value cannot be empty.
+-- paths.release-notes.empty_string.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ""
+  }
+}
+-- paths.release-notes.empty_string.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.empty_value]
+    rellog.paths.release-notes value cannot be empty.
+-- paths.release-notes.empty.blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes "   "
+  }
+}
+-- paths.release-notes.empty.blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.empty_value]
+    rellog.paths.release-notes value cannot be empty.
+-- paths.release-notes.empty.multibyte_blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes "　"
+  }
+}
+-- paths.release-notes.empty.multibyte_blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.empty_value]
+    rellog.paths.release-notes value cannot be empty.
+-- paths.release-notes.empty.mixed_blank.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes " 　"
+  }
+}
+-- paths.release-notes.empty.mixed_blank.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.empty_value]
+    rellog.paths.release-notes value cannot be empty.
+-- paths.release-notes.empty.children.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes" {
+      format "markdown"
+    }
+  }
+}
+-- paths.release-notes.empty.children.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.children]
+    rellog.paths.release-notes must not have child nodes.

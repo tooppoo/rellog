@@ -1,0 +1,327 @@
+
+exec rellog init
+
+mv rellog.entries.kinds.multibyte.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.multibyte.expected.txt
+
+mv rellog.entries.kinds.uppercase_head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.uppercase_head.expected.txt
+
+mv rellog.entries.kinds.number_head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.number_head.expected.txt
+
+mv rellog.entries.kinds.underscore_head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.underscore_head.expected.txt
+
+mv rellog.entries.kinds.hyphen_head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.hyphen_head.expected.txt
+
+mv rellog.entries.kinds.dot_head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.dot_head.expected.txt
+
+mv rellog.entries.kinds.one_char.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.one_char.expected.txt
+
+mv rellog.entries.kinds.space.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.space.expected.txt
+
+mv rellog.entries.kinds.slash.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr rellog.entries.kinds.slash.expected.txt
+
+-- rellog.entries.kinds.multibyte.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "change"
+      kind "テスト" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.multibyte.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "テスト" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.uppercase_head.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "Change" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.uppercase_head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "Change" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.number_head.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "1change" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.number_head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "1change" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.underscore_head.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "_change" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.underscore_head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "_change" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.hyphen_head.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "-change" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.hyphen_head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "-change" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.dot_head.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind ".change" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.dot_head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value ".change" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.one_char.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "a" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.one_char.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "a" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.space.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "change log" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.space.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "change log" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
+-- rellog.entries.kinds.slash.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "add"
+      kind "change/log" // invalid
+    }
+
+    target-policy "allow-unknown"
+  }
+}
+-- rellog.entries.kinds.slash.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.entries.kinds.invalid_format]
+    The kind value "change/log" is invalid.
+
+    kind value is identifier.
+    it must satisfy /^[a-z][0-9a-zA-Z_-.]+$/
