@@ -200,7 +200,16 @@ func cmdCheck() *cobra.Command {
 			var results []fileCheckResult
 			totalMd := 0
 
-			if info, statErr := os.Stat(entriesDir()); statErr == nil && !info.IsDir() {
+			if info, statErr := os.Stat(releaseNotesDir()); statErr == nil && !info.IsDir() {
+				msg := "release-notes path is not a directory.\n\n" +
+					"Expected a directory for release-notes, but found a file.\n" +
+					"Remove or rename the file, then create the directory:\n" +
+					"  mkdir -p " + releaseNotesDir()
+				results = append(results, fileCheckResult{
+					releaseNotesDir(),
+					[]checkError{{"error[release_notes_dir.not_directory]", msg}},
+				})
+			} else if info, statErr := os.Stat(entriesDir()); statErr == nil && !info.IsDir() {
 				msg := "Pending entry path is not a directory.\n\n" +
 					"Expected a directory for pending changelog entries, but found a file.\n" +
 					"Remove or rename the file, then create the directory:\n" +
