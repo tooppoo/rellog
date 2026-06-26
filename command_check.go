@@ -54,6 +54,13 @@ func reportCheckResults(results []fileCheckResult, totalMd int) error {
 	}
 	printCheckDiagnostics(results)
 
+	for _, r := range results {
+		for _, ce := range r.Errors {
+			if ce.Code == "error[entry.conflict.empty_and_normal]" {
+				return &exitError{ExitEntryConflict, ""}
+			}
+		}
+	}
 	return &exitError{ExitCheckFailed, ""}
 }
 

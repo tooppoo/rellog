@@ -125,68 +125,99 @@ func checkRepository() ([]fileCheckResult, int, error) {
 
 	// Step 6: Process entry files (only if entries dir is accessible)
 	if entAccessOk {
+		// First pass: detect empty/normal conflict.
+		type parsedFile struct {
+			path string
+			e    entry
+			ok   bool
+		}
+		var parsed []parsedFile
+		hasEmpty := false
+		hasNormal := false
 		for _, f := range entFiles {
 			if !strings.HasSuffix(f.Name(), ".md") {
 				continue
 			}
-			totalMd++
-			path := filepath.Join(entriesDir(), f.Name())
-			data, err := os.ReadFile(path)
-			if err != nil {
-				return nil, 0, err
+			p := filepath.Join(entriesDir(), f.Name())
+			data, readErr := os.ReadFile(p)
+			if readErr != nil {
+				return nil, 0, readErr
 			}
-
-			var errs []checkError
 			e, parseErr := parseEntry(data)
-			if parseErr != nil {
+			if parseErr == nil {
+				if e.Kind == "empty" {
+					hasEmpty = true
+				} else if e.Kind != "" {
+					hasNormal = true
+				}
+			}
+			parsed = append(parsed, parsedFile{p, e, parseErr == nil})
+		}
+		hasConflict := hasEmpty && hasNormal
+
+		// Second pass: validate each file.
+		for _, pf := range parsed {
+			totalMd++
+			var errs []checkError
+			if !pf.ok {
+				data, _ := os.ReadFile(pf.path)
+				_, parseErr := parseEntry(data)
 				msg := strings.TrimPrefix(parseErr.Error(), "invalid frontmatter: ")
 				errs = append(errs, checkError{"error[entry.frontmatter.parse_failed]", msg})
 			} else {
-				if e.Kind == "" {
-					errs = append(errs, checkError{"error[entry.kind.missing]", "missing required metadata: kind."})
-				} else if configOK && e.Kind != "empty" && !entryConfig.allowedKinds[e.Kind] {
+				e := pf.e
+				if hasConflict && e.Kind == "empty" {
 					errs = append(errs, checkError{
-						"error[entry.kind.unknown]",
-						fmt.Sprintf("kind %q is not defined in rellog.entries.kinds.", e.Kind),
+						"error[entry.conflict.empty_and_normal]",
+						"entry conflict: empty entry cannot coexist with normal entries.",
 					})
-				}
-				targetsValidForLookup := true
-				switch {
-				case e.targetsIsScalar:
-					errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
-					targetsValidForLookup = false
-				case e.targetsKeyPresent && !e.targetsIsScalar && len(e.Targets) == 0:
-					errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: target."})
-					targetsValidForLookup = false
-				}
-				if configOK && targetsValidForLookup && e.targetsKeyPresent && entryConfig.targetPolicy != "allow-unknown" {
-					for _, target := range e.Targets {
-						if entryConfig.knownTargets[target] {
-							continue
-						}
-						code := "error[entry.targets.unknown]"
-						if entryConfig.targetPolicy == "warn-unknown" {
-							code = "warning[entry.targets.unknown]"
-						}
+				} else {
+					if e.Kind == "" {
+						errs = append(errs, checkError{"error[entry.kind.missing]", "missing required metadata: kind."})
+					} else if configOK && e.Kind != "empty" && !entryConfig.allowedKinds[e.Kind] {
 						errs = append(errs, checkError{
-							code,
-							fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target),
+							"error[entry.kind.unknown]",
+							fmt.Sprintf("kind %q is not defined in rellog.entries.kinds.", e.Kind),
 						})
 					}
-				}
-				if e.issuesIsScalar {
-					errs = append(errs, checkError{"error[entry.issues.invalid]", "issues must be an array."})
-				}
-				if e.prsHasNonNumericItem {
-					errs = append(errs, checkError{"error[entry.prs.invalid]", "prs item must be a number."})
-				}
-				if e.Body == "" {
-					errs = append(errs, checkError{"error[entry.body.empty]", "entry body must not be empty."})
+					targetsValidForLookup := true
+					switch {
+					case e.targetsIsScalar:
+						errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
+						targetsValidForLookup = false
+					case e.targetsKeyPresent && !e.targetsIsScalar && len(e.Targets) == 0:
+						errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: target."})
+						targetsValidForLookup = false
+					}
+					if configOK && targetsValidForLookup && e.targetsKeyPresent && entryConfig.targetPolicy != "allow-unknown" {
+						for _, target := range e.Targets {
+							if entryConfig.knownTargets[target] {
+								continue
+							}
+							code := "error[entry.targets.unknown]"
+							if entryConfig.targetPolicy == "warn-unknown" {
+								code = "warning[entry.targets.unknown]"
+							}
+							errs = append(errs, checkError{
+								code,
+								fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target),
+							})
+						}
+					}
+					if e.issuesIsScalar {
+						errs = append(errs, checkError{"error[entry.issues.invalid]", "issues must be an array."})
+					}
+					if e.prsHasNonNumericItem {
+						errs = append(errs, checkError{"error[entry.prs.invalid]", "prs item must be a number."})
+					}
+					if e.Body == "" {
+						errs = append(errs, checkError{"error[entry.body.empty]", "entry body must not be empty."})
+					}
 				}
 			}
 
 			if len(errs) > 0 {
-				results = append(results, fileCheckResult{path, errs})
+				results = append(results, fileCheckResult{pf.path, errs})
 			}
 		}
 	}

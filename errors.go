@@ -6,6 +6,7 @@ const (
 	ExitInvalidStructure = 2 // rellog directory structure is invalid (expected directory is a file)
 	ExitCheckFailed      = 3 // rellog check found validation errors
 	ExitReleaseNotFound  = 4 // required release-note file does not exist
+	ExitEntryConflict    = 5 // entry conflict: empty and normal entries cannot coexist
 )
 
 type exitError struct {

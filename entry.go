@@ -24,9 +24,11 @@ func formatEntry(e entry) string {
 	var sb strings.Builder
 	sb.WriteString("---\n")
 	fmt.Fprintf(&sb, "kind: %s\n", e.Kind)
-	sb.WriteString("targets:\n")
-	for _, t := range e.Targets {
-		fmt.Fprintf(&sb, "  - %s\n", t)
+	if len(e.Targets) > 0 {
+		sb.WriteString("targets:\n")
+		for _, t := range e.Targets {
+			fmt.Fprintf(&sb, "  - %s\n", t)
+		}
 	}
 	if len(e.Issues) > 0 {
 		sb.WriteString("issues:\n")
@@ -43,6 +45,30 @@ func formatEntry(e entry) string {
 	sb.WriteString("---\n")
 	sb.WriteString(e.Body)
 	sb.WriteString("\n")
+	return sb.String()
+}
+
+// renderReleaseNote generates markdown release note content for the given version and entries.
+func renderReleaseNote(version string, entries []entry) string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "## %s\n", version)
+
+	// Group entries by kind, preserving first-seen order.
+	var kindOrder []string
+	kindEntries := map[string][]string{}
+	for _, e := range entries {
+		if _, seen := kindEntries[e.Kind]; !seen {
+			kindOrder = append(kindOrder, e.Kind)
+		}
+		kindEntries[e.Kind] = append(kindEntries[e.Kind], e.Body)
+	}
+
+	for _, kind := range kindOrder {
+		fmt.Fprintf(&sb, "\n### %s\n\n", kind)
+		for _, body := range kindEntries[kind] {
+			fmt.Fprintf(&sb, "- %s\n", body)
+		}
+	}
 	return sb.String()
 }
 

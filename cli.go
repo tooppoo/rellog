@@ -31,6 +31,7 @@ func Main() {
 	root.AddCommand(
 		cmdInit(),
 		cmdAdd(),
+		cmdAddEmpty(),
 		cmdCheck(),
 		cmdStatus(),
 		cmdPrepare(),
