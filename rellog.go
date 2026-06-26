@@ -384,17 +384,13 @@ func checkConfigFile() *fileCheckResult {
 		}
 		return nil
 	}
-	// Config must be a KDL v2 document (starts with slashdash version marker)
-	if !strings.HasPrefix(string(data), "/-") {
-		return &fileCheckResult{
-			configFile(),
-			[]checkError{{"error[config.parse_failed]", "Failed to parse rellog configuration file.\n\nFix the KDL syntax error and run `rellog check` again."}},
-		}
-	}
 	if _, parseErr := kdl.Parse(strings.NewReader(string(data))); parseErr != nil {
+		msg := configFile() + ": " + parseErr.Error() + "\n\n" +
+			"Failed to parse rellog configuration file.\n\n" +
+			"Fix the KDL syntax error and run `rellog check` again."
 		return &fileCheckResult{
 			configFile(),
-			[]checkError{{"error[config.parse_failed]", "Failed to parse rellog configuration file.\n\nFix the KDL syntax error and run `rellog check` again."}},
+			[]checkError{{"error[config.parse_failed]", msg}},
 		}
 	}
 	return nil
