@@ -61,9 +61,10 @@ should guide the user through the entry fields in this order:
 5. `prs`
 
 The interactive guide for `issues` and `prs` must say that the field may be
-left empty. It must also say that multiple values can be entered either as a
-comma-separated list or as a space-separated list. The guide is user-facing
-help text on stdout; tests should not rely on its exact wording.
+left empty. It must also say that each value may be either a number or a
+canonical GitHub URL, and that multiple values can be entered either as a
+comma-separated list or as a space-separated list. The guide is user-facing help
+text on stdout; tests should not rely on its exact wording.
 
 Non-interactive usage:
 
@@ -78,12 +79,12 @@ rellog add \
 Possible options:
 
 ```text
---kind <kind>          Changelog category, such as added, changed, fixed, removed, security.
---target <target>      Release target, component, or area affected by the change.
---breaking             Mark the entry as a breaking change.
---issue <number>       Related GitHub issue number. May be repeated.
---pr <number>          Related GitHub pull request number. May be repeated.
---body <text>          Entry body. Useful for non-interactive use.
+--kind <kind>           Changelog category, such as added, changed, fixed, removed, security.
+--target <target>       Release target, component, or area affected by the change.
+--breaking              Mark the entry as a breaking change.
+--issue <number-or-url> Related GitHub issue number or canonical URL. May be repeated.
+--pr <number-or-url>    Related GitHub pull request number or canonical URL. May be repeated.
+--body <text>           Entry body. Useful for non-interactive use.
 ```
 
 Rules:
@@ -93,6 +94,16 @@ Rules:
 - `rellog add` should not silently remove an empty entry.
 - Users cannot specify the entry filename.
 - When any flag is provided, `rellog add` runs in non-interactive mode.
+- Issue and pull request references require the repository's `github-url` in
+  `.rellog/config.kdl`.
+- Numeric issue and pull request values are normalized into canonical GitHub
+  URLs using `github-url`.
+- URL issue and pull request values must match the canonical URL shape derived
+  from `github-url`, such as
+  `https://github.com/tooppoo/rellog/issues/12` or
+  `https://github.com/tooppoo/rellog/pull/15`.
+- `rellog add` does not contact GitHub and does not verify whether an issue or
+  pull request number exists.
 - Interactive and non-interactive mode must validate `kind` against
   `rellog.entries.kinds`. An undefined kind is an error and no entry file is
   created.

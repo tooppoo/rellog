@@ -1,0 +1,74 @@
+exec rellog init
+! stderr .
+
+exec rellog add --kind changed --target rellog --issue 12 --pr 15 --body 'Numbers normalize to URLs'
+! stderr .
+cmp .rellog/entries/0001.md .rellog.expected/entries/0001.md
+
+exec rellog add --kind fixed --target rellog --issue https://github.com/tooppoo/rellog/issues/13 --pr https://github.com/tooppoo/rellog/pull/16 --body 'URLs are accepted'
+! stderr .
+cmp .rellog/entries/0002.md .rellog.expected/entries/0002.md
+
+exec rellog add --kind changed --target rellog --issue 21 --issue https://github.com/tooppoo/rellog/issues/22 --pr 23 --pr https://github.com/tooppoo/rellog/pull/24 --body 'Mixed references'
+! stderr .
+cmp .rellog/entries/0003.md .rellog.expected/entries/0003.md
+
+stdin answers_url_refs.txt
+exec rellog add
+! stderr .
+cmp .rellog/entries/0004.md .rellog.expected/entries/0004.md
+
+-- answers_url_refs.txt --
+changed
+rellog
+Interactive URL references
+31 https://github.com/tooppoo/rellog/issues/32
+33,https://github.com/tooppoo/rellog/pull/34
+-- .rellog.expected/entries/0001.md --
+---
+kind: changed
+targets:
+  - rellog
+issues:
+  - https://github.com/tooppoo/rellog/issues/12
+prs:
+  - https://github.com/tooppoo/rellog/pull/15
+---
+Numbers normalize to URLs
+-- .rellog.expected/entries/0002.md --
+---
+kind: fixed
+targets:
+  - rellog
+issues:
+  - https://github.com/tooppoo/rellog/issues/13
+prs:
+  - https://github.com/tooppoo/rellog/pull/16
+---
+URLs are accepted
+-- .rellog.expected/entries/0003.md --
+---
+kind: changed
+targets:
+  - rellog
+issues:
+  - https://github.com/tooppoo/rellog/issues/21
+  - https://github.com/tooppoo/rellog/issues/22
+prs:
+  - https://github.com/tooppoo/rellog/pull/23
+  - https://github.com/tooppoo/rellog/pull/24
+---
+Mixed references
+-- .rellog.expected/entries/0004.md --
+---
+kind: changed
+targets:
+  - rellog
+issues:
+  - https://github.com/tooppoo/rellog/issues/31
+  - https://github.com/tooppoo/rellog/issues/32
+prs:
+  - https://github.com/tooppoo/rellog/pull/33
+  - https://github.com/tooppoo/rellog/pull/34
+---
+Interactive URL references

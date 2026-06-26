@@ -5,6 +5,7 @@ rellog reads its repository configuration from `.rellog/config.kdl`.
 The configuration file defines repository-level policies used by rellog commands, such as:
 
 * where changelog-related files are stored
+* which GitHub repository issue and pull request references belong to
 * which entry kinds are allowed
 * which entry targets are known
 * how release notes and changelog sections are rendered
@@ -17,6 +18,7 @@ The configuration file is written in [KDL v2](https://github.com/kdl-org/kdl/blo
 /- kdl-version 2
 
 rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -54,6 +56,7 @@ A configuration file must contain exactly one top-level `rellog` node.
 
 ```kdl
 rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
   ...
 }
 ```
@@ -89,6 +92,31 @@ The intended property is probably `title`, but rellog must reject this configura
 The `rellog` node must have a `config-version` property.
 
 Only `config-version=1` is supported.
+
+### `rellog.github-url` (required)
+
+The `rellog` node must have exactly one `github-url` child node.
+
+```kdl
+github-url "https://github.com/tooppoo/rellog"
+```
+
+The value must be the canonical HTTPS repository URL:
+
+```text
+https://github.com/<owner>/<repo>
+```
+
+This URL is used by `rellog add` to normalize numeric issue and pull request
+references into canonical GitHub URLs. URL references passed to `rellog add`
+must match this repository URL and the expected `/issues/<number>` or
+`/pull/<number>` path shape.
+
+`rellog` does not contact GitHub and does not verify whether an issue or pull
+request number exists.
+
+Invalid forms include `.git` suffixes, SSH URLs, `http`, trailing slashes,
+query strings, fragments, and non-GitHub hosts.
 
 ### `entries.target-policy` (optional default = "deny-unknown")
 
@@ -536,6 +564,7 @@ A minimal configuration using strict target validation:
 /- kdl-version 2
 
 rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -564,6 +593,7 @@ A minimal configuration allowing arbitrary targets:
 /- kdl-version 2
 
 rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -596,6 +626,10 @@ Error codes use the dotted path to the configuration node or property where the 
 | `rellog.duplicate`                  | More than one `rellog` root node exists.                |
 | `rellog.config-version.missing`     | `config-version` is missing.                            |
 | `rellog.config-version.unsupported` | `config-version` is not supported.                      |
+| `rellog.github-url.missing`         | `github-url` is missing.                                |
+| `rellog.github-url.argument_count`  | `github-url` does not have exactly one argument.        |
+| `rellog.github-url.type`            | `github-url` is not a string.                           |
+| `rellog.github-url.invalid`         | `github-url` is not a canonical GitHub repository URL.  |
 | `<path>.unknown_node`               | An unknown node is present.                             |
 | `<path>.unknown_property`           | An unknown property is present.                         |
 | `<path>.<property>.duplicate`       | A property appears more than once in the same node.     |

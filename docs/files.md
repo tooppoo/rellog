@@ -28,6 +28,7 @@ It should define repository-level settings such as:
 - the changelog path;
 - the pending entry directory;
 - the release-note directory;
+- the canonical GitHub repository URL;
 - allowed entry kinds;
 - known targets or components;
 - rendering policy.
@@ -71,7 +72,7 @@ targets:
 kind: changed
 breaking: false
 issues:
-  - 12
+  - https://github.com/tooppoo/rellog/issues/12
 ---
 
 Added validation for pending changelog entries before release preparation.

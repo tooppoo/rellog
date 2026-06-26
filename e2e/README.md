@@ -37,3 +37,13 @@ i.e.
 | --- | --- |
 | `*_pos_*.txtar` | positive-case testing. Tests to ensure the system operates correctly |
 | `*_neg_*.txtar` | negative-case testing. Tests to ensure failures are reported correctly |
+
+## GitHub URL fixtures
+
+Tests that validate configuration files should include `github-url
+"https://github.com/tooppoo/rellog"` unless the scenario is specifically about
+missing or invalid GitHub repository URLs.
+
+Tests for issue and pull request references must treat GitHub URLs as syntax
+only. They should not require network access or verify whether a referenced
+issue or pull request exists on GitHub.
