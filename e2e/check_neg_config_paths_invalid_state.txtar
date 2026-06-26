@@ -1,0 +1,73 @@
+
+exec rellog init
+! stderr .
+
+mkdir .rellog/changelog_dir
+mv changelog.is_dir.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr changelog.is_dir.expected.txt
+
+exec touch .rellog/entries_file
+mv entries.is_file.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr entries.is_file.expected.txt
+
+exec touch .rellog/release-notes_file
+mv release-notes.is_file.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr release-notes.is_file.expected.txt
+
+-- changelog.is_dir.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog_dir"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- entries.is_file.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries ".rellog/entries_file"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- release-notes.is_file.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes_file"
+  }
+}
+-- changelog.is_dir.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.not-file]
+    rellog.paths.changelog must be a file, but found a directory
+-- entries.is_file.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.not-dir]
+    rellog.paths.entries must be a directory, but found a file
+-- release-notes.is_file.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.not-dir]
+    rellog.paths.release-notes must be a directory, but found a file

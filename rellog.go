@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	kdl "github.com/njreid/gokdl2"
+	"github.com/njreid/gokdl2/document"
 	"github.com/spf13/cobra"
 )
 
@@ -384,7 +385,19 @@ func checkConfigFile() *fileCheckResult {
 		}
 		return nil
 	}
-	if _, parseErr := kdl.Parse(strings.NewReader(string(data))); parseErr != nil {
+	content := string(data)
+	if strings.HasPrefix(content, "/- kdl-version ") {
+		firstLine := strings.SplitN(content, "\n", 2)[0]
+		version := strings.TrimSpace(strings.TrimPrefix(firstLine, "/- kdl-version "))
+		if version != "2" {
+			return &fileCheckResult{
+				configFile(),
+				[]checkError{{"error[kdl.invalid_version]", "rellog support only KDL v2"}},
+			}
+		}
+	}
+	doc, parseErr := kdl.Parse(strings.NewReader(content))
+	if parseErr != nil {
 		msg := configFile() + ": " + parseErr.Error() + "\n\n" +
 			"Failed to parse rellog configuration file.\n\n" +
 			"Fix the KDL syntax error and run `rellog check` again."
@@ -393,8 +406,106 @@ func checkConfigFile() *fileCheckResult {
 			[]checkError{{"error[config.parse_failed]", msg}},
 		}
 	}
+	if errs := validateRellogConfig(doc); len(errs) > 0 {
+		return &fileCheckResult{configFile(), errs}
+	}
 	return nil
 }
+
+func nodeName(n *document.Node) string {
+	if n.Name == nil {
+		return ""
+	}
+	return n.Name.ValueString()
+}
+
+func validateRellogConfig(doc *document.Document) []checkError {
+	var rellogNode *document.Node
+	for _, n := range doc.Nodes {
+		if nodeName(n) == "rellog" {
+			rellogNode = n
+			break
+		}
+	}
+	if rellogNode == nil {
+		return nil
+	}
+
+	var pathsNode *document.Node
+	for _, n := range rellogNode.Children {
+		if nodeName(n) == "paths" {
+			pathsNode = n
+			break
+		}
+	}
+	if pathsNode == nil {
+		return []checkError{{"error[config.rellog.paths]", "rellog.paths is required but not found"}}
+	}
+	if len(pathsNode.Arguments) > 0 {
+		return []checkError{{"error[config.rellog.paths]", "rellog.paths must be a block, but found a value"}}
+	}
+
+	// Collect path values and check for missing required paths
+	pathValues := map[string]string{}
+	for _, n := range pathsNode.Children {
+		if len(n.Arguments) > 0 {
+			pathValues[nodeName(n)] = n.Arguments[0].ValueString()
+		}
+	}
+
+	var errs []checkError
+	required := []string{"changelog", "entries", "release-notes"}
+	for _, key := range required {
+		if _, ok := pathValues[key]; !ok {
+			errs = append(errs, checkError{
+				"error[config.rellog.paths." + key + ".missing]",
+				"rellog.paths." + key + " is required but not found",
+			})
+		}
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+
+	// Check for duplicate path values
+	seen := map[string]string{} // path value → first key name
+	for _, key := range required {
+		val := pathValues[key]
+		if firstKey, ok := seen[val]; ok {
+			errs = append(errs, checkError{
+				"error[config.rellog.paths.duplicate]",
+				fmt.Sprintf("duplicate path: %q is used for both rellog.paths.%s and rellog.paths.%s", val, firstKey, key),
+			})
+		} else {
+			seen[val] = key
+		}
+	}
+	if len(errs) > 0 {
+		return errs
+	}
+
+	// Check filesystem state for each path value
+	if info, err := os.Stat(pathValues["changelog"]); err == nil && info.IsDir() {
+		errs = append(errs, checkError{
+			"error[config.rellog.paths.changelog.not-file]",
+			"rellog.paths.changelog must be a file, but found a directory",
+		})
+	}
+	if info, err := os.Stat(pathValues["entries"]); err == nil && !info.IsDir() {
+		errs = append(errs, checkError{
+			"error[config.rellog.paths.entries.not-dir]",
+			"rellog.paths.entries must be a directory, but found a file",
+		})
+	}
+	if info, err := os.Stat(pathValues["release-notes"]); err == nil && !info.IsDir() {
+		errs = append(errs, checkError{
+			"error[config.rellog.paths.release-notes.not-dir]",
+			"rellog.paths.release-notes must be a directory, but found a file",
+		})
+	}
+	return errs
+}
+
 
 func reportCheckResults(results []fileCheckResult, totalMd int) error {
 	if len(results) == 0 {
@@ -406,7 +517,6 @@ func reportCheckResults(results []fileCheckResult, totalMd int) error {
 	for _, r := range results {
 		totalErrs += len(r.Errors)
 	}
-
 	fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n\n", len(results), totalErrs)
 	for i, r := range results {
 		fmt.Fprintf(os.Stderr, "%s\n", r.Path)

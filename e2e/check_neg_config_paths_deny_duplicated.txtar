@@ -1,0 +1,70 @@
+
+exec rellog init
+! stderr .
+
+mv duplicate.changelog.entries.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr duplicate.changelog.entries.expected.txt
+
+mv duplicate.changelog.release-notes.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr duplicate.changelog.release-notes.expected.txt
+
+mv duplicate.entries.release-notes.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr duplicate.entries.release-notes.expected.txt
+
+-- duplicate.changelog.entries.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries "CHANGELOG.md"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- duplicate.changelog.entries.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.duplicated]
+    duplicate path: "CHANGELOG.md" is used for both rellog.paths.changelog and rellog.paths.entries
+-- duplicate.changelog.release-notes.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes "CHANGELOG.md"
+  }
+}
+-- duplicate.changelog.release-notes.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.duplicated]
+    duplicate path: "CHANGELOG.md" is used for both rellog.paths.changelog and rellog.paths.release-notes
+-- duplicate.entries.release-notes.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries ".rellog/entries"
+    release-notes ".rellog/entries"
+  }
+}
+-- duplicate.entries.release-notes.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.duplicated]
+    duplicate path: ".rellog/entries" is used for both rellog.paths.entries and rellog.paths.release-notes

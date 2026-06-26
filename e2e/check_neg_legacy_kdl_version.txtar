@@ -1,0 +1,17 @@
+
+exec rellog init
+
+! exec rellog check
+
+-- .rellog/config.kdl --
+/- kdl-version 1
+
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[kdl.invalid_version]
+    rellog support only KDL v2

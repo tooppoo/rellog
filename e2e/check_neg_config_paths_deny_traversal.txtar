@@ -1,0 +1,290 @@
+
+exec rellog init
+! stderr .
+
+# paths.changelog
+mv changelog.parent.head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr changelog.parent.head.expected.txt
+
+mv changelog.parent.mid.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr changelog.parent.mid.expected.txt
+
+mv changelog.current.head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr changelog.current.head.expected.txt
+
+# paths.entries
+mv entries.parent.head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr entries.parent.head.expected.txt
+
+mv entries.parent.mid.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr entries.parent.mid.expected.txt
+
+mv entries.current.head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr entries.current.head.expected.txt
+
+mv entries.current.mid.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr entries.current.mid.expected.txt
+
+# paths.release-notes
+mv release-notes.parent.head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr release-notes.parent.head.expected.txt
+
+mv release-notes.parent.mid.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr release-notes.parent.mid.expected.txt
+
+mv release-notes.current.head.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr release-notes.current.head.expected.txt
+
+mv release-notes.current.mid.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr release-notes.current.mid.expected.txt
+
+-- changelog.parent.head.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "../CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- changelog.parent.head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.traversal]
+    "../CHANGELOG.md" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- changelog.parent.mid.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "subdir/../CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- changelog.parent.mid.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.traversal]
+    "subdir/../CHANGELOG.md" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- changelog.current.head.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "./CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- changelog.current.head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.traversal]
+    "./CHANGELOG.md" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- changelog.current.mid.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "subdir/./CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- changelog.current.mid.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.traversal]
+    "subdir/./CHANGELOG.md" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- entries.parent.head.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries "../entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- entries.parent.head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.traversal]
+    "../entries" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- entries.parent.mid.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries "subdir/../entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- entries.parent.mid.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.traversal]
+    "subdir/../entries" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- entries.current.head.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries "./entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- entries.current.head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.traversal]
+    "./entries" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- entries.current.mid.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries "subdir/./entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- entries.current.mid.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.traversal]
+    "subdir/./entries" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- release-notes.parent.head.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries ".rellog/entries"
+    release-notes "../release-notes"
+  }
+}
+-- release-notes.parent.head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.traversal]
+    "../release-notes" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- release-notes.parent.mid.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries ".rellog/entries"
+    release-notes "subdir/../release-notes"
+  }
+}
+-- release-notes.parent.mid.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.traversal]
+    "subdir/../release-notes" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- release-notes.current.head.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries ".rellog/entries"
+    release-notes "./release-notes"
+  }
+}
+-- release-notes.current.head.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.traversal]
+    "./release-notes" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.
+-- release-notes.current.mid.kdl --
+rellog config-version=1 {
+  paths {
+    changelog ".rellog/changelog"
+    entries ".rellog/entries"
+    release-notes "subdir/./release-notes"
+  }
+}
+-- release-notes.current.mid.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.traversal]
+    "subdir/./release-notes" is not allowed.
+
+    configuration paths must be repository-root-relative paths and must not contain any dot segments.

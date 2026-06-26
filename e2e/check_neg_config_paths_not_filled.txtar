@@ -1,0 +1,112 @@
+
+exec rellog init
+! stderr .
+
+mv paths.missing.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.missing.expected.txt
+
+mv paths.not-block.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.not-block.expected.txt
+
+mv paths.empty.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr paths.empty.expected.txt
+
+-- paths.missing.kdl --
+rellog config-version=1 {
+}
+-- paths.missing.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths]
+    rellog.paths is required but not found
+-- paths.not-block.kdl --
+rellog config-version=1 {
+  paths "some-path-value"
+}
+-- paths.not-block.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths]
+    rellog.paths must be a block, but found a value
+-- paths.empty.kdl --
+rellog config-version=1 {
+  paths {
+  }
+}
+-- paths.empty.expected.txt --
+rellog check: FAILED
+
+1 files
+3 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.missing]
+    rellog.paths.changelog is required but not found
+
+  error[config.rellog.paths.entries.missing]
+    rellog.paths.entries is required but not found
+
+  error[config.rellog.paths.release-notes.missing]
+    rellog.paths.release-notes is required but not found
+-- paths.changelog.missing.kdl --
+rellog config-version=1 {
+  paths {
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.changelog.missing.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.changelog.missing]
+    rellog.paths.changelog is required but not found
+-- paths.entries.missing.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    release-notes ".rellog/release-notes"
+  }
+}
+-- paths.entries.missing.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.entries.missing]
+    rellog.paths.entries is required but not found
+-- paths.release-notes.missing.kdl --
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+  }
+}
+-- paths.release-notes.missing.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[config.rellog.paths.release-notes.missing]
+    rellog.paths.release-notes is required but not found

@@ -1,0 +1,16 @@
+
+exec rellog init
+! stderr .
+! cmp .rellog/config.kdl default-config.kdl
+
+-- .rellog/config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    entry_dir ".rellog-test/entries"
+    release_note_dir ".rellog-test/release_notes"
+  }
+}
+-- default-config.kdl --
+/- kdl-version 2

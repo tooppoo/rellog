@@ -1,4 +1,5 @@
 
 exec rellog init
 exec rellog check
+stdout 'rellog check: OK \(entries: 0\)\n'
 ! stderr .
