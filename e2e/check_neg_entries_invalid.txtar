@@ -73,7 +73,7 @@ issues:
 Targets empty
 -- .rellog/entries/0003.md --
 ---
-kind: fix
+kind: changed
 targets:
   - rellog
 prs:
@@ -99,12 +99,12 @@ prs:
 ---
 -- .rellog/entries/0007.md --
 ---
-kind: test
+kind: changed
 ---
 No issues and PRs(valid)
 -- .rellog/entries/0008.md --
 ---
-kind: test
+kind: changed
 targets:
   - test
 issues:
@@ -117,13 +117,13 @@ prs:
 Fulfilled(valid)
 -- .rellog/entries/0009.md --
 ---
-kind: test
+kind: changed
 targets: 1
 ---
 Array not used for targets(valid)
 -- .rellog/entries/0010.md --
 ---
-kind: test
+kind: changed
 targets: 1
 ---
 Targets scalar
