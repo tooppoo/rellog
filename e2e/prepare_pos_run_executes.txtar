@@ -1,0 +1,29 @@
+
+exec rellog init
+! stderr .
+! exists CHANGELOG.md
+
+exec rellog add --kind changed --target rellog --body 'Executed entry'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+
+exists .rellog/release-notes/v1.0.0.md
+cmp .rellog/release-notes/v1.0.0.md .rellog.expected/release-notes/v1.0.0.md
+exists CHANGELOG.md
+cmp CHANGELOG.md expected.CHANGELOG.md
+! exists .rellog/entries/0001.md
+
+-- .rellog.expected/release-notes/v1.0.0.md --
+## v1.0.0
+
+### changed
+
+- Executed entry
+-- expected.CHANGELOG.md --
+## v1.0.0
+
+### changed
+
+- Executed entry

@@ -173,10 +173,18 @@ For v0, release ids should be path-safe because they are used as filenames. See 
 
 ## `rellog prepare <release-id>`
 
-Prepare a release-note file and update `CHANGELOG.md` using pending entries.
+Preview release-note preparation using pending entries.
 
 ```sh
 rellog prepare v1.0.1
+```
+
+By default, `prepare` is a dry run. It validates pending entries and shows the release-note Markdown and intended file operations without writing files or deleting entries.
+
+To execute the preparation, pass `--run` explicitly:
+
+```sh
+rellog prepare v1.0.1 --run
 ```
 
 Expected behavior:
@@ -185,9 +193,10 @@ Expected behavior:
 - fail if there are no pending entries;
 - fail with `ExitEntryConflict` if normal entries and an empty entry coexist;
 - aggregate pending entries in filename order;
-- create the release-note file for the release id;
-- append the prepared release-note content to `CHANGELOG.md`;
-- delete consumed pending entries.
+- without `--run`, print the generated release-note content and intended operations without changing files;
+- with `--run`, create the release-note file for the release id;
+- with `--run`, append the prepared release-note content to `CHANGELOG.md`;
+- with `--run`, delete consumed pending entries.
 
 If pending entries are absent, the command should tell the user to either add normal entries or create an explicit empty entry.
 
@@ -205,7 +214,7 @@ If this release has no changelog-worthy changes, add an explicit empty entry:
 
 If the release-note file for the release id already exists, the command should fail by default rather than silently overwriting it.
 
-If manual file edits create an entry conflict, `rellog prepare <release-id>` should fail before writing a release-note file, appending to `CHANGELOG.md`, or deleting pending entries.
+If manual file edits create an entry conflict, `rellog prepare <release-id>` and `rellog prepare <release-id> --run` should fail before writing a release-note file, appending to `CHANGELOG.md`, or deleting pending entries.
 
 Possible options:
 
@@ -214,7 +223,7 @@ Possible options:
 --changelog <path>         Override the CHANGELOG path.
 --entry-dir <path>         Override the pending entry directory.
 --release-note-dir <path>  Override the release-note directory.
---dry-run                  Show intended changes without writing files.
+--run                      Write files and delete consumed pending entries.
 ```
 
 `rellog prepare <release-id>` should not:
@@ -233,5 +242,5 @@ Possible options:
 | 1    | `ExitNotInitialized`   | `rellog` has not been initialized; run `rellog init` first              |
 | 2    | `ExitInvalidStructure` | A path that must be a directory exists as a file (e.g. `.rellog/entries`) |
 | 3    | `ExitCheckFailed`      | `rellog check` found one or more non-conflict validation errors in pending entries |
-| 4    | `ExitReleaseNotFound`  | The required release-note file does not exist; run `rellog prepare` first |
+| 4    | `ExitReleaseNotFound`  | The required release-note file does not exist; run `rellog prepare <release-id> --run` first |
 | 5    | `ExitEntryConflict`    | Empty and normal pending entries would coexist or already coexist        |
