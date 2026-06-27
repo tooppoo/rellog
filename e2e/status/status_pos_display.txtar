@@ -1,0 +1,116 @@
+exec rellog init
+! stderr .
+
+exec rellog add-empty --debug-datetime 20260626T123456.000000001Z
+! stderr .
+
+exec rellog status
+cmp stdout empty.expected.txt
+! stderr .
+
+exec sh -c 'rm -rf .rellog/*'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Single status entry'
+! stderr .
+
+exec rellog status
+cmp stdout single.expected.txt
+! stderr .
+
+exec sh -c 'rm -rf .rellog/*'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind added --target cli --issue 11 --body 'Added status output'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target cli --target docs --pr 12 --body 'Changed status grouping'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000003Z --kind fixed --target rellog --issue 13 --pr 14 --body 'Fixed status metadata'
+! stderr .
+
+exec rellog status
+cmp stdout multiple_unique_kinds.expected.txt
+! stderr .
+
+exec sh -c 'rm -rf .rellog/*'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target cli --body 'Changed first'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target docs --body 'Changed second'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000003Z --kind changed --target release-notes --body 'Changed third'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000004Z --kind fixed --target cli --body 'Fixed first'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000005Z --kind fixed --target rellog --body 'Fixed second'
+! stderr .
+
+exec rellog status
+cmp stdout multiple_duplicate_kinds.expected.txt
+! stderr .
+
+-- empty.expected.txt --
+Unreleased entries: 1
+State: empty
+Prepare allowed: yes
+
+No changelog-worthy changes.
+-- single.expected.txt --
+Unreleased entries: 1
+State: normal
+Prepare allowed: yes
+
+### changed
+
+- Single status entry
+  targets: rellog
+-- multiple_unique_kinds.expected.txt --
+Unreleased entries: 3
+State: normal
+Prepare allowed: yes
+
+### added
+
+- Added status output
+  targets: cli
+  issues: https://github.com/tooppoo/rellog/issues/11
+
+### changed
+
+- Changed status grouping
+  targets: cli, docs
+  prs: https://github.com/tooppoo/rellog/pull/12
+
+### fixed
+
+- Fixed status metadata
+  targets: rellog
+  issues: https://github.com/tooppoo/rellog/issues/13
+  prs: https://github.com/tooppoo/rellog/pull/14
+-- multiple_duplicate_kinds.expected.txt --
+Unreleased entries: 5
+State: normal
+Prepare allowed: yes
+
+### changed
+
+- Changed first
+  targets: cli
+- Changed second
+  targets: docs
+- Changed third
+  targets: release-notes
+
+### fixed
+
+- Fixed first
+  targets: cli
+- Fixed second
+  targets: rellog

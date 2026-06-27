@@ -32,6 +32,7 @@ func TestE2E(t *testing.T) {
 		"e2e/check",
 		"e2e/init",
 		"e2e/prepare",
+		"e2e/status",
 		"e2e/workflow",
 	}
 
