@@ -14,7 +14,7 @@ rellog add
 rellog add-empty
 rellog check
 rellog status
-rellog require release <release-id>
+rellog ready <release-id>
 rellog prepare <release-id>
 ```
 
@@ -201,12 +201,12 @@ Possible options:
 --kind <kind>          Show entries for a specific kind.
 ```
 
-## `rellog require release <release-id>`
+## `rellog ready <release-id>`
 
-Require that a prepared release-note file exists.
+Check that a prepared release-note file exists for the given release id.
 
 ```sh
-rellog require release v1.0.1
+rellog ready v1.0.1
 ```
 
 This command is intended for publish-oriented release jobs. It should fail unless the prepared release-note file for the given release id exists.

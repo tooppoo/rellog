@@ -1,0 +1,60 @@
+version: 2
+
+project_name: rellog
+
+builds:
+  - id: rellog
+    main: ./cmd/rellog
+    binary: rellog
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: release-archives
+    ids:
+      - rellog
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+    name_template: 'rellog_v{{ .Version }}_{{ title .Os }}_{{ if eq .Arch "amd64" }}x86_64{{ else }}{{ .Arch }}{{ end }}'
+    files:
+      - README.md
+      - LICENSE
+      - third_party_licenses/**/*
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+  ids:
+    - release-archives
+
+snapshot:
+  version_template: '{{ .Version }}-snapshot'
+
+changelog:
+  disable: true
+
+sboms:
+  - id: rellog
+    artifacts: archive
+    cmd: syft
+
+signs:
+  - cmd: cosign
+    signature: "${artifact}.sigstore.json"
+    args:
+      - "sign-blob"
+      - "--bundle=${signature}"
+      - "${artifact}"
+      - "--yes"
+    artifacts: checksum

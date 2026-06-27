@@ -40,7 +40,7 @@ license-check:
 
 .PHONY: license-save
 license-save:
-	go tool go-licenses save ./cmd/git-kura --save_path third_party_licenses
+	go tool go-licenses save ./cmd/rellog --save_path third_party_licenses
 
 .PHONY: lint
 lint:

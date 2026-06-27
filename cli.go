@@ -35,7 +35,7 @@ func Main() {
 		cmdCheck(),
 		cmdStatus(),
 		cmdPrepare(),
-		cmdRequire(),
+		cmdReady(),
 	)
 
 	if err := root.Execute(); err != nil {

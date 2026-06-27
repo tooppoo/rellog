@@ -6,16 +6,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func cmdRequire() *cobra.Command {
-	requireCmd := &cobra.Command{
-		Use:          "require",
-		Short:        "Require conditions",
-		SilenceUsage: true,
-	}
-
-	releaseCmd := &cobra.Command{
-		Use:          "release <version>",
-		Short:        "Require that a release-note file exists",
+func cmdReady() *cobra.Command {
+	return &cobra.Command{
+		Use:          "ready <release-id>",
+		Short:        "Check that a release-note file exists for the given release id",
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -31,7 +25,4 @@ func cmdRequire() *cobra.Command {
 			return nil
 		},
 	}
-
-	requireCmd.AddCommand(releaseCmd)
-	return requireCmd
 }

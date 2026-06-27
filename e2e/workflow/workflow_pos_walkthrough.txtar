@@ -36,7 +36,7 @@ stdout 'rellog check: OK \(entries: 2\)'
 exec rellog status
 ! stderr .
 
-! exec rellog require release v1.0.0
+! exec rellog ready v1.0.0
 stderr 'Error: release not found: v1.0.0\n'
 
 exec rellog prepare v1.0.0
@@ -58,7 +58,7 @@ exists CHANGELOG.md
 ! exists .rellog/entries/20260626T123456.000000001Z.json
 ! exists .rellog/entries/20260626T123456.000000002Z.json
 
-exec rellog require release v1.0.0
+exec rellog ready v1.0.0
 ! stderr .
 
 -- .rellog.expected/entries/20260626T123456.000000001Z.json --

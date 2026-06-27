@@ -1,0 +1,180 @@
+name: snapshot
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Install Syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Run GoReleaser check
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version-file: .tool-versions
+          args: check
+
+      - name: Build snapshot artifacts
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          distribution: goreleaser
+          version-file: .tool-versions
+          args: release --snapshot --clean --skip=sign
+
+      - name: Upload snapshot artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: git-kura-snapshot-artifacts
+          path: dist/*
+
+  smoke-test-unix:
+    needs: snapshot
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            os: Linux
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            os: Linux
+            arch: arm64
+          - runner: macos-15-intel
+            os: Darwin
+            arch: x86_64
+          - runner: macos-15
+            os: Darwin
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: rellog-snapshot-artifacts
+          path: dist
+
+      - name: Extract artifact
+        run: |
+          mkdir out
+          archive="$(find dist -maxdepth 1 -type f -name "rellog_*_${{ matrix.os }}_${{ matrix.arch }}.tar.gz" | head -n 1)"
+          test -n "$archive"
+          tar -xzf "$archive" -C out
+          ls -la out
+
+      - name: Smoke test CLI
+        run: |
+          test -x out/rellog
+          out/rellog -h
+
+          mkdir -p "$RUNNER_TEMP/bin"
+          cp out/rellog "$RUNNER_TEMP/bin/rellog"
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+
+          rellog -h
+
+      - name: Behavior smoke test
+        run: |
+          export PATH="$RUNNER_TEMP/bin:$PATH"
+
+          tmp="$(mktemp -d)"
+          cd "$tmp"
+
+          git init
+          git config user.name "CI"
+          git config user.email "ci@example.invalid"
+          echo "hello" > README.md
+          git add README.md
+          git commit -m "init"
+
+          rellog init
+          rellog add --kind added --target test --body "Smoke Test"
+          rellog status
+          rellog prepare v1.0.0
+          rellog prepare --run v1.0.0
+          rellog ready v1.0.0
+
+  smoke-test-windows:
+    needs: snapshot
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-2025
+            arch: x86_64
+          - runner: windows-11-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: git-kura-snapshot-artifacts
+          path: dist
+
+      - name: Extract artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          $archives = Get-ChildItem dist -Filter "git-kura_*_Windows_${{ matrix.arch }}.zip"
+          if ($archives.Count -ne 1) {
+            Get-ChildItem dist
+            throw "Expected exactly one archive, found $($archives.Count)"
+          }
+          Expand-Archive $archives[0].FullName -DestinationPath out
+          Get-ChildItem out
+      - name: Smoke test
+        shell: pwsh
+        run: |
+          $exe = Join-Path "out" "git-kura.exe"
+          if (!(Test-Path $exe)) {
+            throw "git-kura.exe not found"
+          }
+
+          & $exe -h
+
+          $bin = Join-Path $env:RUNNER_TEMP "bin"
+          New-Item -ItemType Directory -Force -Path $bin | Out-Null
+          Copy-Item $exe (Join-Path $bin "git-kura.exe")
+          $env:PATH = "$bin;$env:PATH"
+
+          rellog -h
+
+      - name: Behavior smoke test
+        shell: pwsh
+        run: |
+          $bin = Join-Path $env:RUNNER_TEMP "bin"
+          $env:PATH = "$bin;$env:PATH"
+
+          $tmp = Join-Path $env:RUNNER_TEMP "git-kura-smoke"
+          New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+          Set-Location $tmp
+
+          git init
+          git config user.name "CI"
+          git config user.email "ci@example.invalid"
+          "hello" | Out-File README.md -Encoding utf8
+          git add README.md
+          git commit -m "init"
+
+          rellog init
+          rellog add --kind added --target test --body "Smoke Test"
+          rellog status
+          rellog prepare v1.0.0
+          rellog prepare --run v1.0.0
+          rellog ready v1.0.0

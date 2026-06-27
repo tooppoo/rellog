@@ -1,6 +1,9 @@
 
 bin/
 
+# license
+third_party_licenses/
+
 # test
 coverage.out
 coverage.out.tmp

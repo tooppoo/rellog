@@ -36,7 +36,7 @@ Instead, `rellog prepare <release-id>` will fail if release-note preparation is 
 For publish-oriented workflow steps, `rellog` will provide:
 
 ```text
-rellog require release <release-id>
+rellog ready <release-id>
 ```
 
 This command fails unless the prepared release-note file for the release id exists.

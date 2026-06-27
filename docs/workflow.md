@@ -81,8 +81,8 @@ A release-note file is created only when release preparation is executed with `-
 stateDiagram-v2
   [*] --> Missing
   Missing --> Prepared: prepare --run release id
-  Prepared --> Required: require release release id
-  Required --> ExternalWorkflow: continue publish-oriented workflow
+  Prepared --> Ready: ready release id
+  Ready --> ExternalWorkflow: continue publish-oriented workflow
 ```
 
 Once prepared, the release-note file becomes the durable per-release Markdown artifact.
