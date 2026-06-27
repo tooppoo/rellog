@@ -1,0 +1,45 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+
+cp release.md .rellog/release-notes/v1.0.0.md
+cp changelog.md CHANGELOG.md
+
+! exec rellog ready v1.0.0
+! stdout .
+cmp stderr expected.stderr
+
+-- release.md --
+## v1.0.0
+
+No changelog-worthy changes.
+-- changelog.md --
+# CHANGELOG
+
+## v0.9.0
+
+#### Details
+
+<!-- rellog:body:start -->
+## v1.0.0
+<!-- rellog:body:end -->
+-- expected.stderr --
+Error: release is not ready: changelog is missing release heading: v1.0.0
+
+release: v1.0.0
+changelog:
+  CHANGELOG.md
+
+The changelog does not contain a structural release heading for v1.0.0.
+
+rellog looked for this heading outside generated body marker comments:
+  ## v1.0.0
+
+A matching heading was found inside a generated entry body:
+  <!-- rellog:body:start -->
+  ## v1.0.0
+  <!-- rellog:body:end -->
+
+Headings inside entry bodies are release note content, not release boundaries.
+Run `rellog prepare v1.0.0 --run` or add the release section to CHANGELOG.md outside the body marker range.

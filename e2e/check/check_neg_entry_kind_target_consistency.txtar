@@ -1,3 +1,5 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
 exec mkdir -p .rellog/entries .rellog/release-notes
 
 exec cp unknown_kind.kdl .rellog/config.kdl

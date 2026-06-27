@@ -1,0 +1,16 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+
+exec rellog add-empty --debug-datetime 20260626T123456.000000001Z
+! stderr .
+cmp .rellog/entries/20260626T123456.000000001Z.json expected.json
+
+-- expected.json --
+{
+  "kind": "empty",
+  "targets": [],
+  "links": [],
+  "body": "No changelog-worthy changes."
+}

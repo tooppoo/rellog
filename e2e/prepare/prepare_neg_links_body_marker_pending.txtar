@@ -1,0 +1,42 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+
+cp missing_links.json .rellog/entries/20260626T123456.000000001Z.json
+! exec rellog prepare v1.0.0
+! stdout .
+stderr 'links'
+
+rm .rellog/entries/20260626T123456.000000001Z.json
+cp invalid_links.json .rellog/entries/20260626T123456.000000001Z.json
+! exec rellog prepare v1.0.0
+! stdout .
+stderr 'invalid link'
+
+rm .rellog/entries/20260626T123456.000000001Z.json
+cp reserved_marker.json .rellog/entries/20260626T123456.000000001Z.json
+! exec rellog prepare v1.0.0
+! stdout .
+stderr 'rellog marker'
+
+-- missing_links.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "body": "Missing links"
+}
+-- invalid_links.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": ["docs/design.md"],
+  "body": "Invalid links"
+}
+-- reserved_marker.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": [],
+  "body": "Do not write <!-- rellog:body:start --> markers in entry bodies"
+}

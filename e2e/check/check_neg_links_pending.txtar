@@ -1,0 +1,54 @@
+skip pending: #22 contract, enable in #23
+
+! exec rellog check
+! stdout .
+cmp stderr expected.stderr
+
+-- .rellog/config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- .rellog/release-notes/.keep --
+-- .rellog/entries/0001.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "body": "Missing links"
+}
+-- .rellog/entries/0002.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": "https://example.com/design",
+  "body": "Scalar links"
+}
+-- .rellog/entries/0003.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": [12],
+  "body": "Non-string link"
+}
+-- .rellog/entries/0004.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": ["", "   ", "docs/design.md", "example.com/design", "https:///design", "ftp://example.com/design"],
+  "body": "Invalid links"
+}
+-- expected.stderr --
+rellog check: FAILED

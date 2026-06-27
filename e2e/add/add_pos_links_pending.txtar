@@ -1,0 +1,49 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Entry without links'
+! stderr .
+cmp .rellog/entries/20260626T123456.000000001Z.json no_links.json
+
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target rellog --link https://example.com/design --body 'Entry with one link'
+! stderr .
+cmp .rellog/entries/20260626T123456.000000002Z.json one_link.json
+
+exec rellog add --debug-datetime 20260626T123456.000000003Z --kind changed --target rellog --link 'https://example.com/a?x=1#note' --link http://example.org/b --body 'Entry with multiple links'
+! stderr .
+cmp .rellog/entries/20260626T123456.000000003Z.json multiple_links.json
+
+-- no_links.json --
+{
+  "kind": "changed",
+  "targets": [
+    "rellog"
+  ],
+  "links": [],
+  "body": "Entry without links"
+}
+-- one_link.json --
+{
+  "kind": "changed",
+  "targets": [
+    "rellog"
+  ],
+  "links": [
+    "https://example.com/design"
+  ],
+  "body": "Entry with one link"
+}
+-- multiple_links.json --
+{
+  "kind": "changed",
+  "targets": [
+    "rellog"
+  ],
+  "links": [
+    "https://example.com/a?x=1#note",
+    "http://example.org/b"
+  ],
+  "body": "Entry with multiple links"
+}

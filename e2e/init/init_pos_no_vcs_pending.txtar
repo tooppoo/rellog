@@ -1,0 +1,34 @@
+skip pending: #22 contract, enable in #23
+
+! exists .git
+! exists .rellog
+
+exec rellog init
+! stdout .
+! stderr .
+
+exists .rellog/config.kdl
+exists .rellog/entries
+exists .rellog/release-notes
+cmp .rellog/config.kdl expected.config.kdl
+
+-- expected.config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+      kind "changed"
+      kind "fixed"
+    }
+  }
+}

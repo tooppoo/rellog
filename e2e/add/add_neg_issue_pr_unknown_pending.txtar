@@ -1,0 +1,12 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+
+! exec rellog add --kind changed --target rellog --issue 12 --body 'Issue option was never part of the links model'
+! stdout .
+stderr 'unknown option'
+
+! exec rellog add --kind changed --target rellog --pr 15 --body 'PR option was never part of the links model'
+! stdout .
+stderr 'unknown option'

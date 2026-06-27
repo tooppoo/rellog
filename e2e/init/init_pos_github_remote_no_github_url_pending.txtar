@@ -1,0 +1,12 @@
+skip pending: #22 contract, enable in #23
+
+exec git init
+exec git remote add origin https://github.com/tooppoo/rellog
+
+exec rellog init
+! stdout .
+! stderr .
+
+exists .rellog/config.kdl
+! grep github-url .rellog/config.kdl
+! grep rendering .rellog/config.kdl

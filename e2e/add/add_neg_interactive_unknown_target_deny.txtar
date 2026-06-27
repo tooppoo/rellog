@@ -1,3 +1,5 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
 exec rellog init
 ! stderr .
 exec cp deny_unknown_target.kdl .rellog/config.kdl

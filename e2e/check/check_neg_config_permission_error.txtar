@@ -1,3 +1,5 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
 
 exec rellog init
 exec chmod 000 .rellog/config.kdl
