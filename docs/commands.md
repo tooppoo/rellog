@@ -2,7 +2,7 @@
 
 This document lists the intended `rellog` CLI commands.
 
-For file layout and file formats, see [files.md](files.md). For lifecycle and workflow guards, see [workflow.md](workflow.md).
+For file layout and entry file formats, see [files.md](files.md). For generated release-note structure, see [release-notes.md](release-notes.md). For lifecycle and workflow guards, see [workflow.md](workflow.md).
 
 `rellog` is currently in early design. Command names and options may change before the first stable release, but the responsibility boundaries should remain stable: `rellog` manages changelog entries, plain Markdown release-note files, and `CHANGELOG.md`. It does not manage versions or publish releases.
 
@@ -81,8 +81,6 @@ Possible options:
 --link <url>       Related URL. May be repeated.
 --body <text>      Entry body. Useful for non-interactive use.
 ```
-
-`--issue` and `--pr` are not supported compatibility options. They may fail as ordinary unknown options.
 
 Rules:
 
@@ -294,39 +292,7 @@ Expected behavior:
 - with `--run`, update `CHANGELOG.md` with the prepared release-note content;
 - with `--run`, delete consumed pending entries.
 
-Generated release-note content starts with `## <release-id>`. `CHANGELOG.md` is treated as `# CHANGELOG` followed by release-note sections.
-
-Normal entries render in this fixed structure:
-
-```text
-## <release-id>
-### <kind title>
-#### Details
-#### Targets
-#### Links
-```
-
-Rules:
-
-- every normal entry emits `#### Details`;
-- the entry `body` is emitted inside `<!-- rellog:body:start -->` and `<!-- rellog:body:end -->`;
-- the entry `body` is raw Markdown pass-through;
-- rellog does not escape, indent, list-wrap, code-block, normalize, or repair the body;
-- body Markdown may affect rendered Markdown appearance, and v0 does not compensate for that;
-- `<!-- rellog:` is a reserved marker namespace and is invalid inside entry bodies;
-- `#### Targets` is emitted after `#### Details` when the entry has one or more targets;
-- `#### Targets` is omitted when the entry has no targets;
-- `#### Links` is emitted after `#### Details` and `#### Targets` when the entry has one or more links;
-- `#### Links` is omitted when the entry has no links;
-- targets and links are entry metadata subsections, not release-wide aggregate sections;
-- links keep their entry-local order;
-- duplicate links within one entry are emitted only at their first occurrence;
-- links are not deduplicated across entries;
-- normal entries are separated by one blank line.
-
-An entry block starts at `#### Details` and ends before the next `#### Details`, the next kind section heading, the next release heading, or the end of the file. `#### Targets` and `#### Links` belong to the immediately preceding `#### Details`. Body marker comments define the body range; headings inside the marker pair are not structural rellog headings.
-
-Empty release notes render only the fixed message `No changelog-worthy changes.` and do not include `#### Details`, `#### Targets`, or `#### Links`.
+Generated release-note content must follow [release-notes.md](release-notes.md).
 
 Dry-run stdout is a human-readable preview. It contains the generated release-note Markdown followed by intended file operations:
 
@@ -392,8 +358,6 @@ Possible options:
 --release-note-dir <path>  Override the release-note directory.
 --run                      Write files and delete consumed pending entries.
 ```
-
-Rich rendering and HTML conversion are not rellog v0 responsibilities. If a project needs richer presentation, it should pass the generated Markdown to an external Markdown processor, static-site generator, or HTML converter.
 
 `rellog prepare <release-id>` should not:
 

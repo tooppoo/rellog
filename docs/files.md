@@ -2,7 +2,7 @@
 
 This document describes the project files and directories managed by `rellog`.
 
-For the release workflow, see [workflow.md](workflow.md). For command behavior, see [commands.md](commands.md).
+For the release workflow, see [workflow.md](workflow.md). For command behavior, see [commands.md](commands.md). For generated release-note structure, see [release-notes.md](release-notes.md).
 
 ## Project layout
 
@@ -58,7 +58,7 @@ Example:
 
 When adding an entry, `rellog` generates the filename from the current UTC time. The aggregation order is filename order, which is timestamp order for generated files.
 
-v0 does not support manual entry reordering. If ordering control becomes necessary, it should be added as an explicit command instead of relying on hand-edited filenames.
+v0 does not support manual entry reordering.
 
 ### Normal entry
 
@@ -153,7 +153,7 @@ v1.0.1/.
 ..
 ```
 
-### Normal release-note file
+### Release-note file
 
 Example:
 
@@ -161,43 +161,9 @@ Example:
 ## v1.0.1
 
 ### Changed
-
-#### Details
-
-<!-- rellog:body:start -->
-Added validation for pending changelog entries before release preparation.
-<!-- rellog:body:end -->
-
-#### Targets
-
-- rellog
-
-#### Links
-
-- https://github.com/tooppoo/rellog/issues/21
 ```
 
-Generated release-note files are release section fragments. They start with `## <release-id>`, not with a top-level title.
-
-Normal entries are rendered under their kind section in filename order. Each normal entry starts with `#### Details`. The entry `body` is emitted as raw Markdown between `<!-- rellog:body:start -->` and `<!-- rellog:body:end -->`; rellog does not escape, indent, list-wrap, code-block, normalize, or otherwise repair it. Body Markdown can affect the rendered appearance, and v0 intentionally leaves rich rendering or HTML conversion to an external Markdown processor.
-
-If an entry has one or more targets, `#### Targets` is emitted after `#### Details`. If an entry has no targets, the `Targets` subsection is omitted. If an entry has one or more links, `#### Links` is emitted after `Details` and `Targets`. If an entry has no links, the `Links` subsection is omitted. Targets and links belong to each entry; they are not aggregated into release-wide sections.
-
-Within one entry, links keep their specified order, but duplicate URLs are emitted only once at the first occurrence. Links are not deduplicated across different entries.
-
-An entry block starts at `#### Details` and ends before the next `#### Details`, the next kind heading, the next release heading, or the end of the file. `#### Targets` and `#### Links` belong to the immediately preceding `#### Details`.
-
-The marker namespace `<!-- rellog:` is reserved. Entry bodies must not contain comments that start with `<!-- rellog:`. `rellog check` and `rellog prepare` should fail when they find one. If the generated body marker pair is malformed, rellog treats the Markdown as invalid structure rather than guessing how to recover it.
-
-### Empty release-note file
-
-Example:
-
-```md
-## v1.0.1
-
-No changelog-worthy changes.
-```
+Generated release-note files are release section fragments. They start with `## <release-id>`, not with a top-level title. The full generated Markdown structure is defined in [release-notes.md](release-notes.md).
 
 ## `CHANGELOG.md`
 
@@ -205,6 +171,6 @@ No changelog-worthy changes.
 
 Release-note preparation updates `CHANGELOG.md` only when executed with `rellog prepare <release-id> --run`. If `CHANGELOG.md` starts with an H1 heading, the new release section is inserted directly below that heading. Otherwise, the new release section is inserted at the file start. It should not update versions, create tags, create GitHub Releases, or publish artifacts.
 
-The canonical v0 changelog structure is `# CHANGELOG` followed by prepared release-note sections. Each inserted release section starts with `## <release-id>`.
+The canonical v0 changelog structure is `# CHANGELOG` followed by prepared release-note sections. Each inserted release section starts with `## <release-id>`. See [release-notes.md](release-notes.md) for heading and entry block rules.
 
 Release-note files and `CHANGELOG.md` must end with a trailing newline.

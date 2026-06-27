@@ -56,7 +56,7 @@ See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 - prepare `.rellog/release-notes/<release-id>.md` from pending entries;
 - update `CHANGELOG.md` with prepared release notes;
 - require a prepared release-note file for a release id;
-- support automation that creates CHANGELOG update pull requests.
+- support GitHub Actions that create CHANGELOG update pull requests.
 
 ## What rellog does not do
 
@@ -89,6 +89,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 - [Philosophy](docs/philosophy.md)
 - [Files](docs/files.md)
+- [Generated release notes](docs/release-notes.md)
 - [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)
 - [Configuration](docs/configuration.md)

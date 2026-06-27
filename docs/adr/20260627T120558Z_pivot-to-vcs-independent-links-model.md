@@ -40,4 +40,4 @@ GitHub issues and pull requests remain possible as ordinary `links`, but rellog 
 
 Generated release notes can expose private URLs. Users must treat `links` as public-output candidates and avoid private references unless appropriate.
 
-Rich rendering, HTML conversion, and Markdown body repair remain outside the v0 scope.
+The v0 output contract is generated Markdown.
