@@ -117,9 +117,14 @@ A release-note file is a plain Markdown artifact created when release-note prepa
 
 It is not a GitHub Release Note. `rellog` does not create GitHub Releases, but other release tooling may reuse this Markdown file.
 
-### Release id as filename
+### Release id as path
 
-For v0, release ids should be path-safe because they are used as filenames. A conservative allowed form is:
+For v0, release ids are used as paths below the configured release-note directory.
+Path separators are allowed so projects can group release-note files.
+
+Each path segment must be non-empty and must not be `.` or `..`. Normal dots inside a segment are allowed.
+
+A conservative allowed segment form is:
 
 ```text
 [A-Za-z0-9._-]+
@@ -131,15 +136,19 @@ Examples:
 v1.0.1
 2026-06-25
 cli-v0.3.0
+cli/v1.0.1
+2026/06/25
 ```
 
 Examples that should be rejected in v0:
 
 ```text
-cli/v1.0.1
-2026/06/25
 ../v1.0.1
+./v1.0.1
 v1/../v1.0.1
+v1.0.1/.
+.
+..
 ```
 
 ### Normal release-note file

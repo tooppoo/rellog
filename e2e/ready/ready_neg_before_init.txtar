@@ -1,0 +1,9 @@
+
+! exists .rellog
+
+! exec rellog ready v1.0.0
+! stdout .
+cmp stderr expected.stderr
+
+-- expected.stderr --
+Error: run `rellog init` first

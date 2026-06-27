@@ -1,0 +1,30 @@
+exec rellog init
+! stderr .
+
+! exec rellog ready .
+stderr 'Error: invalid release id: "\."\n'
+! stdout .
+
+! exec rellog ready ..
+stderr 'Error: invalid release id: "\.\."\n'
+! stdout .
+
+! exec rellog ready ./v1.0.0
+stderr 'Error: invalid release id: "\./v1\.0\.0"\n'
+! stdout .
+
+! exec rellog ready ../v1.0.0
+stderr 'Error: invalid release id: "\.\./v1\.0\.0"\n'
+! stdout .
+
+! exec rellog ready v1.0.0/.
+stderr 'Error: invalid release id: "v1\.0\.0/\."\n'
+! stdout .
+
+! exec rellog ready v1.0.0/..
+stderr 'Error: invalid release id: "v1\.0\.0/\.\."\n'
+! stdout .
+
+! exec rellog ready cli/../v1.0.0
+stderr 'Error: invalid release id: "cli/\.\./v1\.0\.0"\n'
+! stdout .

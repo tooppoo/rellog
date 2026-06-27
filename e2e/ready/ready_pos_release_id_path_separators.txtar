@@ -1,0 +1,32 @@
+exec rellog init
+! stderr .
+
+mkdir -p .rellog/release-notes/cli .rellog/release-notes/2026/06
+cp cli-release.md .rellog/release-notes/cli/v1.0.0.md
+cp date-release.md .rellog/release-notes/2026/06/25.md
+cp changelog.md CHANGELOG.md
+
+exec rellog ready cli/v1.0.0
+stdout 'cli/v1\.0\.0 release ready\n'
+! stderr .
+
+exec rellog ready 2026/06/25
+stdout '2026/06/25 release ready\n'
+! stderr .
+
+-- cli-release.md --
+## cli/v1.0.0
+
+- CLI release.
+-- date-release.md --
+## 2026/06/25
+
+- Calendar release.
+-- changelog.md --
+## 2026/06/25
+
+- Calendar release.
+
+## cli/v1.0.0
+
+- CLI release.

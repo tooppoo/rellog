@@ -203,15 +203,76 @@ Possible options:
 
 ## `rellog ready <release-id>`
 
-Check that a prepared release-note file exists for the given release id.
+Check that rellog-managed release artifacts are ready for publishing.
 
 ```sh
 rellog ready v1.0.1
 ```
 
-This command is intended for publish-oriented release jobs. It should fail unless the prepared release-note file for the given release id exists.
+Successful human output is exactly one line:
 
-For v0, release ids should be path-safe because they are used as filenames. See [files.md](files.md) for the filename rule.
+```text
+v1.0.1 release ready
+```
+
+This command is intended for publish-oriented release jobs. It is read-only and must not create, update, move, or remove files.
+
+`ready` checks only files managed by rellog. It must not inspect or depend on external release state, including GitHub Releases, Git tags, package registry state, remote repository state, or consumed caches.
+
+Expected checks:
+
+- the current directory is a valid rellog project;
+- the rellog config exists and can be parsed;
+- the prepared release-note file for `<release-id>` exists under the configured release-note directory;
+- the configured changelog file exists and contains a release heading for `<release-id>` according to `rendering.release-heading-level`;
+- the configured pending entry directory contains no pending entry files.
+
+Pending entry files are checked by presence only. `ready` does not need to parse or validate their JSON content.
+
+For v0, release ids may contain path separators. Each path segment must be non-empty and must not be `.` or `..`. Normal dots inside a segment, such as `v1.0.1`, are allowed. See [files.md](files.md) for the release-id path rule.
+
+If a release note exists but pending entries remain, `ready` should fail with recovery guidance because the pending entries may have been created by mistake, may need to be included in the current release, or may be intended for a future release.
+
+Machine-readable output is available with `--json`:
+
+```sh
+rellog ready v1.0.1 --json
+```
+
+The JSON shape is defined by [`schema/ready-output.schema.json`](../schema/ready-output.schema.json).
+
+Example ready JSON:
+
+```json
+{
+  "ok": true,
+  "releaseId": "v1.0.1",
+  "releaseNote": ".rellog/release-notes/v1.0.1.md",
+  "changelog": "CHANGELOG.md",
+  "pendingEntries": [],
+  "errors": []
+}
+```
+
+Example not-ready JSON:
+
+```json
+{
+  "ok": false,
+  "releaseId": "v1.0.1",
+  "releaseNote": ".rellog/release-notes/v1.0.1.md",
+  "changelog": "CHANGELOG.md",
+  "pendingEntries": [
+    ".rellog/entries/fix-docs.json"
+  ],
+  "errors": [
+    {
+      "code": "pending_entries_present",
+      "message": "Pending entries remain after the release note was prepared."
+    }
+  ]
+}
+```
 
 ## `rellog prepare <release-id>`
 
@@ -314,3 +375,6 @@ Possible options:
 | 3    | `ExitCheckFailed`      | `rellog check` found one or more non-conflict validation errors in pending entries |
 | 4    | `ExitReleaseNotFound`  | The required release-note file does not exist; run `rellog prepare <release-id> --run` first |
 | 5    | `ExitEntryConflict`    | Empty and normal pending entries would coexist or already coexist        |
+| 6    | `ExitNotGitRepo`       | Git repository metadata required by the command is unavailable           |
+| 7    | `ExitInvalidArgument`  | CLI usage or an argument such as `<release-id>` is invalid               |
+| 8    | `ExitReleaseNotReady`  | A release note exists, but changelog or pending-entry readiness checks failed |
