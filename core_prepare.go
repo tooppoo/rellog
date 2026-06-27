@@ -7,11 +7,6 @@ import (
 	"strings"
 )
 
-type releaseData struct {
-	Version string
-	Entries []entry
-}
-
 type prepareOptions struct {
 	Version string
 	DryRun  bool

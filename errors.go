@@ -8,6 +8,8 @@ const (
 	ExitReleaseNotFound  = 4 // required release-note file does not exist
 	ExitEntryConflict    = 5 // entry conflict: empty and normal entries cannot coexist
 	ExitNotGitRepo       = 6 // not a git repository
+	ExitInvalidArgument  = 7 // invalid argument (e.g. invalid release id)
+	ExitReleaseNotReady  = 8 // release exists but is not ready to publish
 )
 
 type exitError struct {
