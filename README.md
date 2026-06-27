@@ -88,6 +88,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 - [Files](docs/files.md)
 - [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)
+- [Configuration](docs/configuration.md)
 
 ## Project status
 
