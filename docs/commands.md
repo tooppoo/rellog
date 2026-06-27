@@ -20,11 +20,13 @@ rellog prepare <release-id>
 
 ## `rellog init`
 
-Initialize `rellog` in the current repository.
+Initialize `rellog` in the current directory.
 
 ```sh
 rellog init
 ```
+
+`rellog init` must not require a Git repository, a configured remote, or a GitHub repository URL. It can be used in an ordinary directory, in a Git repository without remotes, or in a project managed by another VCS.
 
 Expected effects:
 
@@ -51,20 +53,14 @@ Create a new pending changelog entry.
 rellog add
 ```
 
-When no flags are provided, `rellog add` should run in interactive mode. It
-should guide the user through the entry fields in this order:
+When no flags are provided, `rellog add` should run in interactive mode. It should guide the user through the entry fields in this order:
 
 1. `kind`
 2. `target`
 3. `body`
-4. `issues`
-5. `prs`
+4. `links`
 
-The interactive guide for `issues` and `prs` must say that the field may be
-left empty. It must also say that each value may be either a number or a
-canonical GitHub URL, and that multiple values can be entered either as a
-comma-separated list or as a space-separated list. The guide is user-facing help
-text on stdout; tests should not rely on its exact wording.
+The interactive guide for `links` must say that the field may be left empty. It must also say that each value must be an absolute `http` or `https` URL, and that multiple values can be entered either as a comma-separated list or as a space-separated list. The guide is user-facing help text on stdout; tests should not rely on its exact wording.
 
 Non-interactive usage:
 
@@ -72,20 +68,21 @@ Non-interactive usage:
 rellog add \
   --kind changed \
   --target rellog \
-  --issue 12 \
+  --link https://github.com/tooppoo/rellog/issues/21 \
   --body "Added validation for pending changelog entries before release preparation."
 ```
 
 Possible options:
 
 ```text
---kind <kind>           Changelog category, such as added, changed, fixed, removed, security.
---target <target>       Release target, component, or area affected by the change.
---breaking              Mark the entry as a breaking change.
---issue <number-or-url> Related GitHub issue number or canonical URL. May be repeated.
---pr <number-or-url>    Related GitHub pull request number or canonical URL. May be repeated.
---body <text>           Entry body. Useful for non-interactive use.
+--kind <kind>      Changelog category, such as added, changed, fixed, removed, security.
+--target <target>  Release target, component, or area affected by the change.
+--breaking         Mark the entry as a breaking change.
+--link <url>       Related URL. May be repeated.
+--body <text>      Entry body. Useful for non-interactive use.
 ```
+
+`--issue` and `--pr` are not supported compatibility options. They may fail as ordinary unknown options.
 
 Rules:
 
@@ -94,23 +91,10 @@ Rules:
 - `rellog add` should not silently remove an empty entry.
 - Users cannot specify the entry filename.
 - When any flag is provided, `rellog add` runs in non-interactive mode.
-- Issue and pull request references require the repository's `github-url` in
-  `.rellog/config.kdl`.
-- Numeric issue and pull request values are normalized into canonical GitHub
-  URLs using `github-url`.
-- URL issue and pull request values must match the canonical URL shape derived
-  from `github-url`, such as
-  `https://github.com/tooppoo/rellog/issues/12` or
-  `https://github.com/tooppoo/rellog/pull/15`.
-- `rellog add` does not contact GitHub and does not verify whether an issue or
-  pull request number exists.
-- Entry JSON always includes `targets`, `issues`, and `prs` as arrays. Empty
-  fields are written as `[]`.
-- Interactive and non-interactive mode must validate `kind` against
-  `rellog.entries.kinds`. An undefined kind is an error and no entry file is
-  created.
-- Interactive and non-interactive mode must handle targets that are not listed
-  in `rellog.entries.targets` according to `target-policy`:
+- Link values are written exactly as URL strings after validation; rellog does not contact the linked service.
+- Entry JSON always includes `targets` and `links` as arrays. Empty fields are written as `[]`.
+- Interactive and non-interactive mode must validate `kind` against `rellog.entries.kinds`. An undefined kind is an error and no entry file is created.
+- Interactive and non-interactive mode must handle targets that are not listed in `rellog.entries.targets` according to `target-policy`:
   - `deny-unknown`: fail with an error and do not create an entry file.
   - `warn-unknown`: print a warning to stderr and create the entry file.
   - `allow-unknown`: create the entry file without a warning.
@@ -131,11 +115,9 @@ Rules:
 
 - if no entry exists, create an empty entry;
 - if an empty entry already exists, do nothing;
-- if a normal entry already exists, fail with `ExitEntryConflict`.
-- the empty entry is a JSON entry with `targets`, `issues`, and `prs` set to
-  empty arrays.
-- an entry with `kind: "empty"` and non-empty `targets`, `issues`, or `prs` is
-  invalid.
+- if a normal entry already exists, fail with `ExitEntryConflict`;
+- the empty entry is a JSON entry with `targets` and `links` set to empty arrays;
+- an entry with `kind: "empty"` and non-empty `targets` or `links` is invalid.
 
 A normal entry and an empty entry should not coexist.
 
@@ -155,15 +137,18 @@ Expected checks:
 - pending entry files are parseable JSON;
 - pending entry filenames follow the generated UTC timestamp format;
 - required metadata is present;
-- `targets`, `issues`, and `prs` are present and are arrays;
-- `targets`, `issues`, and `prs` are empty arrays when `kind` is `empty`;
+- `targets` and `links` are present and are arrays;
+- `targets` and `links` are empty arrays when `kind` is `empty`;
 - entry kind is allowed;
 - target is known, unless the project allows unknown targets;
-- issue and pull request references are canonical GitHub URLs for the
-  configured `github-url`;
+- every link is an absolute `http` or `https` URL with a non-empty host;
+- link query strings and fragments are accepted;
 - body is not empty;
+- body does not contain the reserved `<!-- rellog:` marker prefix;
 - breaking-change metadata is consistent;
 - normal entries and an empty entry do not coexist.
+
+Invalid links include empty strings, whitespace-only strings, relative paths, strings without a scheme, schemes other than `http` or `https`, and URLs without a host.
 
 If normal entries and an empty entry coexist because of manual file edits, this is an entry conflict and `rellog check` should fail with `ExitEntryConflict`.
 
@@ -224,8 +209,14 @@ Expected checks:
 - the current directory is a valid rellog project;
 - the rellog config exists and can be parsed;
 - the prepared release-note file for `<release-id>` exists under the configured release-note directory;
-- the configured changelog file exists and contains a release heading for `<release-id>` according to `rendering.release-heading-level`;
+- the configured changelog file exists and contains a level 2 release heading for `<release-id>`;
 - the configured pending entry directory contains no pending entry files.
+
+`ready` must detect release headings from the fixed v0 release heading level `2`, rendered as `## <release-id>`. It must not use a configurable `rendering.release-heading-level`.
+
+`ready` must ignore headings inside rellog body marker comments when looking for release headings. A body that contains `## <release-id>` between `<!-- rellog:body:start -->` and `<!-- rellog:body:end -->` must not satisfy the changelog release-heading check.
+
+If body marker comments are malformed, rellog treats the generated Markdown as invalid structure rather than guessing how to recover it.
 
 Pending entry files are checked by presence only. `ready` does not need to parse or validate their JSON content.
 
@@ -292,8 +283,7 @@ rellog prepare v1.0.1 --run
 
 Expected behavior:
 
-- validate pending entries using the same checks and human-readable stderr
-  diagnostics as `rellog check`;
+- validate pending entries using the same checks and human-readable stderr diagnostics as `rellog check`;
 - fail if there are no pending entries;
 - fail with `ExitEntryConflict` if normal entries and an empty entry coexist;
 - aggregate pending entries in filename order;
@@ -304,14 +294,60 @@ Expected behavior:
 - with `--run`, update `CHANGELOG.md` with the prepared release-note content;
 - with `--run`, delete consumed pending entries.
 
+Generated release-note content starts with `## <release-id>`. `CHANGELOG.md` is treated as `# CHANGELOG` followed by release-note sections.
+
+Normal entries render in this fixed structure:
+
+```text
+## <release-id>
+### <kind title>
+#### Details
+#### Targets
+#### Links
+```
+
+Rules:
+
+- every normal entry emits `#### Details`;
+- the entry `body` is emitted inside `<!-- rellog:body:start -->` and `<!-- rellog:body:end -->`;
+- the entry `body` is raw Markdown pass-through;
+- rellog does not escape, indent, list-wrap, code-block, normalize, or repair the body;
+- body Markdown may affect rendered Markdown appearance, and v0 does not compensate for that;
+- `<!-- rellog:` is a reserved marker namespace and is invalid inside entry bodies;
+- `#### Targets` is emitted after `#### Details` when the entry has one or more targets;
+- `#### Targets` is omitted when the entry has no targets;
+- `#### Links` is emitted after `#### Details` and `#### Targets` when the entry has one or more links;
+- `#### Links` is omitted when the entry has no links;
+- targets and links are entry metadata subsections, not release-wide aggregate sections;
+- links keep their entry-local order;
+- duplicate links within one entry are emitted only at their first occurrence;
+- links are not deduplicated across entries;
+- normal entries are separated by one blank line.
+
+An entry block starts at `#### Details` and ends before the next `#### Details`, the next kind section heading, the next release heading, or the end of the file. `#### Targets` and `#### Links` belong to the immediately preceding `#### Details`. Body marker comments define the body range; headings inside the marker pair are not structural rellog headings.
+
+Empty release notes render only the fixed message `No changelog-worthy changes.` and do not include `#### Details`, `#### Targets`, or `#### Links`.
+
 Dry-run stdout is a human-readable preview. It contains the generated release-note Markdown followed by intended file operations:
 
 ```text
 ## v1.0.1
 
-### changed
+### Changed
 
-- Added validation for pending changelog entries before release preparation.
+#### Details
+
+<!-- rellog:body:start -->
+Added validation for pending changelog entries before release preparation.
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+
+#### Links
+
+- https://github.com/tooppoo/rellog/issues/21
 create .rellog/release-notes/v1.0.1.md
 update CHANGELOG.md
 delete .rellog/entries/20260626T123456.123456789Z.json
@@ -343,7 +379,7 @@ If the release-note file for the release id already exists, the command should f
 
 For v0, release ids must be path-safe. Normal dots in values like `v1.0.1` are allowed. Path separators and dot segments such as `../v1.0.1` must be rejected.
 
-When `CHANGELOG.md` already exists, `--run` inserts the release section at the top of the file. If the file starts with an H1 such as `# Changelog`, `--run` inserts the release section directly below that H1 instead of duplicating it. Release-note files and `CHANGELOG.md` must end with a trailing newline.
+When `CHANGELOG.md` already exists, `--run` inserts the release section at the top of the file. If the file starts with an H1 such as `# CHANGELOG`, `--run` inserts the release section directly below that H1 instead of duplicating it. Release-note files and `CHANGELOG.md` must end with a trailing newline.
 
 If manual file edits create an entry conflict, `rellog prepare <release-id>` and `rellog prepare <release-id> --run` should fail before writing a release-note file, updating `CHANGELOG.md`, or deleting pending entries.
 
@@ -357,6 +393,8 @@ Possible options:
 --run                      Write files and delete consumed pending entries.
 ```
 
+Rich rendering and HTML conversion are not rellog v0 responsibilities. If a project needs richer presentation, it should pass the generated Markdown to an external Markdown processor, static-site generator, or HTML converter.
+
 `rellog prepare <release-id>` should not:
 
 - decide the next version;
@@ -369,12 +407,11 @@ Possible options:
 
 | Code | Constant               | Description                                                             |
 |------|------------------------|-------------------------------------------------------------------------|
-| 0    | —                      | Success                                                                 |
+| 0    | -                      | Success                                                                 |
 | 1    | `ExitNotInitialized`   | `rellog` has not been initialized; run `rellog init` first              |
 | 2    | `ExitInvalidStructure` | A path that must be a directory exists as a file (e.g. `.rellog/entries`) |
 | 3    | `ExitCheckFailed`      | `rellog check` found one or more non-conflict validation errors in pending entries |
 | 4    | `ExitReleaseNotFound`  | The required release-note file does not exist; run `rellog prepare <release-id> --run` first |
 | 5    | `ExitEntryConflict`    | Empty and normal pending entries would coexist or already coexist        |
-| 6    | `ExitNotGitRepo`       | Git repository metadata required by the command is unavailable           |
-| 7    | `ExitInvalidArgument`  | CLI usage or an argument such as `<release-id>` is invalid               |
-| 8    | `ExitReleaseNotReady`  | A release note exists, but changelog or pending-entry readiness checks failed |
+| 6    | `ExitInvalidArgument`  | CLI usage or an argument such as `<release-id>` is invalid               |
+| 7    | `ExitReleaseNotReady`  | A release note exists, but changelog or pending-entry readiness checks failed |
