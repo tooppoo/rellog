@@ -16,18 +16,33 @@ func TestE2E(t *testing.T) {
 	out, _ := exec.Command("git", "remote", "get-url", "origin").Output()
 	rawOrigin := strings.TrimSpace(string(out))
 
-	testscript.Run(t, testscript.Params{
-		Dir: "e2e",
-		Setup: func(env *testscript.Env) error {
-			if rawOrigin == "" {
-				return nil
-			}
-			if err := exec.Command("git", "init", env.WorkDir).Run(); err != nil {
-				return err
-			}
-			return exec.Command("git", "-C", env.WorkDir, "remote", "add", "origin", rawOrigin).Run()
-		},
-	})
+	setup := func(env *testscript.Env) error {
+		if rawOrigin == "" {
+			return nil
+		}
+		if err := exec.Command("git", "init", env.WorkDir).Run(); err != nil {
+			return err
+		}
+		return exec.Command("git", "-C", env.WorkDir, "remote", "add", "origin", rawOrigin).Run()
+	}
+
+	directories := []string{
+		"e2e/add-empty",
+		"e2e/add",
+		"e2e/check",
+		"e2e/init",
+		"e2e/prepare",
+		"e2e/workflow",
+	}
+
+	for _, dir := range directories {
+		t.Run(dir, func(t *testing.T) {
+			testscript.Run(t, testscript.Params{
+				Dir:   dir,
+				Setup: setup,
+			})
+		})
+	}
 }
 
 func TestMain(m *testing.M) {
