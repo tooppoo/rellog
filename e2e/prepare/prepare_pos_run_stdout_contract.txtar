@@ -1,0 +1,16 @@
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Prepared output'
+! stderr .
+
+exec rellog prepare --run v1.0.0
+cmp stdout expected.stdout
+! stderr .
+
+exists .rellog/release-notes/v1.0.0.md
+exists CHANGELOG.md
+! exists .rellog/entries/20260626T123456.000000001Z.json
+
+-- expected.stdout --
+v1.0.0 release prepared

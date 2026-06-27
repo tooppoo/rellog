@@ -138,6 +138,8 @@ Examples that should be rejected in v0:
 ```text
 cli/v1.0.1
 2026/06/25
+../v1.0.1
+v1/../v1.0.1
 ```
 
 ### Normal release-note file
@@ -166,4 +168,6 @@ No changelog-worthy changes.
 
 `CHANGELOG.md` is the cumulative release record.
 
-Release-note preparation appends the prepared release-note content to `CHANGELOG.md` only when executed with `rellog prepare <release-id> --run`. It should not update versions, create tags, create GitHub Releases, or publish artifacts.
+Release-note preparation updates `CHANGELOG.md` only when executed with `rellog prepare <release-id> --run`. If `CHANGELOG.md` starts with an H1 heading, the new release section is inserted directly below that heading. Otherwise, the new release section is inserted at the file start. It should not update versions, create tags, create GitHub Releases, or publish artifacts.
+
+Release-note files and `CHANGELOG.md` must end with a trailing newline.

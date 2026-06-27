@@ -21,7 +21,9 @@ This decision should be recorded as an ADR because it defines the central respon
 
 `rellog` will use explicit changelog entries as the primary input for release notes and CHANGELOG updates.
 
-A changelog entry is a small Markdown file that describes a change at release-note granularity. It should describe how the change should be communicated, not merely restate a commit message, issue title, or pull request title.
+A changelog entry is an explicit repository record that describes a change at release-note granularity. It should describe how the change should be communicated, not merely restate a commit message, issue title, or pull request title.
+
+The pending entry file format and filename strategy described here were later superseded by [Use JSON files for pending entries](20260626T120000Z_use-json-entry-files.md). The durable decision in this ADR is that explicit human-written changelog entries, not Git history, are the primary input.
 
 `rellog` will not infer final release notes from Git history.
 

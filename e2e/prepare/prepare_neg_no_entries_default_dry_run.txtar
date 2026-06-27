@@ -1,0 +1,19 @@
+exec rellog init
+! stderr .
+! exists CHANGELOG.md
+
+! exec rellog prepare v1.0.0
+! stdout .
+cmp stderr expected.stderr
+
+! exists .rellog/release-notes/v1.0.0.md
+! exists CHANGELOG.md
+
+-- expected.stderr --
+No pending rellog entries found.
+
+Add a changelog entry:
+  rellog add
+
+If this release has no changelog-worthy changes, add an explicit empty entry:
+  rellog add-empty

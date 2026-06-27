@@ -236,10 +236,33 @@ Expected behavior:
 - fail if there are no pending entries;
 - fail with `ExitEntryConflict` if normal entries and an empty entry coexist;
 - aggregate pending entries in filename order;
+- reject release ids that are not path-safe;
+- fail if the target release-note file already exists;
 - without `--run`, print the generated release-note content and intended operations without changing files;
 - with `--run`, create the release-note file for the release id;
-- with `--run`, append the prepared release-note content to `CHANGELOG.md`;
+- with `--run`, update `CHANGELOG.md` with the prepared release-note content;
 - with `--run`, delete consumed pending entries.
+
+Dry-run stdout is a human-readable preview. It contains the generated release-note Markdown followed by intended file operations:
+
+```text
+## v1.0.1
+
+### changed
+
+- Added validation for pending changelog entries before release preparation.
+create .rellog/release-notes/v1.0.1.md
+update CHANGELOG.md
+delete .rellog/entries/20260626T123456.123456789Z.json
+```
+
+When `--run` succeeds, stdout is exactly one line:
+
+```text
+v1.0.1 release prepared
+```
+
+Successful dry-run and `--run` executions write nothing to stderr.
 
 If pending entries are absent, the command should tell the user to either add normal entries or create an explicit empty entry.
 
@@ -257,7 +280,11 @@ If this release has no changelog-worthy changes, add an explicit empty entry:
 
 If the release-note file for the release id already exists, the command should fail by default rather than silently overwriting it.
 
-If manual file edits create an entry conflict, `rellog prepare <release-id>` and `rellog prepare <release-id> --run` should fail before writing a release-note file, appending to `CHANGELOG.md`, or deleting pending entries.
+For v0, release ids must be path-safe. Normal dots in values like `v1.0.1` are allowed. Path separators and dot segments such as `../v1.0.1` must be rejected.
+
+When `CHANGELOG.md` already exists, `--run` inserts the release section at the top of the file. If the file starts with an H1 such as `# Changelog`, `--run` inserts the release section directly below that H1 instead of duplicating it. Release-note files and `CHANGELOG.md` must end with a trailing newline.
+
+If manual file edits create an entry conflict, `rellog prepare <release-id>` and `rellog prepare <release-id> --run` should fail before writing a release-note file, updating `CHANGELOG.md`, or deleting pending entries.
 
 Possible options:
 

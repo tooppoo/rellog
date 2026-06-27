@@ -23,7 +23,7 @@ flowchart LR
   changelog[CHANGELOG.md section]
 
   entries -->|prepare --run release id| notes
-  notes -->|append during preparation| changelog
+  notes -->|update during preparation| changelog
 ```
 
 The important workflow rule is:
@@ -93,7 +93,7 @@ Once prepared, the release-note file becomes the durable per-release Markdown ar
 
 `CHANGELOG.md` is the cumulative release record.
 
-During `rellog prepare <release-id> --run`, the prepared release-note content is appended to `CHANGELOG.md`.
+During `rellog prepare <release-id> --run`, the prepared release-note content is inserted near the top of `CHANGELOG.md`: directly below an existing H1 heading when one is present, otherwise at the file start.
 
 `CHANGELOG.md` is not the source of pending release explanation. Pending entries are the source. `CHANGELOG.md` is the accumulated output.
 
@@ -101,7 +101,7 @@ During `rellog prepare <release-id> --run`, the prepared release-note content is
 
 Release-note preparation is the first guard.
 
-The default `rellog prepare <release-id>` command previews the generated release-note Markdown and intended file operations. It does not create a release-note file, update `CHANGELOG.md`, or delete pending entries. `rellog prepare <release-id> --run` executes those operations after the same validation passes.
+The default `rellog prepare <release-id>` command previews the generated release-note Markdown and intended file operations. The operation preview uses `create`, `update CHANGELOG.md`, and `delete` lines. It does not create a release-note file, update `CHANGELOG.md`, or delete pending entries. `rellog prepare <release-id> --run` executes those operations after the same validation passes and prints exactly `<release-id> release prepared` on stdout.
 
 Both preview and execution should fail when release-note preparation is impossible or unsafe, for example:
 
@@ -152,7 +152,7 @@ sequenceDiagram
     Dev->>R: Run release-note preparation
     R->>E: Validate pending entries
     R->>N: Create release-note file
-    R->>C: Append release-note section
+    R->>C: Update release-note section
     R->>E: Delete consumed entries
     R->>PR: Open or update documentation-only PR
   end

@@ -1,0 +1,33 @@
+exec rellog init
+! stderr .
+! exists CHANGELOG.md
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind added --target cli --body 'Added preview contract'
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target docs --body 'Fixed preview contract'
+! stderr .
+
+exec rellog prepare v1.2.3
+cmp stdout expected.stdout
+! stderr .
+
+! exists .rellog/release-notes/v1.2.3.md
+! exists CHANGELOG.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+exists .rellog/entries/20260626T123456.000000002Z.json
+
+-- expected.stdout --
+## v1.2.3
+
+### added
+
+- Added preview contract
+
+### fixed
+
+- Fixed preview contract
+create .rellog/release-notes/v1.2.3.md
+update CHANGELOG.md
+delete .rellog/entries/20260626T123456.000000001Z.json
+delete .rellog/entries/20260626T123456.000000002Z.json
