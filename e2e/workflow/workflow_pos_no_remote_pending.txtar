@@ -1,0 +1,25 @@
+skip pending: #22 contract, enable in #23
+
+! exists .git
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'No remote workflow'
+! stderr .
+
+exec rellog status
+stdout 'Unreleased entries: 1'
+! stderr .
+
+exec rellog prepare v1.0.0
+stdout '## v1\.0\.0'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+stdout 'v1\.0\.0 release prepared\n'
+! stderr .
+
+exec rellog ready v1.0.0
+stdout 'v1\.0\.0 release ready\n'
+! stderr .

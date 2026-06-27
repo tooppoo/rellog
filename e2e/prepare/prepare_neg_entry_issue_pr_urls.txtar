@@ -1,3 +1,5 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
 ! exists CHANGELOG.md
 
 ! exec rellog prepare v1.0.0

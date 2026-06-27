@@ -1,0 +1,22 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+
+cp release.md .rellog/release-notes/v1.0.0.md
+cp changelog.md CHANGELOG.md
+
+exec rellog ready v1.0.0
+stdout 'v1\.0\.0 release ready\n'
+! stderr .
+
+-- release.md --
+## v1.0.0
+
+No changelog-worthy changes.
+-- changelog.md --
+# CHANGELOG
+
+## v1.0.0
+
+No changelog-worthy changes.

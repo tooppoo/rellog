@@ -1,0 +1,42 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+
+cp release.md .rellog/release-notes/v1.0.0.md
+cp changelog.md CHANGELOG.md
+
+! exec rellog ready v1.0.0
+! stdout .
+cmp stderr expected.stderr
+
+-- release.md --
+## v1.0.0
+
+No changelog-worthy changes.
+-- changelog.md --
+# CHANGELOG
+
+## v1.0.0
+
+#### Details
+
+<!-- rellog:body:start -->
+body without end marker
+-- expected.stderr --
+Error: invalid generated Markdown structure in CHANGELOG.md
+
+release: v1.0.0
+changelog:
+  CHANGELOG.md
+
+The changelog contains an unterminated rellog body marker range.
+
+Found:
+  <!-- rellog:body:start -->
+
+Missing matching marker:
+  <!-- rellog:body:end -->
+
+rellog cannot safely identify release headings while a body marker pair is malformed.
+Fix the generated body marker pair in CHANGELOG.md, then run `rellog ready v1.0.0` again.

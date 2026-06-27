@@ -1,0 +1,39 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog check
+stdout 'rellog check: OK \(entries: 2\)\n'
+! stderr .
+
+-- .rellog/config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- .rellog/release-notes/.keep --
+-- .rellog/entries/0001.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": ["https://example.com/design", "http://example.org/a?x=1#section"],
+  "body": "Valid links"
+}
+-- .rellog/entries/0002.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": [],
+  "body": "No links"
+}

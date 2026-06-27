@@ -1,0 +1,132 @@
+skip pending: #22 contract, enable in #23
+
+exec rellog init
+! stderr .
+cp entry-one.json .rellog/entries/20260626T123456.000000001Z.json
+cp entry-two.json .rellog/entries/20260626T123456.000000002Z.json
+
+exec rellog prepare v1.0.0
+cmp stdout expected.stdout
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+stdout 'v1\.0\.0 release prepared\n'
+! stderr .
+
+cmp .rellog/release-notes/v1.0.0.md expected.release.md
+cmp CHANGELOG.md expected.changelog.md
+
+-- entry-one.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": [
+    "https://example.com/first",
+    "https://example.com/second",
+    "https://example.com/first"
+  ],
+  "body": "Raw **Markdown** body\n\n## Body heading\n\n- body list\n> body quote"
+}
+-- entry-two.json --
+{
+  "kind": "changed",
+  "targets": [],
+  "links": [],
+  "body": "Second body"
+}
+-- expected.stdout --
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Raw **Markdown** body
+
+## Body heading
+
+- body list
+> body quote
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+
+#### Links
+
+- https://example.com/first
+- https://example.com/second
+
+#### Details
+
+<!-- rellog:body:start -->
+Second body
+<!-- rellog:body:end -->
+create .rellog/release-notes/v1.0.0.md
+update CHANGELOG.md
+delete .rellog/entries/20260626T123456.000000001Z.json
+delete .rellog/entries/20260626T123456.000000002Z.json
+-- expected.release.md --
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Raw **Markdown** body
+
+## Body heading
+
+- body list
+> body quote
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+
+#### Links
+
+- https://example.com/first
+- https://example.com/second
+
+#### Details
+
+<!-- rellog:body:start -->
+Second body
+<!-- rellog:body:end -->
+-- expected.changelog.md --
+# CHANGELOG
+
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Raw **Markdown** body
+
+## Body heading
+
+- body list
+> body quote
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+
+#### Links
+
+- https://example.com/first
+- https://example.com/second
+
+#### Details
+
+<!-- rellog:body:start -->
+Second body
+<!-- rellog:body:end -->

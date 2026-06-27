@@ -1,3 +1,5 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
 exec sh -c 'rm -rf .git && git init && git remote add origin git@github.com:tooppoo/rellog.git'
 exec rellog init
 ! stderr .
