@@ -42,7 +42,7 @@ jobs:
       - name: Upload snapshot artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: git-kura-snapshot-artifacts
+          name: rellog-snapshot-artifacts
           path: dist/*
 
   smoke-test-unix:
@@ -124,14 +124,14 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          name: git-kura-snapshot-artifacts
+          name: rellog-snapshot-artifacts
           path: dist
 
       - name: Extract artifact
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path out | Out-Null
-          $archives = Get-ChildItem dist -Filter "git-kura_*_Windows_${{ matrix.arch }}.zip"
+          $archives = Get-ChildItem dist -Filter "rellog*_Windows_${{ matrix.arch }}.zip"
           if ($archives.Count -ne 1) {
             Get-ChildItem dist
             throw "Expected exactly one archive, found $($archives.Count)"
@@ -141,16 +141,16 @@ jobs:
       - name: Smoke test
         shell: pwsh
         run: |
-          $exe = Join-Path "out" "git-kura.exe"
+          $exe = Join-Path "out" "rellog.exe"
           if (!(Test-Path $exe)) {
-            throw "git-kura.exe not found"
+            throw "rellog.exe not found"
           }
 
           & $exe -h
 
           $bin = Join-Path $env:RUNNER_TEMP "bin"
           New-Item -ItemType Directory -Force -Path $bin | Out-Null
-          Copy-Item $exe (Join-Path $bin "git-kura.exe")
+          Copy-Item $exe (Join-Path $bin "rellog.exe")
           $env:PATH = "$bin;$env:PATH"
 
           rellog -h
@@ -161,7 +161,7 @@ jobs:
           $bin = Join-Path $env:RUNNER_TEMP "bin"
           $env:PATH = "$bin;$env:PATH"
 
-          $tmp = Join-Path $env:RUNNER_TEMP "git-kura-smoke"
+          $tmp = Join-Path $env:RUNNER_TEMP "rellog-smoke"
           New-Item -ItemType Directory -Force -Path $tmp | Out-Null
           Set-Location $tmp
 
