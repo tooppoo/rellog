@@ -1,0 +1,23 @@
+exec rellog init
+! stderr .
+
+cp release.md .rellog/release-notes/v1.0.0.md
+cp release.md CHANGELOG.md
+
+exec rellog ready v1.0.0 --json
+cmp stdout expected.stdout
+! stderr .
+
+-- release.md --
+## v1.0.0
+
+- Prepared release.
+-- expected.stdout --
+{
+  "ok": true,
+  "releaseId": "v1.0.0",
+  "releaseNote": ".rellog/release-notes/v1.0.0.md",
+  "changelog": "CHANGELOG.md",
+  "pendingEntries": [],
+  "errors": []
+}

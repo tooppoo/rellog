@@ -1,28 +1,53 @@
 package rellog
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
 )
 
 func cmdReady() *cobra.Command {
-	return &cobra.Command{
+	var jsonOutput bool
+
+	cmd := &cobra.Command{
 		Use:          "ready <release-id>",
-		Short:        "Check that a release-note file exists for the given release id",
+		Short:        "Check that a release is ready for publishing",
 		Args:         cobra.ExactArgs(1),
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			rel, err := requireRelease(args[0])
+			releaseID := args[0]
+
+			if err := validateReadyReleaseID(releaseID); err != nil {
+				return err
+			}
+
+			result, err := checkReady(releaseID)
 			if err != nil {
 				return err
 			}
 
-			fmt.Printf("Release %s:\n", rel.Version)
-			for _, e := range rel.Entries {
-				fmt.Printf("  [%s] %s\n", e.Kind, e.Body)
+			if jsonOutput {
+				out, marshalErr := json.MarshalIndent(result, "", "  ")
+				if marshalErr != nil {
+					return marshalErr
+				}
+				fmt.Println(string(out))
+				if !result.OK {
+					return &exitError{ExitReleaseNotReady, ""}
+				}
+				return nil
 			}
+
+			if !result.OK {
+				return buildReadyHumanError(result)
+			}
+
+			fmt.Printf("%s release ready\n", releaseID)
 			return nil
 		},
 	}
+
+	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output machine-readable JSON")
+	return cmd
 }

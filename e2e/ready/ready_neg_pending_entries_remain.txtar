@@ -1,0 +1,37 @@
+exec rellog init
+! stderr .
+
+cp release.md .rellog/release-notes/v1.0.0.md
+cp release.md CHANGELOG.md
+cp malformed.json .rellog/entries/20260626T123456.000000001Z.json
+
+! exec rellog ready v1.0.0
+cmp stderr expected.stderr
+! stdout .
+
+-- release.md --
+## v1.0.0
+
+- Prepared release.
+-- malformed.json --
+{
+-- expected.stderr --
+Error: release is not ready: pending entries remain
+
+release: v1.0.0
+release note:
+  .rellog/release-notes/v1.0.0.md
+
+Pending entries:
+  .rellog/entries/20260626T123456.000000001Z.json
+
+A release note already exists, but pending entries are still present.
+Decide what each pending entry means:
+
+  1. If the entry was created by mistake, remove it.
+  2. If the entry should be included in this release, run:
+       rellog replace v1.0.0
+     Review the dry-run output, then run:
+       rellog replace v1.0.0 --run
+  3. If the entry is for a future release, move it out of the pending entries directory
+     and restore it after this release is completed.

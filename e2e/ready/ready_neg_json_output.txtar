@@ -1,0 +1,33 @@
+exec rellog init
+! stderr .
+
+cp release.md .rellog/release-notes/v1.0.0.md
+cp release.md CHANGELOG.md
+cp pending.json .rellog/entries/20260626T123456.000000001Z.json
+
+! exec rellog ready v1.0.0 --json
+cmp stdout expected.stdout
+! stderr .
+
+-- release.md --
+## v1.0.0
+
+- Prepared release.
+-- pending.json --
+{
+-- expected.stdout --
+{
+  "ok": false,
+  "releaseId": "v1.0.0",
+  "releaseNote": ".rellog/release-notes/v1.0.0.md",
+  "changelog": "CHANGELOG.md",
+  "pendingEntries": [
+    ".rellog/entries/20260626T123456.000000001Z.json"
+  ],
+  "errors": [
+    {
+      "code": "pending_entries_present",
+      "message": "Pending entries remain after the release note was prepared."
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+exec rellog init
+! stderr .
+
+mkdir -p changes/pending notes/v1
+mv configured.kdl .rellog/config.kdl
+cp release.md notes/v1/0.0.md
+cp release.md HISTORY.md
+
+exec rellog ready v1/0.0
+cmp stdout expected.stdout
+! stderr .
+
+-- expected.stdout --
+v1/0.0 release ready
+-- release.md --
+## v1/0.0
+
+- Configured path release.
+-- configured.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  github-url "https://github.com/tooppoo/rellog"
+  paths {
+    changelog "HISTORY.md"
+    entries "changes/pending"
+    release-notes "notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+      kind "changed"
+      kind "fixed"
+    }
+  }
+}

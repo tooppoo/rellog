@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tooppoo/rellog/schema/ready-output.schema.json",
+  "title": "rellog ready output",
+  "description": "Machine-readable output for rellog ready.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ok",
+    "releaseId",
+    "releaseNote",
+    "changelog",
+    "pendingEntries",
+    "errors"
+  ],
+  "properties": {
+    "ok": {
+      "type": "boolean"
+    },
+    "releaseId": {
+      "type": "string"
+    },
+    "releaseNote": {
+      "type": "string"
+    },
+    "changelog": {
+      "type": "string"
+    },
+    "pendingEntries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
