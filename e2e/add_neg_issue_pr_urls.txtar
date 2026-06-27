@@ -29,7 +29,7 @@ exec sh -c 'test -z "$(ls .rellog/entries)"'
 stderr 'issue URL must be canonical and must not include query or fragment'
 exec sh -c 'test -z "$(ls .rellog/entries)"'
 
-! exec rellog add --kind changed --target rellog --issue https://github.com/tooppoo/rellog/issues/12#discussion --body 'Fragment'
+! exec rellog add --kind changed --target rellog --issue 'https://github.com/tooppoo/rellog/issues/12#discussion' --body Fragment
 stderr 'issue URL must be canonical and must not include query or fragment'
 exec sh -c 'test -z "$(ls .rellog/entries)"'
 

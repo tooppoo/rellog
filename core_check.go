@@ -17,9 +17,23 @@ type fileCheckResult struct {
 	Errors []checkError
 }
 
+func checkEmptyEntryFields(e entry) []checkError {
+	var errs []checkError
+	if len(e.Targets) > 0 {
+		errs = append(errs, checkError{"error[entry.empty.targets.invalid]", "empty entry targets must be an empty array."})
+	}
+	if len(e.Issues) > 0 {
+		errs = append(errs, checkError{"error[entry.empty.issues.invalid]", "empty entry issues must be an empty array."})
+	}
+	if len(e.PRs) > 0 {
+		errs = append(errs, checkError{"error[entry.empty.prs.invalid]", "empty entry prs must be an empty array."})
+	}
+	return errs
+}
+
 func checkRepository() ([]fileCheckResult, int, error) {
 	var results []fileCheckResult
-	totalMd := 0
+	totalEntries := 0
 
 	// Step 0: Check .rellog directory itself
 	if info, err := os.Stat(baseDir); err != nil {
@@ -29,7 +43,7 @@ func checkRepository() ([]fileCheckResult, int, error) {
 				[]checkError{{"error[rellog.not_initialized]", "run `rellog init` first"}},
 			})
 		}
-		return results, totalMd, nil
+		return results, totalEntries, nil
 	} else if !info.IsDir() {
 		msg := ".rellog path is not a directory.\n\n" +
 			"Expected a directory for .rellog, but found a file.\n" +
@@ -39,7 +53,7 @@ func checkRepository() ([]fileCheckResult, int, error) {
 			baseDir,
 			[]checkError{{"error[rellog_dir.not_directory]", msg}},
 		})
-		return results, totalMd, nil
+		return results, totalEntries, nil
 	}
 
 	// Step 1: Structural check — release-notes must be a directory if it exists
@@ -53,7 +67,7 @@ func checkRepository() ([]fileCheckResult, int, error) {
 			releaseNotesDir(),
 			[]checkError{{"error[release_notes_dir.not_directory]", msg}},
 		})
-		return results, totalMd, nil
+		return results, totalEntries, nil
 	}
 
 	// Step 2: Structural check — entries must be a directory if it exists
@@ -67,7 +81,7 @@ func checkRepository() ([]fileCheckResult, int, error) {
 			entriesDir(),
 			[]checkError{{"error[entry_dir.not_directory]", msg}},
 		})
-		return results, totalMd, nil
+		return results, totalEntries, nil
 	}
 
 	// Step 3: Check release-notes existence and accessibility
@@ -125,91 +139,121 @@ func checkRepository() ([]fileCheckResult, int, error) {
 
 	// Step 6: Process entry files (only if entries dir is accessible)
 	if entAccessOk {
-		// First pass: detect empty/normal conflict.
 		type parsedFile struct {
-			path string
-			e    entry
-			ok   bool
+			path        string
+			e           entry
+			parseOK     bool
+			unsupported bool
 		}
 		var parsed []parsedFile
 		hasEmpty := false
 		hasNormal := false
+
 		for _, f := range entFiles {
-			if !strings.HasSuffix(f.Name(), ".md") {
+			p := filepath.Join(entriesDir(), f.Name())
+			if !strings.HasSuffix(f.Name(), ".json") {
+				parsed = append(parsed, parsedFile{path: p, unsupported: true})
 				continue
 			}
-			p := filepath.Join(entriesDir(), f.Name())
 			data, readErr := os.ReadFile(p)
 			if readErr != nil {
 				return nil, 0, readErr
 			}
-			e, parseErr := parseEntry(data)
-			if parseErr == nil {
+			e, parseErr := parseEntryJSON(data)
+			ok := parseErr == nil
+			if ok {
 				if e.Kind == "empty" {
 					hasEmpty = true
 				} else if e.Kind != "" {
 					hasNormal = true
 				}
 			}
-			parsed = append(parsed, parsedFile{p, e, parseErr == nil})
+			parsed = append(parsed, parsedFile{path: p, e: e, parseOK: ok})
 		}
 		hasConflict := hasEmpty && hasNormal
 
-		// Second pass: validate each file.
 		for _, pf := range parsed {
-			totalMd++
+			if pf.unsupported {
+				results = append(results, fileCheckResult{pf.path, []checkError{
+					{"error[entry.file.unsupported]", "pending entry files must use the .json extension."},
+				}})
+				continue
+			}
+
+			totalEntries++
 			var errs []checkError
-			if !pf.ok {
-				data, _ := os.ReadFile(pf.path)
-				_, parseErr := parseEntry(data)
-				msg := strings.TrimPrefix(parseErr.Error(), "invalid frontmatter: ")
-				errs = append(errs, checkError{"error[entry.frontmatter.parse_failed]", msg})
+
+			if !pf.parseOK {
+				errs = append(errs, checkError{"error[entry.json.parse_failed]", "invalid JSON entry."})
 			} else {
 				e := pf.e
-				if hasConflict && e.Kind == "empty" {
-					errs = append(errs, checkError{
-						"error[entry.conflict.empty_and_normal]",
-						"entry conflict: empty entry cannot coexist with normal entries.",
-					})
+				if e.Kind == "empty" {
+					emptyFieldErrs := checkEmptyEntryFields(e)
+					if len(emptyFieldErrs) > 0 {
+						errs = append(errs, emptyFieldErrs...)
+					} else if hasConflict {
+						errs = append(errs, checkError{
+							"error[entry.conflict.empty_and_normal]",
+							"entry conflict: empty entry cannot coexist with normal entries.",
+						})
+					}
 				} else {
 					if e.Kind == "" {
 						errs = append(errs, checkError{"error[entry.kind.missing]", "missing required metadata: kind."})
-					} else if configOK && e.Kind != "empty" && !entryConfig.allowedKinds[e.Kind] {
+					} else if configOK && len(entryConfig.allowedKinds) > 0 && !entryConfig.allowedKinds[e.Kind] {
 						errs = append(errs, checkError{
 							"error[entry.kind.unknown]",
 							fmt.Sprintf("kind %q is not defined in rellog.entries.kinds.", e.Kind),
 						})
 					}
-					targetsValidForLookup := true
+
 					switch {
+					case !e.targetsPresent:
+						errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: targets."})
 					case e.targetsIsScalar:
 						errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
-						targetsValidForLookup = false
-					case e.targetsKeyPresent && !e.targetsIsScalar && len(e.Targets) == 0:
-						errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: target."})
-						targetsValidForLookup = false
-					}
-					if configOK && targetsValidForLookup && e.targetsKeyPresent && entryConfig.targetPolicy != "allow-unknown" {
-						for _, target := range e.Targets {
-							if entryConfig.knownTargets[target] {
-								continue
+					default:
+						if configOK && entryConfig.targetPolicy != "allow-unknown" {
+							for _, target := range e.Targets {
+								if entryConfig.knownTargets[target] {
+									continue
+								}
+								code := "error[entry.targets.unknown]"
+								if entryConfig.targetPolicy == "warn-unknown" {
+									code = "warning[entry.targets.unknown]"
+								}
+								errs = append(errs, checkError{
+									code,
+									fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target),
+								})
 							}
-							code := "error[entry.targets.unknown]"
-							if entryConfig.targetPolicy == "warn-unknown" {
-								code = "warning[entry.targets.unknown]"
-							}
-							errs = append(errs, checkError{
-								code,
-								fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target),
-							})
 						}
 					}
-					if e.issuesIsScalar {
+
+					if !e.issuesPresent {
+						errs = append(errs, checkError{"error[entry.issues.missing]", "missing required metadata: issues."})
+					} else if e.issuesIsScalar {
 						errs = append(errs, checkError{"error[entry.issues.invalid]", "issues must be an array."})
+					} else if configOK && entryConfig.githubURL != "" {
+						for _, issueURL := range e.Issues {
+							for _, msg := range validateStoredIssueURL(issueURL, entryConfig.githubURL) {
+								errs = append(errs, checkError{"error[entry.issues.invalid]", msg + "."})
+							}
+						}
 					}
-					if e.prsHasNonNumericItem {
-						errs = append(errs, checkError{"error[entry.prs.invalid]", "prs item must be a number."})
+
+					if !e.prsPresent {
+						errs = append(errs, checkError{"error[entry.prs.missing]", "missing required metadata: prs."})
+					} else if e.prsIsScalar {
+						errs = append(errs, checkError{"error[entry.prs.invalid]", "prs must be an array."})
+					} else if configOK && entryConfig.githubURL != "" {
+						for _, prURL := range e.PRs {
+							for _, msg := range validateStoredPRURL(prURL, entryConfig.githubURL) {
+								errs = append(errs, checkError{"error[entry.prs.invalid]", msg + "."})
+							}
+						}
 					}
+
 					if e.Body == "" {
 						errs = append(errs, checkError{"error[entry.body.empty]", "entry body must not be empty."})
 					}
@@ -222,5 +266,5 @@ func checkRepository() ([]fileCheckResult, int, error) {
 		}
 	}
 
-	return results, totalMd, nil
+	return results, totalEntries, nil
 }

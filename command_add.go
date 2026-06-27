@@ -3,14 +3,13 @@ package rellog
 import (
 	"bufio"
 	"io"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 )
 
 func cmdAdd() *cobra.Command {
-	var kind, body string
+	var kind, body, debugDatetime string
 	var targets, issues, prs []string
 
 	cmd := &cobra.Command{
@@ -18,31 +17,18 @@ func cmdAdd() *cobra.Command {
 		Short:        "Add a changelog entry",
 		SilenceUsage: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Interactive mode when no flags are provided.
+			// Interactive mode when no flags are provided (except --debug-datetime).
 			if !cmd.Flags().Changed("kind") && !cmd.Flags().Changed("target") && !cmd.Flags().Changed("body") {
-				return addEntryInteractive(cmd.InOrStdin())
-			}
-
-			var issueNumbers, prNumbers []int
-			for _, s := range issues {
-				n, _ := strconv.Atoi(s)
-				if n != 0 {
-					issueNumbers = append(issueNumbers, n)
-				}
-			}
-			for _, s := range prs {
-				n, _ := strconv.Atoi(s)
-				if n != 0 {
-					prNumbers = append(prNumbers, n)
-				}
+				return addEntryInteractive(cmd.InOrStdin(), debugDatetime)
 			}
 
 			return addEntry(addOptions{
-				Kind:    kind,
-				Targets: targets,
-				Body:    body,
-				Issues:  issueNumbers,
-				PRs:     prNumbers,
+				Kind:          kind,
+				Targets:       targets,
+				Body:          body,
+				Issues:        filterEmpty(issues),
+				PRs:           filterEmpty(prs),
+				DebugDatetime: debugDatetime,
 			})
 		},
 	}
@@ -50,13 +36,14 @@ func cmdAdd() *cobra.Command {
 	cmd.Flags().StringVar(&kind, "kind", "", "Change kind (e.g. changed, fix)")
 	cmd.Flags().StringArrayVar(&targets, "target", nil, "Target component (repeatable)")
 	cmd.Flags().StringVar(&body, "body", "", "Change description")
-	cmd.Flags().StringArrayVar(&issues, "issue", nil, "Issue number (repeatable)")
-	cmd.Flags().StringArrayVar(&prs, "pr", nil, "PR number (repeatable)")
+	cmd.Flags().StringArrayVar(&issues, "issue", nil, "Issue number or URL (repeatable)")
+	cmd.Flags().StringArrayVar(&prs, "pr", nil, "PR number or URL (repeatable)")
+	cmd.Flags().StringVar(&debugDatetime, "debug-datetime", "", "Override entry timestamp for testing")
 
 	return cmd
 }
 
-func addEntryInteractive(r io.Reader) error {
+func addEntryInteractive(r io.Reader, debugDatetime string) error {
 	scanner := bufio.NewScanner(r)
 
 	readLine := func() string {
@@ -73,11 +60,12 @@ func addEntryInteractive(r io.Reader) error {
 	prsLine := readLine()
 
 	return addEntry(addOptions{
-		Kind:    kind,
-		Targets: splitTokens(targetsLine),
-		Body:    body,
-		Issues:  parseNumberTokens(issuesLine),
-		PRs:     parseNumberTokens(prsLine),
+		Kind:          kind,
+		Targets:       splitTokens(targetsLine),
+		Body:          body,
+		Issues:        splitTokens(issuesLine),
+		PRs:           splitTokens(prsLine),
+		DebugDatetime: debugDatetime,
 	})
 }
 
@@ -93,14 +81,13 @@ func splitTokens(s string) []string {
 	return result
 }
 
-// parseNumberTokens splits on whitespace/commas and parses integers.
-func parseNumberTokens(s string) []int {
-	var nums []int
-	for _, t := range splitTokens(s) {
-		n, err := strconv.Atoi(t)
-		if err == nil && n != 0 {
-			nums = append(nums, n)
+// filterEmpty removes empty strings from a slice.
+func filterEmpty(ss []string) []string {
+	var result []string
+	for _, s := range ss {
+		if s != "" {
+			result = append(result, s)
 		}
 	}
-	return nums
+	return result
 }

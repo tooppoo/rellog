@@ -7,6 +7,7 @@ const (
 	ExitCheckFailed      = 3 // rellog check found validation errors
 	ExitReleaseNotFound  = 4 // required release-note file does not exist
 	ExitEntryConflict    = 5 // entry conflict: empty and normal entries cannot coexist
+	ExitNotGitRepo       = 6 // not a git repository
 )
 
 type exitError struct {

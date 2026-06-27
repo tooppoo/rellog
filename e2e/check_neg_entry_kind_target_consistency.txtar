@@ -175,7 +175,6 @@ rellog config-version=1 {
 -- empty_targets.json --
 {
   "kind": "changed",
-  "targets": [],
   "issues": [],
   "prs": [],
   "body": "Empty targets"

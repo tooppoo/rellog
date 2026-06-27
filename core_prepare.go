@@ -31,7 +31,7 @@ func prepareRelease(opts prepareOptions) error {
 
 	var entryFiles []entryFile
 	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), ".md") {
+		if !strings.HasSuffix(f.Name(), ".json") {
 			continue
 		}
 		p := filepath.Join(entriesDir(), f.Name())
@@ -39,14 +39,42 @@ func prepareRelease(opts prepareOptions) error {
 		if readErr != nil {
 			return readErr
 		}
-		e, parseErr := parseEntry(data)
+		e, parseErr := parseEntryJSON(data)
 		if parseErr != nil {
 			return parseErr
 		}
 		entryFiles = append(entryFiles, entryFile{f.Name(), p, e})
 	}
 
-	// Detect empty/normal conflict before doing anything.
+	// Validate entry URLs against github-url from config before doing anything.
+	cfg, cfgErr := readEntryValidationConfig()
+	if cfgErr != nil {
+		return cfgErr
+	}
+	if cfg.githubURL != "" {
+		var urlResults []fileCheckResult
+		for _, ef := range entryFiles {
+			var errs []checkError
+			for _, issueURL := range ef.e.Issues {
+				for _, msg := range validateStoredIssueURL(issueURL, cfg.githubURL) {
+					errs = append(errs, checkError{"error[entry.issues.invalid]", msg + "."})
+				}
+			}
+			for _, prURL := range ef.e.PRs {
+				for _, msg := range validateStoredPRURL(prURL, cfg.githubURL) {
+					errs = append(errs, checkError{"error[entry.prs.invalid]", msg + "."})
+				}
+			}
+			if len(errs) > 0 {
+				urlResults = append(urlResults, fileCheckResult{ef.path, errs})
+			}
+		}
+		if len(urlResults) > 0 {
+			return reportPrepareCheckFailure(urlResults)
+		}
+	}
+
+	// Detect empty/normal conflict.
 	var emptyPath string
 	hasNormal := false
 	for _, ef := range entryFiles {
@@ -107,4 +135,15 @@ func prepareRelease(opts prepareOptions) error {
 		}
 	}
 	return nil
+}
+
+
+func reportPrepareCheckFailure(results []fileCheckResult) error {
+	totalErrs := 0
+	for _, r := range results {
+		totalErrs += len(r.Errors)
+	}
+	fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n\n", len(results), totalErrs)
+	printCheckDiagnostics(results)
+	return &exitError{ExitCheckFailed, ""}
 }

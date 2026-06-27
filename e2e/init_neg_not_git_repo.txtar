@@ -1,0 +1,5 @@
+exec sh -c 'rm -rf .git'
+! exec rellog init
+! stdout .
+stderr 'rellog init must be run inside a git repository'
+! exists .rellog

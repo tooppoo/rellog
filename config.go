@@ -91,6 +91,7 @@ type entryValidationConfig struct {
 	allowedKinds map[string]bool
 	knownTargets map[string]bool
 	targetPolicy string
+	githubURL    string
 }
 
 func readEntryValidationConfig() (entryValidationConfig, error) {
@@ -115,9 +116,13 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 			continue
 		}
 		for _, child := range n.Children {
-			if nodeName(child) == "entries" {
+			switch nodeName(child) {
+			case "github-url":
+				if len(child.Arguments) > 0 {
+					cfg.githubURL = child.Arguments[0].ValueString()
+				}
+			case "entries":
 				entriesNode = child
-				break
 			}
 		}
 		break
@@ -160,6 +165,25 @@ func validateRellogConfig(doc *document.Document) []checkError {
 	}
 	if rellogNode == nil {
 		return []checkError{{"error[rellog.missing]", "configuration file must contain exactly one top-level rellog node."}}
+	}
+
+	// Validate github-url
+	var githubURL string
+	githubURLPresent := false
+	for _, n := range rellogNode.Children {
+		if nodeName(n) == "github-url" {
+			githubURLPresent = true
+			if len(n.Arguments) > 0 {
+				githubURL = n.Arguments[0].ValueString()
+			}
+			break
+		}
+	}
+	if !githubURLPresent {
+		return []checkError{{"error[rellog.github-url.missing]", "github-url is required."}}
+	}
+	if !isValidGitHubRepoURL(githubURL) {
+		return []checkError{{"error[rellog.github-url.invalid]", "github-url must be a canonical GitHub repository URL."}}
 	}
 
 	var pathsNode *document.Node

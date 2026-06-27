@@ -6,7 +6,7 @@ cmp stderr expected.txt
 rellog check: FAILED
 
 8 files
-10 errors
+11 errors
 
 .rellog/entries/0001.json
   error[entry.issues.invalid]

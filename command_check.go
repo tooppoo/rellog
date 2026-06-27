@@ -40,17 +40,25 @@ func reportCheckResults(results []fileCheckResult, totalMd int) error {
 			}
 		}
 	}
+	// Unsupported files (e.g. .md) are reported but not counted in the "files" total.
+	fileCount := 0
+	for _, r := range results {
+		if !isUnsupportedFileResult(r) {
+			fileCount++
+		}
+	}
+
 	if totalErrs == 0 {
 		fmt.Printf("rellog check: OK (entries: %d)\n", totalMd)
-		fmt.Fprintf(os.Stderr, "rellog check: WARNING\n\n%d files\n%d warnings\n\n", len(results), totalWarnings)
+		fmt.Fprintf(os.Stderr, "rellog check: WARNING\n\n%d files\n%d warnings\n\n", fileCount, totalWarnings)
 		printCheckDiagnostics(results)
 		return nil
 	}
 
 	if totalWarnings == 0 {
-		fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n\n", len(results), totalErrs)
+		fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n\n", fileCount, totalErrs)
 	} else {
-		fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n%d warnings\n\n", len(results), totalErrs, totalWarnings)
+		fmt.Fprintf(os.Stderr, "rellog check: FAILED\n\n%d files\n%d errors\n%d warnings\n\n", fileCount, totalErrs, totalWarnings)
 	}
 	printCheckDiagnostics(results)
 
@@ -66,6 +74,10 @@ func reportCheckResults(results []fileCheckResult, totalMd int) error {
 
 func isCheckWarning(ce checkError) bool {
 	return strings.HasPrefix(ce.Code, "warning[")
+}
+
+func isUnsupportedFileResult(r fileCheckResult) bool {
+	return len(r.Errors) == 1 && r.Errors[0].Code == "error[entry.file.unsupported]"
 }
 
 func printCheckDiagnostics(results []fileCheckResult) {
