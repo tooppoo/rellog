@@ -47,7 +47,7 @@ lint:
 	golangci-lint run
 
 .PHONY: ci
-ci: fmt-check vet coverage vuln license-check
+ci: coverage fmt-check vet vuln license-check
 
 .PHONY: check
 check: lint ci

@@ -137,7 +137,6 @@ func prepareRelease(opts prepareOptions) error {
 	return nil
 }
 
-
 func reportPrepareCheckFailure(results []fileCheckResult) error {
 	totalErrs := 0
 	for _, r := range results {
