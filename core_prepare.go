@@ -18,6 +18,11 @@ type prepareOptions struct {
 }
 
 func prepareRelease(opts prepareOptions) error {
+	// Validate release ID: must not contain path separators or traversal.
+	if strings.ContainsRune(opts.Version, '/') || opts.Version == ".." {
+		return &exitError{ExitCheckFailed, fmt.Sprintf("invalid release id: %q", opts.Version)}
+	}
+
 	files, err := os.ReadDir(entriesDir())
 	if err != nil {
 		return err
@@ -44,6 +49,11 @@ func prepareRelease(opts prepareOptions) error {
 			return parseErr
 		}
 		entryFiles = append(entryFiles, entryFile{f.Name(), p, e})
+	}
+
+	if len(entryFiles) == 0 {
+		fmt.Fprintf(os.Stderr, "No pending rellog entries found.\n\nAdd a changelog entry:\n  rellog add\n\nIf this release has no changelog-worthy changes, add an explicit empty entry:\n  rellog add-empty\n")
+		return &exitError{ExitCheckFailed, ""}
 	}
 
 	// Validate entry URLs against github-url from config before doing anything.
@@ -89,6 +99,8 @@ func prepareRelease(opts prepareOptions) error {
 			fmt.Sprintf("entry conflict: empty entry %s cannot coexist with normal entries", emptyPath)}
 	}
 
+	isEmptyRelease := emptyPath != "" && !hasNormal
+
 	// Collect normal entries for the release note.
 	var entries []entry
 	for _, ef := range entryFiles {
@@ -99,12 +111,23 @@ func prepareRelease(opts prepareOptions) error {
 
 	releaseNotePath := filepath.Join(releaseNotesDir(), opts.Version+".md")
 	changelogPath := "CHANGELOG.md"
-	content := renderReleaseNote(opts.Version, entries)
+
+	var content string
+	if isEmptyRelease {
+		content = fmt.Sprintf("## %s\n\nNo changelog-worthy changes.\n", opts.Version)
+	} else {
+		content = renderReleaseNote(opts.Version, entries)
+	}
+
+	// Check for existing release note before executing anything.
+	if _, statErr := os.Stat(releaseNotePath); statErr == nil {
+		return &exitError{ExitCheckFailed, "release-note file already exists: " + releaseNotePath}
+	}
 
 	if opts.DryRun {
 		fmt.Print(content)
 		fmt.Printf("create %s\n", releaseNotePath)
-		fmt.Printf("append %s\n", changelogPath)
+		fmt.Printf("update %s\n", changelogPath)
 		for _, ef := range entryFiles {
 			fmt.Printf("delete %s\n", ef.path)
 		}
@@ -116,15 +139,10 @@ func prepareRelease(opts prepareOptions) error {
 		return err
 	}
 
-	// Prepend to changelog (or create it).
+	// Update changelog (prepend, preserving any "# Changelog" header).
 	existing, _ := os.ReadFile(changelogPath)
-	var newContent string
-	if len(existing) > 0 {
-		newContent = content + "\n" + string(existing)
-	} else {
-		newContent = content
-	}
-	if err := os.WriteFile(changelogPath, []byte(newContent), 0644); err != nil {
+	newChangelog := mergeChangelog(content, string(existing))
+	if err := os.WriteFile(changelogPath, []byte(newChangelog), 0644); err != nil {
 		return err
 	}
 
@@ -134,7 +152,25 @@ func prepareRelease(opts prepareOptions) error {
 			return err
 		}
 	}
+
+	fmt.Printf("%s release prepared\n", opts.Version)
 	return nil
+}
+
+// mergeChangelog inserts newContent into existing changelog content.
+// If existing starts with a "# Changelog" H1 heading, the new content is
+// inserted after that heading so the heading remains at the top.
+func mergeChangelog(newContent, existing string) string {
+	if existing == "" {
+		return newContent
+	}
+	const h1Header = "# Changelog\n"
+	if strings.HasPrefix(existing, h1Header) {
+		rest := strings.TrimPrefix(existing, h1Header)
+		rest = strings.TrimPrefix(rest, "\n")
+		return h1Header + "\n" + newContent + "\n" + rest
+	}
+	return newContent + "\n" + existing
 }
 
 func reportPrepareCheckFailure(results []fileCheckResult) error {

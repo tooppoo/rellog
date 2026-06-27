@@ -10,7 +10,7 @@ Git log is not a release log.
 
 `rellog` is a runtime-independent CHANGELOG and release-note-file management tool.
 
-It is inspired by the [changesets](https://github.com/changesets/changesets) workflow, but it is not compatible with `changesets` and does not manage versions. Its scope is limited to collecting explicit changelog entries, preparing plain Markdown release-note files, and appending those release notes to `CHANGELOG.md`.
+It is inspired by the [changesets](https://github.com/changesets/changesets) workflow, but it is not compatible with `changesets` and does not manage versions. Its scope is limited to collecting explicit changelog entries, preparing plain Markdown release-note files, and updating `CHANGELOG.md`.
 
 ## Position
 
@@ -24,11 +24,11 @@ The background for this position is described in [docs/philosophy.md](docs/philo
 
 ## Concept
 
-The central unit is a changelog entry: a small Markdown file that describes a change at the level it should be communicated in release notes. Entries are accumulated before release preparation and then consumed into a release-note file and `CHANGELOG.md`.
+The central unit is a changelog entry: a small JSON file that describes a change at the level it should be communicated in release notes. Entries are accumulated before release preparation and then consumed into a release-note file and `CHANGELOG.md`.
 
 `rellog add-empty` can create an explicit empty changelog entry when there is nothing changelog-worthy to mention. This lets normal releases and intentionally empty releases follow the same preparation flow.
 
-Release notes prepared by `rellog` are plain Markdown files under `.rellog/release-notes/`. They are repository-managed artifacts that can be appended to `CHANGELOG.md`, reviewed in pull requests, and reused by other release tooling.
+Release notes prepared by `rellog` are plain Markdown files under `.rellog/release-notes/`. They are repository-managed artifacts that can be inserted into `CHANGELOG.md`, reviewed in pull requests, and reused by other release tooling.
 
 ## Basic workflow
 
@@ -52,7 +52,7 @@ See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 - list pending entries;
 - reject release-note preparation when there are no pending entries;
 - prepare `.rellog/release-notes/<release-id>.md` from pending entries;
-- append prepared release notes to `CHANGELOG.md`;
+- update `CHANGELOG.md` with prepared release notes;
 - require a prepared release-note file for a release id;
 - support GitHub Actions that create CHANGELOG update pull requests.
 

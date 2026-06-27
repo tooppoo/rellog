@@ -51,6 +51,7 @@ exists .rellog/entries/20260626T123456.000000001Z.json
 exists .rellog/entries/20260626T123456.000000002Z.json
 
 exec rellog prepare v1.0.0 --run
+stdout 'v1\.0\.0 release prepared\n'
 ! stderr .
 exists .rellog/release-notes/v1.0.0.md
 exists CHANGELOG.md

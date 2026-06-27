@@ -1,0 +1,20 @@
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Changelog ends cleanly'
+! stderr .
+
+exec rellog prepare --run v1.0.0
+cmp stdout expected.stdout
+! stderr .
+
+cmp CHANGELOG.md expected.CHANGELOG.md
+
+-- expected.stdout --
+v1.0.0 release prepared
+-- expected.CHANGELOG.md --
+## v1.0.0
+
+### changed
+
+- Changelog ends cleanly

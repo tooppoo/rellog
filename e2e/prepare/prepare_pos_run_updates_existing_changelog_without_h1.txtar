@@ -1,0 +1,38 @@
+exec rellog init
+! stderr .
+
+cp existing.CHANGELOG.md CHANGELOG.md
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind fixed --target rellog --body 'Fixed release prep'
+! stderr .
+
+exec rellog prepare v1.1.0 --run
+cmp stdout expected.stdout
+! stderr .
+
+cmp .rellog/release-notes/v1.1.0.md expected.release-note.md
+cmp CHANGELOG.md expected.CHANGELOG.md
+! exists .rellog/entries/20260626T123456.000000001Z.json
+
+-- expected.stdout --
+v1.1.0 release prepared
+-- existing.CHANGELOG.md --
+## v1.0.0
+
+Existing release.
+-- expected.release-note.md --
+## v1.1.0
+
+### fixed
+
+- Fixed release prep
+-- expected.CHANGELOG.md --
+## v1.1.0
+
+### fixed
+
+- Fixed release prep
+
+## v1.0.0
+
+Existing release.

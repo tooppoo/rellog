@@ -1,0 +1,26 @@
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Must not overwrite'
+! stderr .
+
+mkdir -p .rellog/release-notes
+cp existing.md .rellog/release-notes/v1.0.0.md
+cp existing_changelog.md CHANGELOG.md
+
+! exec rellog prepare v1.0.0
+! stdout .
+stderr 'release-note file already exists: .rellog/release-notes/v1\.0\.0\.md'
+
+cmp .rellog/release-notes/v1.0.0.md existing.md
+cmp CHANGELOG.md existing_changelog.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+
+-- existing.md --
+## v1.0.0
+
+Existing release note.
+-- existing_changelog.md --
+## v0.9.0
+
+Existing changelog.

@@ -1,12 +1,11 @@
-
 exec rellog init
 ! stderr .
 ! exists CHANGELOG.md
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Executed entry'
+exec rellog add-empty --debug-datetime 20260626T123456.000000001Z
 ! stderr .
 
-exec rellog prepare v1.0.0 --run
+exec rellog prepare --run v1.0.0
 cmp stdout expected.stdout
 ! stderr .
 
@@ -21,12 +20,8 @@ v1.0.0 release prepared
 -- .rellog.expected/release-notes/v1.0.0.md --
 ## v1.0.0
 
-### changed
-
-- Executed entry
+No changelog-worthy changes.
 -- expected.CHANGELOG.md --
 ## v1.0.0
 
-### changed
-
-- Executed entry
+No changelog-worthy changes.
