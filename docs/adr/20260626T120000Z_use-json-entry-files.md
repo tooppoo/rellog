@@ -1,7 +1,9 @@
 # Use JSON files for pending entries
 
-- Status: Proposed
+- Status: Accepted
 - Created: 2026-06-26T12:00:00Z
+- Updated: 2026-06-27T12:05:58Z
+- Amended by: [Pivot to a VCS-independent links reference model](20260627T120558Z_pivot-to-vcs-independent-links-model.md)
 
 ## Context
 
@@ -27,8 +29,7 @@ Normal entries use this shape:
 {
   "kind": "changed",
   "targets": ["rellog"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Entry body"
 }
 ```
@@ -39,15 +40,14 @@ Empty entries use the same shape, with empty arrays:
 {
   "kind": "empty",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No changelog-worthy changes."
 }
 ```
 
-The `targets`, `issues`, and `prs` keys are required. They must be arrays, and empty values must be represented as `[]`.
+The `targets` and `links` keys are required. They must be arrays, and empty values must be represented as `[]`.
 
-When `kind` is `empty`, `targets`, `issues`, and `prs` must all be `[]`.
+When `kind` is `empty`, `targets` and `links` must both be `[]`.
 
 For deterministic e2e tests, `rellog add` and `rellog add-empty` may accept a hidden `--debug-datetime <timestamp>` option. This is a test hook, not a user-facing command option, and it must not appear in normal help output.
 

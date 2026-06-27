@@ -1,12 +1,12 @@
 # rellog files
 
-This document describes the repository files and directories managed by `rellog`.
+This document describes the project files and directories managed by `rellog`.
 
-For the release workflow, see [workflow.md](workflow.md). For command behavior, see [commands.md](commands.md).
+For the release workflow, see [workflow.md](workflow.md). For command behavior, see [commands.md](commands.md). For generated release-note structure, see [release-notes.md](release-notes.md).
 
-## Repository layout
+## Project layout
 
-A typical repository using `rellog` has this layout:
+A typical project using `rellog` has this layout:
 
 ```text
 .rellog/
@@ -23,17 +23,15 @@ CHANGELOG.md
 
 `.rellog/config.kdl` is the project configuration file.
 
-It should define repository-level settings such as:
+It should define project-level settings such as:
 
 - the changelog path;
 - the pending entry directory;
 - the release-note directory;
-- the canonical GitHub repository URL;
 - allowed entry kinds;
-- known targets or components;
-- rendering policy.
+- known targets or components.
 
-The exact schema is intentionally left for implementation design.
+It does not define a GitHub repository URL, and it does not expose Markdown rendering settings in v0. The release-note and changelog heading structure is fixed by rellog.
 
 ## `.rellog/entries/`
 
@@ -60,7 +58,7 @@ Example:
 
 When adding an entry, `rellog` generates the filename from the current UTC time. The aggregation order is filename order, which is timestamp order for generated files.
 
-v0 does not support manual entry reordering. If ordering control becomes necessary, it should be added as an explicit command instead of relying on hand-edited filenames.
+v0 does not support manual entry reordering.
 
 ### Normal entry
 
@@ -72,13 +70,18 @@ Example:
 {
   "kind": "changed",
   "targets": ["rellog"],
-  "issues": ["https://github.com/tooppoo/rellog/issues/12"],
-  "prs": [],
+  "links": ["https://github.com/tooppoo/rellog/issues/21"],
   "body": "Added validation for pending changelog entries before release preparation."
 }
 ```
 
-The `targets`, `issues`, and `prs` keys are required. When any of these fields has no values, it must be represented as an empty array (`[]`).
+The `targets` and `links` keys are required. When either field has no values, it must be represented as an empty array (`[]`).
+
+`links` is a list of supporting URL references. In v0, every link must be an absolute `http` or `https` URL with a non-empty host. Query strings and fragments are allowed.
+
+Links are separate from `body`. The body must still make sense as release-note text without requiring readers to open the links.
+
+`links` may be rendered into public release-note or changelog output. Avoid adding private repository URLs, Slack message URLs, internal articles, or unpublished design notes unless that exposure is acceptable.
 
 A normal entry should describe the change at the level that should appear in release notes. It should not merely restate a commit message, issue title, or implementation step.
 
@@ -92,14 +95,13 @@ Example:
 {
   "kind": "empty",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No changelog-worthy changes."
 }
 ```
 
-An empty entry is not a validation bypass option. It is a repository record.
-For an empty entry, `targets`, `issues`, and `prs` must all be empty arrays.
+An empty entry is not a validation bypass option. It is a project record.
+For an empty entry, `targets` and `links` must both be empty arrays.
 
 A normal entry and an empty entry should not coexist, because they represent contradictory release states.
 
@@ -151,7 +153,7 @@ v1.0.1/.
 ..
 ```
 
-### Normal release-note file
+### Release-note file
 
 Example:
 
@@ -159,24 +161,16 @@ Example:
 ## v1.0.1
 
 ### Changed
-
-- Added validation for pending changelog entries before release preparation.
 ```
 
-### Empty release-note file
-
-Example:
-
-```md
-## v1.0.1
-
-No changelog-worthy changes.
-```
+Generated release-note files are release section fragments. They start with `## <release-id>`, not with a top-level title. The full generated Markdown structure is defined in [release-notes.md](release-notes.md).
 
 ## `CHANGELOG.md`
 
 `CHANGELOG.md` is the cumulative release record.
 
 Release-note preparation updates `CHANGELOG.md` only when executed with `rellog prepare <release-id> --run`. If `CHANGELOG.md` starts with an H1 heading, the new release section is inserted directly below that heading. Otherwise, the new release section is inserted at the file start. It should not update versions, create tags, create GitHub Releases, or publish artifacts.
+
+The canonical v0 changelog structure is `# CHANGELOG` followed by prepared release-note sections. Each inserted release section starts with `## <release-id>`. See [release-notes.md](release-notes.md) for heading and entry block rules.
 
 Release-note files and `CHANGELOG.md` must end with a trailing newline.

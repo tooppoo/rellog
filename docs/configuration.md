@@ -1,14 +1,16 @@
 # Configuration
 
-rellog reads its repository configuration from `.rellog/config.kdl`.
+rellog reads its project configuration from `.rellog/config.kdl`.
 
-The configuration file defines repository-level policies used by rellog commands, such as:
+The configuration file defines project-level policies used by rellog commands, such as:
 
 * where changelog-related files are stored
-* which GitHub repository issue and pull request references belong to
 * which entry kinds are allowed
 * which entry targets are known
-* how release notes and changelog sections are rendered
+
+The configuration file does not identify a GitHub repository. References are stored on entries as explicit `links`.
+
+The configuration file also does not expose rendering settings in v0. Release-note and changelog heading levels, entry subsection headings, and the empty release message are fixed by rellog.
 
 The configuration file is written in [KDL v2](https://github.com/kdl-org/kdl/blob/main/draft-marchan-kdl2.md).
 
@@ -18,7 +20,6 @@ The configuration file is written in [KDL v2](https://github.com/kdl-org/kdl/blo
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -41,12 +42,6 @@ rellog config-version=1 {
       target "rellog" description="Changes to rellog itself."
     }
   }
-
-  rendering {
-    release-heading-level 2
-    section-heading-level 3
-    empty-message "No changelog-worthy changes."
-  }
 }
 ```
 
@@ -56,7 +51,6 @@ A configuration file must contain exactly one top-level `rellog` node.
 
 ```kdl
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   ...
 }
 ```
@@ -75,7 +69,7 @@ If a KDL version marker is present, it must specify KDL version 2.
 
 Unknown nodes and unknown properties are errors.
 
-This is intentional. Configuration files are declarative and persistent. Accepting unknown fields would make typos difficult to detect.
+This is intentional. Configuration files are declarative and persistent. Accepting unknown fields would make typos difficult to detect. It also makes removed nodes, such as the old `rendering` configuration node, fail clearly instead of being ignored.
 
 For example, this is invalid:
 
@@ -85,6 +79,25 @@ kind "fixed" tilte="Fixed"
 
 The intended property is probably `title`, but rellog must reject this configuration instead of silently ignoring it.
 
+## Fixed rendering policy
+
+v0 rendering is not configurable.
+
+Fixed values:
+
+| Setting | Value |
+| ------- | ----- |
+| Release heading level | `2` |
+| Kind section heading level | `3` |
+| Entry subsection heading level | `4` |
+| Empty release message | `No changelog-worthy changes.` |
+
+Generated release-note files start with `## <release-id>`.
+
+`CHANGELOG.md` is structured as `# CHANGELOG` followed by prepared release-note sections.
+
+Implementations should keep heading levels as constants and generate Markdown headings by repeating `#` from those constants, rather than scattering literal heading markers through command logic.
+
 ## Property
 
 ### `rellog.config-version` (required)
@@ -92,31 +105,6 @@ The intended property is probably `title`, but rellog must reject this configura
 The `rellog` node must have a `config-version` property.
 
 Only `config-version=1` is supported.
-
-### `rellog.github-url` (required)
-
-The `rellog` node must have exactly one `github-url` child node.
-
-```kdl
-github-url "https://github.com/tooppoo/rellog"
-```
-
-The value must be the canonical HTTPS repository URL:
-
-```text
-https://github.com/<owner>/<repo>
-```
-
-This URL is used by `rellog add` to normalize numeric issue and pull request
-references into canonical GitHub URLs. URL references passed to `rellog add`
-must match this repository URL and the expected `/issues/<number>` or
-`/pull/<number>` path shape.
-
-`rellog` does not contact GitHub and does not verify whether an issue or pull
-request number exists.
-
-Invalid forms include `.git` suffixes, SSH URLs, `http`, trailing slashes,
-query strings, fragments, and non-GitHub hosts.
 
 ### `entries.target-policy` (optional default = "deny-unknown")
 
@@ -157,7 +145,7 @@ renders as:
 To render a different heading, specify `title`.
 
 ```kdl
-kind "fixed" title="バグ修正"
+kind "fixed" title="Bug fixes"
 ```
 
 `title`, when present, must be a non-empty string.
@@ -231,38 +219,6 @@ target "config" description="Configuration file schema and validation."
 
 An empty description is allowed.
 
-### `rendering.release-heading-level` (optional default = "2")
-
-The value must be an integer from 1 to 6.
-
-It controls the Markdown heading level used for each release.
-
-For example, level 2 renders as:
-
-```markdown
-## 0.1.0
-```
-
-### `rendering.section-heading-level` (optional default = "3")
-
-The value must be an integer from 1 to 6.
-
-It controls the Markdown heading level used for kind sections.
-
-For example, level 3 renders as:
-
-```markdown
-### fixed
-```
-
-`section-heading-level` must be greater than `release-heading-level`.
-
-### `rendering.empty-message` (optional default = "No changelog-worthy changes.")
-
-The value must be a string.
-
-It is used when rendering an empty release.
-
 ### `paths` (required)
 
 The `paths` section is required.
@@ -289,14 +245,14 @@ Each path node must have exactly one string argument.
 
 #### Path rules
 
-Configuration paths are repository-root-relative logical paths.
+Configuration paths are project-root-relative logical paths.
 
 They must be written in canonical form.
 
 A configuration path must:
 
 * be non-empty
-* be relative to the repository root
+* be relative to the project root
 * use `/` as the path separator
 * not be an absolute path
 * not contain `\`
@@ -533,29 +489,6 @@ target "設定"
 
 Target ids must be unique.
 
-### `rendering` (optional default = "{}")
-
-The `rendering` section is optional.
-
-It configures how release notes and changelog sections are rendered.
-
-```kdl
-rendering {
-  release-heading-level 2
-  section-heading-level 3
-  empty-message "No changelog-worthy changes."
-}
-```
-
-If `rendering` is omitted, all rendering defaults are used.
-
-An empty `rendering` node is allowed.
-
-```kdl
-rendering {
-}
-```
-
 ## Minimal valid configuration
 
 A minimal configuration using strict target validation:
@@ -564,7 +497,6 @@ A minimal configuration using strict target validation:
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -593,7 +525,6 @@ A minimal configuration allowing arbitrary targets:
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -626,10 +557,6 @@ Error codes use the dotted path to the configuration node or property where the 
 | `rellog.duplicate`                  | More than one `rellog` root node exists.                |
 | `rellog.config-version.missing`     | `config-version` is missing.                            |
 | `rellog.config-version.unsupported` | `config-version` is not supported.                      |
-| `rellog.github-url.missing`         | `github-url` is missing.                                |
-| `rellog.github-url.argument_count`  | `github-url` does not have exactly one argument.        |
-| `rellog.github-url.type`            | `github-url` is not a string.                           |
-| `rellog.github-url.invalid`         | `github-url` is not a canonical GitHub repository URL.  |
 | `<path>.unknown_node`               | An unknown node is present.                             |
 | `<path>.unknown_property`           | An unknown property is present.                         |
 | `<path>.<property>.duplicate`       | A property appears more than once in the same node.     |
@@ -698,19 +625,6 @@ Error codes use the dotted path to the configuration node or property where the 
 | `rellog.entries.targets.target.description.type`     | `description` is not a string.                       |
 | `rellog.entries.targets.target.unknown_property`     | A `target` node has an unknown property.             |
 | `rellog.entries.targets.target.unexpected_children`  | A `target` node has children.                        |
-
-### Rendering
-
-| Code                                            | Condition                                                            |
-| ----------------------------------------------- | -------------------------------------------------------------------- |
-| `rellog.rendering.release-heading-level.type`   | `release-heading-level` is not an integer.                           |
-| `rellog.rendering.release-heading-level.range`  | `release-heading-level` is outside 1 to 6.                           |
-| `rellog.rendering.section-heading-level.type`   | `section-heading-level` is not an integer.                           |
-| `rellog.rendering.section-heading-level.range`  | `section-heading-level` is outside 1 to 6.                           |
-| `rellog.rendering.section-heading-level.order`  | `section-heading-level` is not greater than `release-heading-level`. |
-| `rellog.rendering.empty-message.type`           | `empty-message` is not a string.                                     |
-| `rellog.rendering.unknown_node`                 | An unknown rendering node is present.                                |
-| `rellog.rendering.<property>.unknown_property`  | An unknown rendering property is present.                            |
 
 ## References
 
