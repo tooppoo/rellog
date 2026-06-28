@@ -1,6 +1,7 @@
 package rellog
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,6 +11,12 @@ import (
 type prepareOptions struct {
 	Version string
 	DryRun  bool
+}
+
+type entryFile struct {
+	name string
+	path string
+	e    entry
 }
 
 func prepareRelease(opts prepareOptions) error {
@@ -32,12 +39,6 @@ func prepareRelease(opts prepareOptions) error {
 	files, err := os.ReadDir(entriesDir())
 	if err != nil {
 		return err
-	}
-
-	type entryFile struct {
-		name string
-		path string
-		e    entry
 	}
 
 	var entryFiles []entryFile
@@ -119,6 +120,11 @@ func prepareRelease(opts prepareOptions) error {
 		return err
 	}
 
+	// Save consumed cache before deleting entries.
+	if err := writeConsumedCache(opts.Version, entryFiles); err != nil {
+		return err
+	}
+
 	// Delete entry files.
 	for _, ef := range entryFiles {
 		if err := os.Remove(ef.path); err != nil {
@@ -128,6 +134,47 @@ func prepareRelease(opts prepareOptions) error {
 
 	fmt.Printf("%s release prepared\n", opts.Version)
 	return nil
+}
+
+type consumedManifest struct {
+	SchemaVersion int                     `json:"schemaVersion"`
+	ReleaseID     string                  `json:"releaseId"`
+	Entries       []consumedManifestEntry `json:"entries"`
+}
+
+type consumedManifestEntry struct {
+	Filename string `json:"filename"`
+}
+
+func writeConsumedCache(releaseID string, entryFiles []entryFile) error {
+	entriesDir := consumedEntriesDir(releaseID)
+	if err := os.MkdirAll(entriesDir, 0755); err != nil {
+		return err
+	}
+
+	manifest := consumedManifest{
+		SchemaVersion: 1,
+		ReleaseID:     releaseID,
+		Entries:       make([]consumedManifestEntry, 0, len(entryFiles)),
+	}
+	for _, ef := range entryFiles {
+		data, err := os.ReadFile(ef.path)
+		if err != nil {
+			return err
+		}
+		dest := filepath.Join(entriesDir, ef.name)
+		if err := os.WriteFile(dest, data, 0644); err != nil {
+			return err
+		}
+		manifest.Entries = append(manifest.Entries, consumedManifestEntry{Filename: ef.name})
+	}
+
+	manifestData, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return err
+	}
+	manifestData = append(manifestData, '\n')
+	return os.WriteFile(consumedManifestPath(releaseID), manifestData, 0644)
 }
 
 // mergeChangelog inserts newContent into existing changelog content.

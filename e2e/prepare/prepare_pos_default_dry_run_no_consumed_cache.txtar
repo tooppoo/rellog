@@ -1,0 +1,21 @@
+exec rellog init
+! stderr .
+cp entry.json .rellog/entries/20260626T123456.000000001Z.json
+
+exec rellog prepare v1.0.0
+stdout '## v1\.0\.0'
+stdout 'Dry-run entry'
+! stderr .
+
+! exists .rellog/release-notes/v1.0.0.md
+! exists CHANGELOG.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+! exists .rellog/consumed
+
+-- entry.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": [],
+  "body": "Dry-run entry"
+}

@@ -16,6 +16,11 @@ A typical project using `rellog` has this layout:
     20260626T123501.000000123Z.json
   release-notes/
     <release-id>.md
+  consumed/
+    <release-id>/
+      manifest.json
+      entries/
+        20260626T123456.123456789Z.json
 CHANGELOG.md
 ```
 
@@ -174,3 +179,37 @@ Release-note preparation updates `CHANGELOG.md` only when executed with `rellog 
 The canonical v0 changelog structure is `# CHANGELOG` followed by prepared release-note sections. Each inserted release section starts with `## <release-id>`. See [release-notes.md](release-notes.md) for heading and entry block rules.
 
 Release-note files and `CHANGELOG.md` must end with a trailing newline.
+
+## `.rellog/consumed/`
+
+`.rellog/consumed/` stores consumed cache data created by `rellog prepare <release-id> --run`.
+
+Consumed data is not the source of truth for release readiness. It is a cache for later commands that need to reconstruct the exact entry set used to prepare a release.
+
+The v0 layout is:
+
+```text
+.rellog/consumed/
+  <release-id>/
+    manifest.json
+    entries/
+      <original-entry-filename>.json
+```
+
+`manifest.json` records the release id and the original entry filenames:
+
+```json
+{
+  "schemaVersion": 1,
+  "releaseId": "v1.0.1",
+  "entries": [
+    {
+      "filename": "20260626T123456.123456789Z.json"
+    }
+  ]
+}
+```
+
+The copied entry files under `entries/` preserve the original entry JSON content using the original entry filenames.
+
+Generated consumed data must be validated before `prepare --run` reports success. Validation must confirm that the manifest has the expected shape, the manifest release id matches the prepared release id, every manifest filename resolves to a copied entry file, every copied entry conforms to the entry schema, filenames are not duplicated, and orphan files under consumed `entries/` are rejected in v0.
