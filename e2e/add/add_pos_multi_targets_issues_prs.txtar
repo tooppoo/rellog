@@ -1,3 +1,5 @@
+skip 'legacy GitHub issue/PR contract removed by #23'
+
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 

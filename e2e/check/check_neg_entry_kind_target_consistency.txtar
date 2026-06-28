@@ -43,7 +43,6 @@ cmp stderr invalid_targets_shape.expected.txt
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -62,7 +61,6 @@ rellog config-version=1 {
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -85,7 +83,6 @@ rellog config-version=1 {
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -108,7 +105,6 @@ rellog config-version=1 {
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -127,7 +123,6 @@ rellog config-version=1 {
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -146,39 +141,34 @@ rellog config-version=1 {
 {
   "kind": "fixed",
   "targets": ["api"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Unknown kind"
 }
 -- unknown_target.json --
 {
   "kind": "changed",
   "targets": ["api"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Unknown target"
 }
 -- unknown_kind_and_target.json --
 {
   "kind": "fixed",
   "targets": ["api"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Config errors should suppress config-dependent entry checks"
 }
 -- scalar_targets.json --
 {
   "kind": "changed",
   "targets": "rellog",
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Scalar targets"
 }
 -- empty_targets.json --
 {
   "kind": "changed",
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Empty targets"
 }
 -- unknown_kind.expected.txt --

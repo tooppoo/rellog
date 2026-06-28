@@ -64,7 +64,6 @@ cmp stderr release-notes.current.mid.expected.txt
 
 -- changelog.parent.head.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "../CHANGELOG.md"
     entries ".rellog/entries"
@@ -84,7 +83,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- changelog.parent.mid.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "subdir/../CHANGELOG.md"
     entries ".rellog/entries"
@@ -104,7 +102,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- changelog.current.head.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "./CHANGELOG.md"
     entries ".rellog/entries"
@@ -124,7 +121,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- changelog.current.mid.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "subdir/./CHANGELOG.md"
     entries ".rellog/entries"
@@ -144,7 +140,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- entries.parent.head.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries "../entries"
@@ -164,7 +159,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- entries.parent.mid.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries "subdir/../entries"
@@ -184,7 +178,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- entries.current.head.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries "./entries"
@@ -204,7 +197,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- entries.current.mid.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries "subdir/./entries"
@@ -224,7 +216,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- release-notes.parent.head.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries ".rellog/entries"
@@ -244,7 +235,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- release-notes.parent.mid.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries ".rellog/entries"
@@ -264,7 +254,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- release-notes.current.head.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries ".rellog/entries"
@@ -284,7 +273,6 @@ rellog check: FAILED
     configuration paths must be repository-root-relative paths and must not contain any dot segments.
 -- release-notes.current.mid.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries ".rellog/entries"

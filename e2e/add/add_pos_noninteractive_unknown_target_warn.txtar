@@ -13,7 +13,6 @@ cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/202
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -38,7 +37,6 @@ rellog config-version=1 {
   "targets": [
     "api"
   ],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Warned unknown target"
 }

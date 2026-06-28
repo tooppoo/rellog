@@ -29,6 +29,12 @@ type readyResult struct {
 	Errors         []readyCheckError `json:"errors"`
 }
 
+type changelogHeadingScan struct {
+	FoundOutsideBody bool
+	FoundInsideBody  bool
+	InvalidStructure string
+}
+
 // validateReadyReleaseID rejects release IDs containing dot-only path segments
 // (. or ..) or empty segments from leading/trailing slashes.
 // Path separators are otherwise allowed, e.g. "cli/v1.0.0" is valid.
@@ -145,18 +151,39 @@ func checkReady(releaseID string) (readyResult, error) {
 			return result, readErr
 		}
 	} else {
-		heading := "## " + releaseID
-		found := false
-		for _, line := range strings.Split(string(changelogData), "\n") {
-			if strings.TrimRight(line, "\r") == heading {
-				found = true
-				break
+		scan := scanChangelogReleaseHeading(string(changelogData), releaseID)
+		if scan.InvalidStructure != "" {
+			result.Errors = append(result.Errors, readyCheckError{
+				Code:    "changelog_invalid_structure",
+				Message: scan.InvalidStructure,
+			})
+		} else if !scan.FoundOutsideBody {
+			message := "Changelog is missing release heading: " + releaseID
+			if scan.FoundInsideBody {
+				var sb strings.Builder
+				sb.WriteString("release is not ready: changelog is missing release heading: " + releaseID + "\n")
+				sb.WriteString("\n")
+				sb.WriteString("release: " + releaseID + "\n")
+				sb.WriteString("changelog:\n")
+				sb.WriteString("  " + paths.changelogPath + "\n")
+				sb.WriteString("\n")
+				sb.WriteString("The changelog does not contain a structural release heading for " + releaseID + ".\n")
+				sb.WriteString("\n")
+				sb.WriteString("rellog looked for this heading outside generated body marker comments:\n")
+				sb.WriteString("  " + markdownHeading(releaseHeadingLevel) + " " + releaseID + "\n")
+				sb.WriteString("\n")
+				sb.WriteString("A matching heading was found inside a generated entry body:\n")
+				sb.WriteString("  " + bodyMarkerStart + "\n")
+				sb.WriteString("  " + markdownHeading(releaseHeadingLevel) + " " + releaseID + "\n")
+				sb.WriteString("  " + bodyMarkerEnd + "\n")
+				sb.WriteString("\n")
+				sb.WriteString("Headings inside entry bodies are release note content, not release boundaries.\n")
+				sb.WriteString("Run `rellog prepare " + releaseID + " --run` or add the release section to " + paths.changelogPath + " outside the body marker range.")
+				message = sb.String()
 			}
-		}
-		if !found {
 			result.Errors = append(result.Errors, readyCheckError{
 				Code:    "changelog_heading_missing",
-				Message: "Changelog is missing release heading: " + releaseID,
+				Message: message,
 			})
 		}
 	}
@@ -177,8 +204,32 @@ func buildReadyHumanError(result readyResult) error {
 		switch e.Code {
 		case "changelog_missing":
 			return &exitError{ExitReleaseNotReady, "release is not ready: changelog is missing"}
+		case "changelog_invalid_structure":
+			var sb strings.Builder
+			sb.WriteString("invalid generated Markdown structure in " + result.Changelog + "\n")
+			sb.WriteString("\n")
+			sb.WriteString("release: " + result.ReleaseID + "\n")
+			sb.WriteString("changelog:\n")
+			sb.WriteString("  " + result.Changelog + "\n")
+			sb.WriteString("\n")
+			sb.WriteString(e.Message)
+			return &exitError{ExitReleaseNotReady, sb.String()}
 		case "changelog_heading_missing":
-			return &exitError{ExitReleaseNotReady, "release is not ready: changelog is missing release heading: " + result.ReleaseID}
+			if strings.HasPrefix(e.Message, "release is not ready:") {
+				return &exitError{ExitReleaseNotReady, e.Message}
+			}
+			var sb strings.Builder
+			sb.WriteString("release is not ready: changelog is missing release heading\n")
+			sb.WriteString("\n")
+			sb.WriteString("release: " + result.ReleaseID + "\n")
+			sb.WriteString("expected heading:\n")
+			sb.WriteString("  " + markdownHeading(releaseHeadingLevel) + " " + result.ReleaseID + "\n")
+			sb.WriteString("changelog:\n")
+			sb.WriteString("  " + result.Changelog + "\n")
+			sb.WriteString("\n")
+			sb.WriteString(e.Message + "\n")
+			sb.WriteString("Add the release heading outside generated body marker ranges, then run `rellog ready " + result.ReleaseID + "` again.")
+			return &exitError{ExitReleaseNotReady, sb.String()}
 		}
 	}
 
@@ -209,4 +260,62 @@ func buildReadyHumanError(result readyResult) error {
 	}
 
 	return &exitError{ExitReleaseNotReady, "release is not ready"}
+}
+
+func scanChangelogReleaseHeading(content, releaseID string) changelogHeadingScan {
+	heading := markdownHeading(releaseHeadingLevel) + " " + releaseID
+	var scan changelogHeadingScan
+	inBody := false
+
+	for _, line := range strings.Split(content, "\n") {
+		trimmed := strings.TrimRight(line, "\r")
+		switch trimmed {
+		case bodyMarkerStart:
+			if inBody {
+				scan.InvalidStructure = malformedBodyMarkerMessage(bodyMarkerStart, bodyMarkerEnd, releaseID)
+				return scan
+			}
+			inBody = true
+			continue
+		case bodyMarkerEnd:
+			if !inBody {
+				scan.InvalidStructure = malformedBodyMarkerMessage(bodyMarkerEnd, bodyMarkerStart, releaseID)
+				return scan
+			}
+			inBody = false
+			continue
+		}
+
+		if trimmed == heading {
+			if inBody {
+				scan.FoundInsideBody = true
+			} else {
+				scan.FoundOutsideBody = true
+			}
+		}
+	}
+
+	if inBody {
+		scan.InvalidStructure = malformedBodyMarkerMessage(bodyMarkerStart, bodyMarkerEnd, releaseID)
+	}
+	return scan
+}
+
+func malformedBodyMarkerMessage(found, missing, releaseID string) string {
+	var sb strings.Builder
+	if found == bodyMarkerStart && missing == bodyMarkerEnd {
+		sb.WriteString("The changelog contains an unterminated rellog body marker range.\n")
+	} else {
+		sb.WriteString("The changelog contains a malformed rellog body marker range.\n")
+	}
+	sb.WriteString("\n")
+	sb.WriteString("Found:\n")
+	sb.WriteString("  " + found + "\n")
+	sb.WriteString("\n")
+	sb.WriteString("Missing matching marker:\n")
+	sb.WriteString("  " + missing + "\n")
+	sb.WriteString("\n")
+	sb.WriteString("rellog cannot safely identify release headings while a body marker pair is malformed.\n")
+	sb.WriteString("Fix the generated body marker pair in CHANGELOG.md, then run `rellog ready " + releaseID + "` again.")
+	return sb.String()
 }

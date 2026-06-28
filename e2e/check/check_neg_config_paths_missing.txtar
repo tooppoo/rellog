@@ -26,7 +26,6 @@ cmp stderr paths.release-notes.missing.expected.txt
 
 -- paths.missing.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
 }
 -- paths.missing.expected.txt --
 rellog check: FAILED
@@ -39,7 +38,6 @@ rellog check: FAILED
     rellog.paths is required but not found
 -- paths.changelog.missing.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     entries ".rellog/entries"
     release-notes ".rellog/release-notes"
@@ -56,7 +54,6 @@ rellog check: FAILED
     rellog.paths.changelog is required but not found
 -- paths.entries.missing.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     release-notes ".rellog/release-notes"
@@ -73,7 +70,6 @@ rellog check: FAILED
     rellog.paths.entries is required but not found
 -- paths.release-notes.missing.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"

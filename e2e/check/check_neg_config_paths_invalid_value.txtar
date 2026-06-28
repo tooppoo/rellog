@@ -110,7 +110,6 @@ cmp stderr paths.release-notes.empty.children.expected.txt
 
 -- paths.not-block.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths "some-path-value"
 }
 -- paths.not-block.expected.txt --
@@ -124,7 +123,6 @@ rellog check: FAILED
     rellog.paths must be a block, but found a value
 -- paths.empty.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
   }
 }
@@ -145,7 +143,6 @@ rellog check: FAILED
     rellog.paths.release-notes is required but not found
 -- paths.changelog.empty.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog
     entries ".rellog/entries"
@@ -163,7 +160,6 @@ rellog check: FAILED
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "   "
     entries ".rellog/entries"
@@ -181,7 +177,6 @@ rellog check: FAILED
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.emtpy_string.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ""
     entries ".rellog/entries"
@@ -199,7 +194,6 @@ rellog check: FAILED
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.multibyte_blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "　"
     entries ".rellog/entries"
@@ -217,7 +211,6 @@ rellog check: FAILED
     rellog.paths.changelog value cannot be empty.
 -- pahs.changelog.mixed_blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog " 　"
     entries ".rellog/entries"
@@ -235,7 +228,6 @@ rellog check: FAILED
     rellog.paths.changelog value cannot be empty.
 -- paths.changelog.children.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md" {
       format "markdown"
@@ -255,7 +247,6 @@ rellog check: FAILED
     rellog.paths.changelog must not have child nodes.
 -- paths.entries.empty.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries
@@ -273,7 +264,6 @@ rellog check: FAILED
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty_string.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ""
@@ -291,7 +281,6 @@ rellog check: FAILED
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries "   "
@@ -309,7 +298,6 @@ rellog check: FAILED
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.multibyte_blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries "　"
@@ -327,7 +315,6 @@ rellog check: FAILED
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.mixed_blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries " 　"
@@ -345,7 +332,6 @@ rellog check: FAILED
     rellog.paths.entries value cannot be empty.
 -- paths.entries.empty.children.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries" {
@@ -365,7 +351,6 @@ rellog check: FAILED
     rellog.paths.entries must not have child nodes.
 -- paths.release-notes.empty.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -383,7 +368,6 @@ rellog check: FAILED
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty_string.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -401,7 +385,6 @@ rellog check: FAILED
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -419,7 +402,6 @@ rellog check: FAILED
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.multibyte_blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -437,7 +419,6 @@ rellog check: FAILED
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.mixed_blank.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -455,7 +436,6 @@ rellog check: FAILED
     rellog.paths.release-notes value cannot be empty.
 -- paths.release-notes.empty.children.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"

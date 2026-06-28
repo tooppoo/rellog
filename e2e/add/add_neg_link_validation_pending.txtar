@@ -1,28 +1,26 @@
-skip pending: #22 contract, enable in #23
-
 exec rellog init
 ! stderr .
 
 ! exec rellog add --kind changed --target rellog --link '' --body 'empty link'
 ! stdout .
-stderr 'invalid link'
+stderr 'link URL'
 
 ! exec rellog add --kind changed --target rellog --link '   ' --body 'blank link'
 ! stdout .
-stderr 'invalid link'
+stderr 'link URL'
 
 ! exec rellog add --kind changed --target rellog --link docs/design.md --body 'relative link'
 ! stdout .
-stderr 'invalid link'
+stderr 'link URL'
 
 ! exec rellog add --kind changed --target rellog --link example.com/design --body 'missing scheme'
 ! stdout .
-stderr 'invalid link'
+stderr 'link URL'
 
 ! exec rellog add --kind changed --target rellog --link https:///design --body 'missing host'
 ! stdout .
-stderr 'invalid link'
+stderr 'link URL'
 
 ! exec rellog add --kind changed --target rellog --link ftp://example.com/design --body 'wrong scheme'
 ! stdout .
-stderr 'invalid link'
+stderr 'link URL'

@@ -14,7 +14,6 @@ cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/202
   "targets": [
     "api"
   ],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Allowed unknown target"
 }

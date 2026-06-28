@@ -10,7 +10,7 @@ import (
 
 func cmdAdd() *cobra.Command {
 	var kind, body, debugDatetime string
-	var targets, issues, prs []string
+	var targets, links []string
 
 	cmd := &cobra.Command{
 		Use:          "add",
@@ -26,8 +26,7 @@ func cmdAdd() *cobra.Command {
 				Kind:          kind,
 				Targets:       targets,
 				Body:          body,
-				Issues:        filterEmpty(issues),
-				PRs:           filterEmpty(prs),
+				Links:         links,
 				DebugDatetime: debugDatetime,
 			})
 		},
@@ -36,8 +35,7 @@ func cmdAdd() *cobra.Command {
 	cmd.Flags().StringVar(&kind, "kind", "", "Change kind (e.g. changed, fix)")
 	cmd.Flags().StringArrayVar(&targets, "target", nil, "Target component (repeatable)")
 	cmd.Flags().StringVar(&body, "body", "", "Change description")
-	cmd.Flags().StringArrayVar(&issues, "issue", nil, "Issue number or URL (repeatable)")
-	cmd.Flags().StringArrayVar(&prs, "pr", nil, "PR number or URL (repeatable)")
+	cmd.Flags().StringArrayVar(&links, "link", nil, "Related URL (repeatable)")
 	cmd.Flags().StringVar(&debugDatetime, "debug-datetime", "", "Override entry timestamp for testing")
 
 	return cmd
@@ -56,15 +54,13 @@ func addEntryInteractive(r io.Reader, debugDatetime string) error {
 	kind := readLine()
 	targetsLine := readLine()
 	body := readLine()
-	issuesLine := readLine()
-	prsLine := readLine()
+	linksLine := readLine()
 
 	return addEntry(addOptions{
 		Kind:          kind,
 		Targets:       splitTokens(targetsLine),
 		Body:          body,
-		Issues:        splitTokens(issuesLine),
-		PRs:           splitTokens(prsLine),
+		Links:         splitTokens(linksLine),
 		DebugDatetime: debugDatetime,
 	})
 }
@@ -76,17 +72,6 @@ func splitTokens(s string) []string {
 	for _, t := range strings.Fields(s) {
 		if t != "" {
 			result = append(result, t)
-		}
-	}
-	return result
-}
-
-// filterEmpty removes empty strings from a slice.
-func filterEmpty(ss []string) []string {
-	var result []string
-	for _, s := range ss {
-		if s != "" {
-			result = append(result, s)
 		}
 	}
 	return result

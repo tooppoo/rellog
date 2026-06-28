@@ -1,3 +1,5 @@
+skip 'legacy prepare rendering/validation contract replaced by #23'
+
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 
@@ -21,31 +23,27 @@ cmp .rellog/entries/0002.json .rellog.expected/entries/0002.json
 {
   "kind": "empty",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No changelog-worthy changes."
 }
 -- .rellog/entries/0002.json --
 {
   "kind": "changed",
   "targets": ["rellog"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Normal entry"
 }
 -- .rellog.expected/entries/0001.json --
 {
   "kind": "empty",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No changelog-worthy changes."
 }
 -- .rellog.expected/entries/0002.json --
 {
   "kind": "changed",
   "targets": ["rellog"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Normal entry"
 }

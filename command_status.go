@@ -70,11 +70,8 @@ func cmdStatus() *cobra.Command {
 					if len(e.Targets) > 0 {
 						fmt.Printf("  targets: %s\n", strings.Join(e.Targets, ", "))
 					}
-					if len(e.Issues) > 0 {
-						fmt.Printf("  issues: %s\n", strings.Join(e.Issues, ", "))
-					}
-					if len(e.PRs) > 0 {
-						fmt.Printf("  prs: %s\n", strings.Join(e.PRs, ", "))
+					if len(e.Links) > 0 {
+						fmt.Printf("  links: %s\n", strings.Join(e.Links, ", "))
 					}
 				}
 			}

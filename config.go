@@ -91,7 +91,6 @@ type entryValidationConfig struct {
 	allowedKinds map[string]bool
 	knownTargets map[string]bool
 	targetPolicy string
-	githubURL    string
 }
 
 func readEntryValidationConfig() (entryValidationConfig, error) {
@@ -117,10 +116,6 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 		}
 		for _, child := range n.Children {
 			switch nodeName(child) {
-			case "github-url":
-				if len(child.Arguments) > 0 {
-					cfg.githubURL = child.Arguments[0].ValueString()
-				}
 			case "entries":
 				entriesNode = child
 			}
@@ -157,33 +152,29 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 
 func validateRellogConfig(doc *document.Document) []checkError {
 	var rellogNode *document.Node
+	rellogCount := 0
 	for _, n := range doc.Nodes {
 		if nodeName(n) == "rellog" {
+			rellogCount++
 			rellogNode = n
-			break
 		}
 	}
-	if rellogNode == nil {
+	if rellogCount != 1 {
 		return []checkError{{"error[rellog.missing]", "configuration file must contain exactly one top-level rellog node."}}
 	}
 
-	// Validate github-url
-	var githubURL string
-	githubURLPresent := false
+	allowedRootChildren := map[string]bool{
+		"paths":   true,
+		"entries": true,
+	}
 	for _, n := range rellogNode.Children {
-		if nodeName(n) == "github-url" {
-			githubURLPresent = true
-			if len(n.Arguments) > 0 {
-				githubURL = n.Arguments[0].ValueString()
-			}
-			break
+		name := nodeName(n)
+		if !allowedRootChildren[name] {
+			return []checkError{{
+				"error[rellog.unknown_node]",
+				fmt.Sprintf("unknown node: %s\n\nRemove unknown nodes from %s.", name, configFile()),
+			}}
 		}
-	}
-	if !githubURLPresent {
-		return []checkError{{"error[rellog.github-url.missing]", "github-url is required."}}
-	}
-	if !isValidGitHubRepoURL(githubURL) {
-		return []checkError{{"error[rellog.github-url.invalid]", "github-url must be a canonical GitHub repository URL."}}
 	}
 
 	var pathsNode *document.Node

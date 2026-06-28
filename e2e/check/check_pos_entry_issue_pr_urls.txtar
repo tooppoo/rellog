@@ -1,3 +1,5 @@
+skip 'legacy GitHub issue/PR contract removed by #23'
+
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 exec rellog check
@@ -8,7 +10,6 @@ stdout 'rellog check: OK \(entries: 2\)\n'
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
 
   paths {
     changelog "CHANGELOG.md"
@@ -37,7 +38,6 @@ rellog config-version=1 {
 {
   "kind": "changed",
   "targets": ["rellog"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No references is still valid"
 }

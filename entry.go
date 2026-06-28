@@ -12,17 +12,16 @@ import (
 type entry struct {
 	Kind    string
 	Targets []string
-	Issues  []string
-	PRs     []string
+	Links   []string
 	Body    string
 
 	// Parsing diagnostics for validation
 	targetsPresent  bool
 	targetsIsScalar bool
-	issuesPresent   bool
-	issuesIsScalar  bool
-	prsPresent      bool
-	prsIsScalar     bool
+	linksPresent    bool
+	linksIsScalar   bool
+	linksTypeError  bool
+	unknownFields   []string
 }
 
 // entryFilename generates a timestamp-based filename for an entry.
@@ -37,8 +36,7 @@ func entryFilename(t time.Time) string {
 type jsonEntryFormat struct {
 	Kind    string   `json:"kind"`
 	Targets []string `json:"targets"`
-	Issues  []string `json:"issues"`
-	PRs     []string `json:"prs"`
+	Links   []string `json:"links"`
 	Body    string   `json:"body"`
 }
 
@@ -47,18 +45,14 @@ func formatEntryJSON(e entry) []byte {
 	je := jsonEntryFormat{
 		Kind:    e.Kind,
 		Targets: e.Targets,
-		Issues:  e.Issues,
-		PRs:     e.PRs,
+		Links:   e.Links,
 		Body:    e.Body,
 	}
 	if je.Targets == nil {
 		je.Targets = []string{}
 	}
-	if je.Issues == nil {
-		je.Issues = []string{}
-	}
-	if je.PRs == nil {
-		je.PRs = []string{}
+	if je.Links == nil {
+		je.Links = []string{}
 	}
 	data, _ := json.MarshalIndent(je, "", "  ")
 	return append(data, '\n')
@@ -73,6 +67,13 @@ func parseEntryJSON(data []byte) (entry, error) {
 	}
 
 	var e entry
+	for key := range raw {
+		switch key {
+		case "kind", "targets", "links", "body":
+		default:
+			e.unknownFields = append(e.unknownFields, key)
+		}
+	}
 
 	if kindRaw, ok := raw["kind"]; ok {
 		json.Unmarshal(kindRaw, &e.Kind) //nolint // ignore error, Kind stays ""
@@ -91,21 +92,14 @@ func parseEntryJSON(data []byte) (entry, error) {
 		}
 	}
 
-	if issuesRaw, ok := raw["issues"]; ok {
-		e.issuesPresent = true
-		if len(issuesRaw) > 0 && issuesRaw[0] == '[' {
-			json.Unmarshal(issuesRaw, &e.Issues) //nolint
+	if linksRaw, ok := raw["links"]; ok {
+		e.linksPresent = true
+		if len(linksRaw) > 0 && linksRaw[0] == '[' {
+			if err := json.Unmarshal(linksRaw, &e.Links); err != nil {
+				e.linksTypeError = true
+			}
 		} else {
-			e.issuesIsScalar = true
-		}
-	}
-
-	if prsRaw, ok := raw["prs"]; ok {
-		e.prsPresent = true
-		if len(prsRaw) > 0 && prsRaw[0] == '[' {
-			json.Unmarshal(prsRaw, &e.PRs) //nolint
-		} else {
-			e.prsIsScalar = true
+			e.linksIsScalar = true
 		}
 	}
 
@@ -115,21 +109,24 @@ func parseEntryJSON(data []byte) (entry, error) {
 // renderReleaseNote generates markdown release note content for the given version and entries.
 func renderReleaseNote(version string, entries []entry) string {
 	var sb strings.Builder
-	fmt.Fprintf(&sb, "## %s\n", version)
+	fmt.Fprintf(&sb, "%s %s\n", markdownHeading(releaseHeadingLevel), version)
 
 	var kindOrder []string
-	kindEntries := map[string][]string{}
+	kindEntries := map[string][]entry{}
 	for _, e := range entries {
 		if _, seen := kindEntries[e.Kind]; !seen {
 			kindOrder = append(kindOrder, e.Kind)
 		}
-		kindEntries[e.Kind] = append(kindEntries[e.Kind], e.Body)
+		kindEntries[e.Kind] = append(kindEntries[e.Kind], e)
 	}
 
 	for _, kind := range kindOrder {
-		fmt.Fprintf(&sb, "\n### %s\n\n", kind)
-		for _, body := range kindEntries[kind] {
-			fmt.Fprintf(&sb, "- %s\n", body)
+		fmt.Fprintf(&sb, "\n%s %s\n", markdownHeading(sectionHeadingLevel), kind)
+		for i, e := range kindEntries[kind] {
+			if i > 0 {
+				sb.WriteString("\n")
+			}
+			renderEntryBlock(&sb, e)
 		}
 	}
 	return sb.String()

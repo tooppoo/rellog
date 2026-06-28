@@ -22,7 +22,6 @@ v1/0.0 release ready
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "HISTORY.md"
     entries "changes/pending"

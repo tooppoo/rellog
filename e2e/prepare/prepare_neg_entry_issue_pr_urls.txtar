@@ -1,3 +1,5 @@
+skip 'legacy GitHub issue/PR contract removed by #23'
+
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 ! exists CHANGELOG.md
@@ -29,7 +31,6 @@ rellog check: FAILED
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
 
   paths {
     changelog "CHANGELOG.md"

@@ -1,5 +1,3 @@
-skip pending: #22 contract, enable in #23
-
 exec rellog init
 ! stderr .
 mv config.kdl .rellog/config.kdl

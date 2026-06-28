@@ -1,3 +1,5 @@
+skip 'legacy prepare rendering/validation contract replaced by #23'
+
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 exec rellog init

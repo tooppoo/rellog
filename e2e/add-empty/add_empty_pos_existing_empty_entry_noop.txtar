@@ -19,7 +19,6 @@ cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/202
 {
   "kind": "empty",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No changelog-worthy changes."
 }

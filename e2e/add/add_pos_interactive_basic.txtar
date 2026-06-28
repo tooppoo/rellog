@@ -25,21 +25,20 @@ cmp .rellog/entries/20260626T123456.000000003Z.json .rellog.expected/entries/202
 changed
 t1 t2
 Multi targets
-12
+https://example.com/issues/12
 
 
 -- answers_multi_issues.txt --
 changed
 t1 t2
 Multi targets + Multi issues
-12,13
+https://example.com/issues/12,https://example.com/issues/13
 
 -- answers_multi_issues_prs.txt --
 changed
 t1 t2
 Multi targets + Multi issues + Multi PRs
-12 13
-14,15
+https://example.com/issues/12 https://example.com/issues/13
 -- .rellog.expected/entries/20260626T123456.000000001Z.json --
 {
   "kind": "changed",
@@ -47,10 +46,9 @@ Multi targets + Multi issues + Multi PRs
     "t1",
     "t2"
   ],
-  "issues": [
-    "https://github.com/tooppoo/rellog/issues/12"
+  "links": [
+    "https://example.com/issues/12"
   ],
-  "prs": [],
   "body": "Multi targets"
 }
 -- .rellog.expected/entries/20260626T123456.000000002Z.json --
@@ -60,11 +58,10 @@ Multi targets + Multi issues + Multi PRs
     "t1",
     "t2"
   ],
-  "issues": [
-    "https://github.com/tooppoo/rellog/issues/12",
-    "https://github.com/tooppoo/rellog/issues/13"
+  "links": [
+    "https://example.com/issues/12",
+    "https://example.com/issues/13"
   ],
-  "prs": [],
   "body": "Multi targets + Multi issues"
 }
 -- .rellog.expected/entries/20260626T123456.000000003Z.json --
@@ -74,13 +71,9 @@ Multi targets + Multi issues + Multi PRs
     "t1",
     "t2"
   ],
-  "issues": [
-    "https://github.com/tooppoo/rellog/issues/12",
-    "https://github.com/tooppoo/rellog/issues/13"
-  ],
-  "prs": [
-    "https://github.com/tooppoo/rellog/pull/14",
-    "https://github.com/tooppoo/rellog/pull/15"
+  "links": [
+    "https://example.com/issues/12",
+    "https://example.com/issues/13"
   ],
   "body": "Multi targets + Multi issues + Multi PRs"
 }

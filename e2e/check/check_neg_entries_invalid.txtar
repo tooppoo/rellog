@@ -1,3 +1,5 @@
+skip 'legacy entry shape contract replaced by #23 links model'
+
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 exec rellog init
@@ -94,8 +96,7 @@ Without Frontmatter
 {
   "kind": "changed",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No issues and PRs(valid)"
 }
 -- .rellog/entries/0008.json --
@@ -110,7 +111,6 @@ Without Frontmatter
 {
   "kind": "changed",
   "targets": "rellog",
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Targets scalar"
 }

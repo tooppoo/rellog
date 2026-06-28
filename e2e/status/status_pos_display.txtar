@@ -27,11 +27,11 @@ exec sh -c 'rm -rf .rellog/*'
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind added --target cli --issue 11 --body 'Added status output'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind added --target cli --link https://example.com/issues/11 --body 'Added status output'
 ! stderr .
-exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target cli --target docs --pr 12 --body 'Changed status grouping'
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target cli --target docs --link https://example.com/pull/12 --body 'Changed status grouping'
 ! stderr .
-exec rellog add --debug-datetime 20260626T123456.000000003Z --kind fixed --target rellog --issue 13 --pr 14 --body 'Fixed status metadata'
+exec rellog add --debug-datetime 20260626T123456.000000003Z --kind fixed --target rellog --link https://example.com/issues/13 --link https://example.com/pull/14 --body 'Fixed status metadata'
 ! stderr .
 
 exec rellog status
@@ -82,20 +82,19 @@ Prepare allowed: yes
 
 - Added status output
   targets: cli
-  issues: https://github.com/tooppoo/rellog/issues/11
+  links: https://example.com/issues/11
 
 ### changed
 
 - Changed status grouping
   targets: cli, docs
-  prs: https://github.com/tooppoo/rellog/pull/12
+  links: https://example.com/pull/12
 
 ### fixed
 
 - Fixed status metadata
   targets: rellog
-  issues: https://github.com/tooppoo/rellog/issues/13
-  prs: https://github.com/tooppoo/rellog/pull/14
+  links: https://example.com/issues/13, https://example.com/pull/14
 -- multiple_duplicate_kinds.expected.txt --
 Unreleased entries: 5
 State: normal

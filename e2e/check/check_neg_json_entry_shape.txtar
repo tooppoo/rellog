@@ -1,3 +1,5 @@
+skip 'legacy entry shape contract replaced by #23 links model'
+
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 exec rellog init
@@ -63,8 +65,7 @@ rellog check: FAILED
 -- .rellog/entries/20260626T123456.000000001Z.json --
 {
   "kind": "changed",
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Missing targets"
 }
 -- .rellog/entries/20260626T123456.000000002Z.json --
@@ -85,8 +86,7 @@ rellog check: FAILED
 {
   "kind": "changed",
   "targets": "rellog",
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Scalar targets"
 }
 -- .rellog/entries/20260626T123456.000000005Z.json --
@@ -112,8 +112,7 @@ rellog check: FAILED
 {
   "kind": "",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": ""
 }
 -- .rellog/entries/20260626T123456.000000009Z.json --

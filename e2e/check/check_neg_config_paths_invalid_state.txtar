@@ -24,7 +24,6 @@ cmp stderr release-notes.is_file.expected.txt
 
 -- changelog.is_dir.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog_dir"
     entries ".rellog/entries"
@@ -33,7 +32,6 @@ rellog config-version=1 {
 }
 -- entries.is_file.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries ".rellog/entries_file"
@@ -42,7 +40,6 @@ rellog config-version=1 {
 }
 -- release-notes.is_file.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries ".rellog/entries"

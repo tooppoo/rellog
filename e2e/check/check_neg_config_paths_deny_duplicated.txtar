@@ -21,7 +21,6 @@ cmp stderr duplicate.entries.release-notes.expected.txt
 
 -- duplicate.changelog.entries.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries "CHANGELOG.md"
@@ -39,7 +38,6 @@ rellog check: FAILED
     duplicate path: "CHANGELOG.md" is used for both rellog.paths.changelog and rellog.paths.entries
 -- duplicate.changelog.release-notes.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -57,7 +55,6 @@ rellog check: FAILED
     duplicate path: "CHANGELOG.md" is used for both rellog.paths.changelog and rellog.paths.release-notes
 -- duplicate.entries.release-notes.kdl --
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     changelog ".rellog/changelog"
     entries ".rellog/entries"

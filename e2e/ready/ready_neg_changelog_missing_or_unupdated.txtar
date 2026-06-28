@@ -26,4 +26,13 @@ cmp stderr unupdated.expected.stderr
 -- missing.expected.stderr --
 Error: release is not ready: changelog is missing
 -- unupdated.expected.stderr --
-Error: release is not ready: changelog is missing release heading: v1.0.0
+Error: release is not ready: changelog is missing release heading
+
+release: v1.0.0
+expected heading:
+  ## v1.0.0
+changelog:
+  CHANGELOG.md
+
+Changelog is missing release heading: v1.0.0
+Add the release heading outside generated body marker ranges, then run `rellog ready v1.0.0` again.
