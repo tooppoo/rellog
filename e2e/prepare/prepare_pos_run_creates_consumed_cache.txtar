@@ -1,0 +1,53 @@
+exec rellog init
+! stderr .
+cp entry-one.json .rellog/entries/20260626T123456.000000001Z.json
+cp entry-two.json .rellog/entries/20260626T123456.000000002Z.json
+
+exec rellog prepare v1.0.0 --run
+stdout 'v1\.0\.0 release prepared\n'
+! stderr .
+
+exists .rellog/release-notes/v1.0.0.md
+exists CHANGELOG.md
+! exists .rellog/entries/20260626T123456.000000001Z.json
+! exists .rellog/entries/20260626T123456.000000002Z.json
+
+exists .rellog/consumed/v1.0.0/manifest.json
+exists .rellog/consumed/v1.0.0/entries
+cmp .rellog/consumed/v1.0.0/manifest.json expected.manifest.json
+cmp .rellog/consumed/v1.0.0/entries/20260626T123456.000000001Z.json entry-one.json
+cmp .rellog/consumed/v1.0.0/entries/20260626T123456.000000002Z.json entry-two.json
+
+-- entry-one.json --
+{
+  "kind": "changed",
+  "targets": [
+    "cli"
+  ],
+  "links": [
+    "https://example.com/design/17"
+  ],
+  "body": "First consumed entry"
+}
+-- entry-two.json --
+{
+  "kind": "fixed",
+  "targets": [
+    "docs"
+  ],
+  "links": [],
+  "body": "Second consumed entry"
+}
+-- expected.manifest.json --
+{
+  "schemaVersion": 1,
+  "releaseId": "v1.0.0",
+  "entries": [
+    {
+      "filename": "20260626T123456.000000001Z.json"
+    },
+    {
+      "filename": "20260626T123456.000000002Z.json"
+    }
+  ]
+}
