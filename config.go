@@ -166,6 +166,7 @@ func validateRellogConfig(doc *document.Document) []checkError {
 	allowedRootChildren := map[string]bool{
 		"paths":   true,
 		"entries": true,
+		"consume": true,
 	}
 	for _, n := range rellogNode.Children {
 		name := nodeName(n)
@@ -299,7 +300,91 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		return errs
 	}
 
+	if errs := validateConsumeConfig(rellogNode); len(errs) > 0 {
+		return errs
+	}
+
 	return validateEntriesConfig(rellogNode)
+}
+
+var validOnFailCreate = map[string]bool{
+	"error":  true,
+	"warn":   true,
+	"ignore": true,
+}
+
+func validateConsumeConfig(rellogNode *document.Node) []checkError {
+	var consumeNodes []*document.Node
+	for _, n := range rellogNode.Children {
+		if nodeName(n) == "consume" {
+			consumeNodes = append(consumeNodes, n)
+		}
+	}
+	if len(consumeNodes) > 1 {
+		return []checkError{{"error[rellog.consume.duplicate]", "consume must appear at most once."}}
+	}
+	if len(consumeNodes) == 0 {
+		return nil
+	}
+	consumeNode := consumeNodes[0]
+
+	if len(consumeNode.Arguments) > 0 {
+		return []checkError{{"error[rellog.consume.argument_count]", "consume node must not have arguments."}}
+	}
+
+	for k := range consumeNode.Properties.Unordered() {
+		return []checkError{{"error[rellog.consume.unknown_property]", "unknown property on consume: " + k}}
+	}
+
+	for _, child := range consumeNode.Children {
+		if nodeName(child) != "on-fail-create" {
+			return []checkError{{"error[rellog.consume.unexpected_children]", "consume may contain only on-fail-create."}}
+		}
+	}
+
+	var onFailNodes []*document.Node
+	for _, child := range consumeNode.Children {
+		if nodeName(child) == "on-fail-create" {
+			onFailNodes = append(onFailNodes, child)
+		}
+	}
+	if len(onFailNodes) > 1 {
+		return []checkError{{"error[rellog.consume.on-fail-create.duplicate]", "consume.on-fail-create must appear at most once."}}
+	}
+	if len(onFailNodes) == 0 {
+		return nil
+	}
+	onFail := onFailNodes[0]
+
+	if len(onFail.Arguments) == 0 {
+		return []checkError{{"error[rellog.consume.on-fail-create.argument_count]", "consume.on-fail-create must have exactly one argument, but none was provided."}}
+	}
+	if len(onFail.Arguments) > 1 {
+		args := make([]string, len(onFail.Arguments))
+		for i, a := range onFail.Arguments {
+			args[i] = `"` + a.ValueString() + `"`
+		}
+		return []checkError{{"error[rellog.consume.on-fail-create.argument_count]", "consume.on-fail-create must have exactly one argument.\nBut multiple arguments were provided: " + strings.Join(args, " ") + "."}}
+	}
+
+	for k := range onFail.Properties.Unordered() {
+		return []checkError{{"error[rellog.consume.on-fail-create.unknown_property]", "unknown property on consume.on-fail-create: " + k}}
+	}
+
+	if len(onFail.Children) > 0 {
+		return []checkError{{"error[rellog.consume.on-fail-create.unexpected_children]", "consume.on-fail-create must not have child nodes."}}
+	}
+
+	arg := onFail.Arguments[0]
+	if _, ok := arg.Value.(string); !ok {
+		return []checkError{{"error[rellog.consume.on-fail-create.type]", "consume.on-fail-create must be a string."}}
+	}
+	val := arg.ValueString()
+	if !validOnFailCreate[val] {
+		return []checkError{{"error[rellog.consume.on-fail-create.invalid]", fmt.Sprintf("consume.on-fail-create %q is not supported.\n\nAllowed values are: error, warn, ignore.", val)}}
+	}
+
+	return nil
 }
 
 func validateEntriesConfig(rellogNode *document.Node) []checkError {
