@@ -42,35 +42,23 @@ i.e.
 ## Harness setup
 
 The e2e harness must not create a Git repository, add a remote, or inject a
-GitHub URL into the test workdir.
+repository-host URL into the test workdir.
 
 Tests that need Git repository metadata must run `git init` inside the
-testscript. Tests that need a GitHub origin remote must also add that remote
-inside the testscript.
+testscript. Tests that need an origin remote must also add that remote inside
+the testscript.
 
 This keeps VCS-independent scenarios honest: `rellog init` and the ordinary
 entry workflow must not pass only because the harness secretly created a Git
 repository.
-
-## Pending contracts
-
-When an e2e contract describes behavior that is specified but not implemented
-yet, put a `skip` command at the beginning of the script:
-
-```text
-skip pending: #22 contract, enable in #23
-```
-
-Pending tests are committed as executable contracts but do not run in CI until
-the implementation issue enables them.
 
 ## Links
 
 Entry references use `links`.
 
 `links` must be an array of absolute `http` or `https` URLs. Query strings and
-fragments are allowed. The e2e fixtures must not require a GitHub remote or a
-configured `github-url` for link validation.
+fragments are allowed. The e2e fixtures must not require a repository remote or
+repository URL configuration for link validation.
 
-Issue and pull request URLs may appear as ordinary link values. They must not be
+Project-management URLs may appear as ordinary link values. They must not be
 treated as first-class entry fields.

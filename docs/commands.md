@@ -68,7 +68,7 @@ Non-interactive usage:
 rellog add \
   --kind changed \
   --target rellog \
-  --link https://github.com/tooppoo/rellog/issues/21 \
+  --link https://example.com/design/21 \
   --body "Added validation for pending changelog entries before release preparation."
 ```
 
@@ -90,6 +90,7 @@ Rules:
 - Users cannot specify the entry filename.
 - When any flag is provided, `rellog add` runs in non-interactive mode.
 - Link values are written exactly as URL strings after validation; rellog does not contact the linked service.
+- Link values may be rendered into public release notes and changelogs; avoid private URLs unless that exposure is acceptable.
 - Entry JSON always includes `targets` and `links` as arrays. Empty fields are written as `[]`.
 - Interactive and non-interactive mode must validate `kind` against `rellog.entries.kinds`. An undefined kind is an error and no entry file is created.
 - Interactive and non-interactive mode must handle targets that are not listed in `rellog.entries.targets` according to `target-policy`:
@@ -210,7 +211,7 @@ Expected checks:
 - the configured changelog file exists and contains a level 2 release heading for `<release-id>`;
 - the configured pending entry directory contains no pending entry files.
 
-`ready` must detect release headings from the fixed v0 release heading level `2`, rendered as `## <release-id>`. It must not use a configurable `rendering.release-heading-level`.
+`ready` must detect release headings from the fixed v0 release heading level `2`, rendered as `## <release-id>`. It must not use configurable heading settings.
 
 `ready` must ignore headings inside rellog body marker comments when looking for release headings. A body that contains `## <release-id>` between `<!-- rellog:body:start -->` and `<!-- rellog:body:end -->` must not satisfy the changelog release-heading check.
 
@@ -313,7 +314,7 @@ Added validation for pending changelog entries before release preparation.
 
 #### Links
 
-- https://github.com/tooppoo/rellog/issues/21
+- https://example.com/design/21
 create .rellog/release-notes/v1.0.1.md
 update CHANGELOG.md
 delete .rellog/entries/20260626T123456.123456789Z.json

@@ -1,5 +1,3 @@
-exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
-
 exec rellog init
 ! stderr .
 
@@ -9,13 +7,13 @@ exec rellog add --debug-datetime 20260626T123456.000000001Z
 exists .rellog/entries/20260626T123456.000000001Z.json
 cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/20260626T123456.000000001Z.json
 
-stdin answers_multi_issues.txt
+stdin answers_multi_links.txt
 exec rellog add --debug-datetime 20260626T123456.000000002Z
 ! stderr .
 exists .rellog/entries/20260626T123456.000000002Z.json
 cmp .rellog/entries/20260626T123456.000000002Z.json .rellog.expected/entries/20260626T123456.000000002Z.json
 
-stdin answers_multi_issues_prs.txt
+stdin answers_many_links.txt
 exec rellog add --debug-datetime 20260626T123456.000000003Z
 ! stderr .
 exists .rellog/entries/20260626T123456.000000003Z.json
@@ -25,20 +23,20 @@ cmp .rellog/entries/20260626T123456.000000003Z.json .rellog.expected/entries/202
 changed
 t1 t2
 Multi targets
-https://example.com/issues/12
+https://example.com/design/12
 
 
--- answers_multi_issues.txt --
+-- answers_multi_links.txt --
 changed
 t1 t2
-Multi targets + Multi issues
-https://example.com/issues/12,https://example.com/issues/13
+Multi targets + Multi links
+https://example.com/design/12,https://example.com/spec/13
 
--- answers_multi_issues_prs.txt --
+-- answers_many_links.txt --
 changed
 t1 t2
-Multi targets + Multi issues + Multi PRs
-https://example.com/issues/12 https://example.com/issues/13
+Multi targets + many links
+https://example.com/design/12 https://example.com/review/13
 -- .rellog.expected/entries/20260626T123456.000000001Z.json --
 {
   "kind": "changed",
@@ -47,7 +45,7 @@ https://example.com/issues/12 https://example.com/issues/13
     "t2"
   ],
   "links": [
-    "https://example.com/issues/12"
+    "https://example.com/design/12"
   ],
   "body": "Multi targets"
 }
@@ -59,10 +57,10 @@ https://example.com/issues/12 https://example.com/issues/13
     "t2"
   ],
   "links": [
-    "https://example.com/issues/12",
-    "https://example.com/issues/13"
+    "https://example.com/design/12",
+    "https://example.com/spec/13"
   ],
-  "body": "Multi targets + Multi issues"
+  "body": "Multi targets + Multi links"
 }
 -- .rellog.expected/entries/20260626T123456.000000003Z.json --
 {
@@ -72,8 +70,8 @@ https://example.com/issues/12 https://example.com/issues/13
     "t2"
   ],
   "links": [
-    "https://example.com/issues/12",
-    "https://example.com/issues/13"
+    "https://example.com/design/12",
+    "https://example.com/review/13"
   ],
-  "body": "Multi targets + Multi issues + Multi PRs"
+  "body": "Multi targets + many links"
 }
