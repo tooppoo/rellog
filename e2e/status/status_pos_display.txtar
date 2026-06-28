@@ -1,5 +1,3 @@
-exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
-
 exec rellog init
 ! stderr .
 
@@ -27,11 +25,11 @@ exec sh -c 'rm -rf .rellog/*'
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind added --target cli --link https://example.com/issues/11 --body 'Added status output'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind added --target cli --link https://example.com/design/11 --body 'Added status output'
 ! stderr .
-exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target cli --target docs --link https://example.com/pull/12 --body 'Changed status grouping'
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind changed --target cli --target docs --link https://example.com/review/12 --body 'Changed status grouping'
 ! stderr .
-exec rellog add --debug-datetime 20260626T123456.000000003Z --kind fixed --target rellog --link https://example.com/issues/13 --link https://example.com/pull/14 --body 'Fixed status metadata'
+exec rellog add --debug-datetime 20260626T123456.000000003Z --kind fixed --target rellog --link https://example.com/design/13 --link https://example.com/review/14 --body 'Fixed status metadata'
 ! stderr .
 
 exec rellog status
@@ -82,19 +80,19 @@ Prepare allowed: yes
 
 - Added status output
   targets: cli
-  links: https://example.com/issues/11
+  links: https://example.com/design/11
 
 ### changed
 
 - Changed status grouping
   targets: cli, docs
-  links: https://example.com/pull/12
+  links: https://example.com/review/12
 
 ### fixed
 
 - Fixed status metadata
   targets: rellog
-  links: https://example.com/issues/13, https://example.com/pull/14
+  links: https://example.com/design/13, https://example.com/review/14
 -- multiple_duplicate_kinds.expected.txt --
 Unreleased entries: 5
 State: normal

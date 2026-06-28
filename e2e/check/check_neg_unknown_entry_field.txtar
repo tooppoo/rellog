@@ -11,7 +11,7 @@ cmp stderr expected.stderr
   "kind": "changed",
   "targets": ["rellog"],
   "links": [],
-  "issues": ["https://example.com/issues/1"],
+  "references": ["https://example.com/design/1"],
   "body": "Unknown field"
 }
 -- expected.stderr --
@@ -22,6 +22,6 @@ rellog check: FAILED
 
 .rellog/entries/20260626T123456.000000001Z.json
   error[entry.unknown_field]
-    unknown entry field: issues.
+    unknown entry field: references.
 
     Remove unknown fields from the entry JSON.

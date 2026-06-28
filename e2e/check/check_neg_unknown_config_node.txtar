@@ -24,8 +24,8 @@ rellog config-version=1 {
     }
   }
 
-  rendering {
-    release-heading-level 2
+  reporting {
+    format "json"
   }
 }
 -- expected.stderr --
@@ -36,6 +36,6 @@ rellog check: FAILED
 
 .rellog/config.kdl
   error[rellog.unknown_node]
-    unknown node: rendering
+    unknown node: reporting
 
     Remove unknown nodes from .rellog/config.kdl.

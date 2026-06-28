@@ -6,7 +6,7 @@ Confirmed behavior belongs in the relevant specification document. This file is 
 
 ## Rendering outputs
 
-- Rich rendering beyond generated Markdown.
+- Rich rendering beyond generated Markdown, outside the v0 output contract.
 - HTML conversion.
 - Markdown body repair or normalization.
 - Integration guidance for external Markdown processors or static-site generators.

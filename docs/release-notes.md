@@ -88,8 +88,11 @@ Added validation for pending changelog entries before release preparation.
 
 #### Links
 
-- https://github.com/tooppoo/rellog/issues/21
+- https://example.com/design/21
 ```
+
+Generated release notes and changelogs are normally public project output. Links
+are emitted as written, so avoid private URLs unless that exposure is acceptable.
 
 ## Empty release notes
 

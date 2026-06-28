@@ -1,6 +1,3 @@
-exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
-
-
 exec rellog --help
 stdout 'Release log management tool\n'
 ! stderr .
@@ -21,12 +18,12 @@ exists .rellog/entries
 exists .rellog/release-notes
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --link https://example.com/issues/12 --body 'Test Entry 1'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --link https://example.com/design/12 --body 'Test Entry 1'
 ! stderr .
 exists .rellog/entries/20260626T123456.000000001Z.json
 cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/20260626T123456.000000001Z.json
 
-exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target rellog --link https://example.com/pull/15 --body 'Test Entry 2'
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target rellog --link https://example.com/review/15 --body 'Test Entry 2'
 ! stderr .
 exists .rellog/entries/20260626T123456.000000002Z.json
 cmp .rellog/entries/20260626T123456.000000002Z.json .rellog.expected/entries/20260626T123456.000000002Z.json
@@ -70,7 +67,7 @@ exec rellog ready v1.0.0
     "rellog"
   ],
   "links": [
-    "https://example.com/issues/12"
+    "https://example.com/design/12"
   ],
   "body": "Test Entry 1"
 }
@@ -81,7 +78,7 @@ exec rellog ready v1.0.0
     "rellog"
   ],
   "links": [
-    "https://example.com/pull/15"
+    "https://example.com/review/15"
   ],
   "body": "Test Entry 2"
 }
