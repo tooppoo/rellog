@@ -4,13 +4,13 @@ cp entry.json .rellog/entries/20260626T123456.000000001Z.json
 mv config.kdl .rellog/config.kdl
 exec touch .rellog/consumed
 
-! exec rellog prepare v1.0.0 --run
-! stdout .
-cmp stderr expected.stderr
+exec rellog prepare v1.0.0 --run
+cmp stdout expected.stdout
+! stderr .
 
-! exists .rellog/release-notes/v1.0.0.md
-! exists CHANGELOG.md
-exists .rellog/entries/20260626T123456.000000001Z.json
+exists .rellog/release-notes/v1.0.0.md
+exists CHANGELOG.md
+! exists .rellog/entries/20260626T123456.000000001Z.json
 exists .rellog/consumed
 ! exists .rellog/consumed/v1.0.0/manifest.json
 ! exists .rellog/consumed/v1.0.0/entries
@@ -34,7 +34,7 @@ rellog config-version=1 {
   }
 
   consume {
-    on-fail-create "error"
+    on-fail-create "ignore"
   }
 }
 -- entry.json --
@@ -46,5 +46,5 @@ rellog config-version=1 {
   "links": [],
   "body": "Entry for consumed cache failure"
 }
--- expected.stderr --
-mkdir .rellog/consumed: not a directory
+-- expected.stdout --
+v1.0.0 release prepared
