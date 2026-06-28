@@ -7,6 +7,7 @@ The configuration file defines project-level policies used by rellog commands, s
 * where changelog-related files are stored
 * which entry kinds are allowed
 * which entry targets are known
+* how consumed-cache creation failures are reported during release preparation
 
 The configuration file also does not expose rendering settings in v0. Release-note and changelog heading levels, entry subsection headings, and the empty release message are fixed by rellog.
 
@@ -39,6 +40,10 @@ rellog config-version=1 {
     targets {
       target "rellog" description="Changes to rellog itself."
     }
+  }
+
+  consume {
+    on-fail-create "error"
   }
 }
 ```
@@ -123,6 +128,36 @@ Allowed values are:
 If `target-policy` is `deny-unknown` or `warn-unknown`, `entries.targets` is required and must contain at least one `target`.
 
 If `target-policy` is `allow-unknown`, `entries.targets` is optional.
+
+### `consume.on-fail-create` (optional default = "error")
+
+`consume.on-fail-create` controls how `rellog prepare --run` handles a failure while creating the consumed-entry cache.
+
+```kdl
+consume {
+  on-fail-create "error"
+}
+```
+
+This option controls failure handling only. It is not an enable or disable switch for consumed-cache generation. `rellog prepare --run` should still attempt to create the consumed cache.
+
+Allowed values are:
+
+| Value    | Meaning                                                                 |
+| -------- | ----------------------------------------------------------------------- |
+| `error`  | Print the failure to stderr and fail with a non-zero exit code.          |
+| `warn`   | Print the failure to stderr and continue with exit code 0.               |
+| `ignore` | Do not print the failure and continue with exit code 0.                  |
+
+If `consume` is omitted, the behavior is the same as:
+
+```kdl
+consume {
+  on-fail-create "error"
+}
+```
+
+If `consume` is present but `on-fail-create` is omitted, `on-fail-create` also defaults to `error`.
 
 ### `kind.title` (optional default = "<kind id>")
 
@@ -314,6 +349,46 @@ entries {
   }
 }
 ```
+
+### `consume` (optional)
+
+The `consume` section defines policies for consumed-entry cache handling.
+
+```kdl
+consume {
+  on-fail-create "error"
+}
+```
+
+A `consume` node must:
+
+* have no arguments
+* have no properties
+* contain only `on-fail-create` child nodes
+* appear at most once
+
+#### `on-fail-create` (optional default = "error")
+
+An `on-fail-create` node defines the policy used when consumed-cache creation fails.
+
+```kdl
+on-fail-create "warn"
+```
+
+Shape:
+
+```kdl
+on-fail-create "error" | "warn" | "ignore"
+```
+
+An `on-fail-create` node must:
+
+* have exactly one argument
+* use a string argument
+* use one of `error`, `warn`, or `ignore`
+* not have properties
+* not have children
+* appear at most once inside `consume`
 
 ### `entries.kinds` (required)
 
@@ -587,6 +662,21 @@ Error codes use the dotted path to the configuration node or property where the 
 | `rellog.entries.target-policy.duplicate`        | `target-policy` appears more than once.               |
 | `rellog.entries.targets.required`               | `targets` is required by `target-policy` but missing. |
 | `rellog.entries.unexpected_children`            | `entries` has unexpected children.                    |
+
+### Consume
+
+| Code                                                    | Condition                                      |
+| ------------------------------------------------------- | ---------------------------------------------- |
+| `rellog.consume.duplicate`                              | More than one `consume` node exists.           |
+| `rellog.consume.argument_count`                         | `consume` has arguments.                       |
+| `rellog.consume.unknown_property`                       | `consume` has an unknown property.             |
+| `rellog.consume.unexpected_children`                    | `consume` has an unknown child node.           |
+| `rellog.consume.on-fail-create.argument_count`          | `on-fail-create` does not have one argument.   |
+| `rellog.consume.on-fail-create.type`                    | `on-fail-create` is not a string.              |
+| `rellog.consume.on-fail-create.invalid`                 | `on-fail-create` has an unsupported value.     |
+| `rellog.consume.on-fail-create.duplicate`               | `on-fail-create` appears more than once.       |
+| `rellog.consume.on-fail-create.unknown_property`        | `on-fail-create` has an unknown property.      |
+| `rellog.consume.on-fail-create.unexpected_children`     | `on-fail-create` has children.                 |
 
 ### Kinds
 
