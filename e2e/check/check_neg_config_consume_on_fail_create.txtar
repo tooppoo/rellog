@@ -1,0 +1,408 @@
+exec rellog init
+
+mv invalid_value.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr invalid_value.expected.txt
+
+mv non_string.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr non_string.expected.txt
+
+mv consume_argument.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr consume_argument.expected.txt
+
+mv consume_unknown_property.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr consume_unknown_property.expected.txt
+
+mv consume_unknown_child.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr consume_unknown_child.expected.txt
+
+mv consume_duplicate.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr consume_duplicate.expected.txt
+
+mv on_fail_create_missing_argument.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr on_fail_create_missing_argument.expected.txt
+
+mv on_fail_create_multi_argument.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr on_fail_create_multi_argument.expected.txt
+
+mv on_fail_create_unknown_property.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr on_fail_create_unknown_property.expected.txt
+
+mv on_fail_create_children.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr on_fail_create_children.expected.txt
+
+mv on_fail_create_duplicate.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr on_fail_create_duplicate.expected.txt
+
+-- invalid_value.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create "skip"
+  }
+}
+-- invalid_value.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.on-fail-create.invalid]
+    consume.on-fail-create "skip" is not supported.
+
+    Allowed values are: error, warn, ignore.
+-- non_string.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create true
+  }
+}
+-- non_string.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.on-fail-create.type]
+    consume.on-fail-create must be a string.
+-- consume_argument.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume "error" {
+    on-fail-create "error"
+  }
+}
+-- consume_argument.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.argument_count]
+    consume node must not have arguments.
+-- consume_unknown_property.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume mode="strict" {
+    on-fail-create "error"
+  }
+}
+-- consume_unknown_property.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.unknown_property]
+    unknown property on consume: mode
+-- consume_unknown_child.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    retry "once"
+  }
+}
+-- consume_unknown_child.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.unexpected_children]
+    consume may contain only on-fail-create.
+-- consume_duplicate.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create "error"
+  }
+
+  consume {
+    on-fail-create "warn"
+  }
+}
+-- consume_duplicate.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.duplicate]
+    consume must appear at most once.
+-- on_fail_create_missing_argument.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create
+  }
+}
+-- on_fail_create_missing_argument.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.on-fail-create.argument_count]
+    consume.on-fail-create must have exactly one argument, but none was provided.
+-- on_fail_create_multi_argument.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create "warn" "ignore"
+  }
+}
+-- on_fail_create_multi_argument.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.on-fail-create.argument_count]
+    consume.on-fail-create must have exactly one argument.
+    But multiple arguments were provided: "warn" "ignore".
+-- on_fail_create_unknown_property.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create "error" mode="strict"
+  }
+}
+-- on_fail_create_unknown_property.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.on-fail-create.unknown_property]
+    unknown property on consume.on-fail-create: mode
+-- on_fail_create_children.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create "error" {
+      note "not allowed"
+    }
+  }
+}
+-- on_fail_create_children.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.on-fail-create.unexpected_children]
+    consume.on-fail-create must not have child nodes.
+-- on_fail_create_duplicate.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+  }
+
+  consume {
+    on-fail-create "error"
+    on-fail-create "warn"
+  }
+}
+-- on_fail_create_duplicate.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.consume.on-fail-create.duplicate]
+    consume.on-fail-create must appear at most once.
