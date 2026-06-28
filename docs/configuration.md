@@ -381,6 +381,16 @@ Shape:
 on-fail-create "error" | "warn" | "ignore"
 ```
 
+Allowed values and their behavior when consumed-cache creation fails:
+
+| Value    | stderr | Exit code |
+| -------- | ------ | --------- |
+| `error`  | yes    | non-zero  |
+| `warn`   | yes    | 0         |
+| `ignore` | no     | 0         |
+
+This option controls failure handling only. It does not enable or disable consumed-cache generation. Consumed-cache generation is always attempted by `prepare`.
+
 An `on-fail-create` node must:
 
 * have exactly one argument
