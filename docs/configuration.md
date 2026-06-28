@@ -8,8 +8,6 @@ The configuration file defines project-level policies used by rellog commands, s
 * which entry kinds are allowed
 * which entry targets are known
 
-The configuration file does not identify a repository host. References are stored on entries as explicit `links`.
-
 The configuration file also does not expose rendering settings in v0. Release-note and changelog heading levels, entry subsection headings, and the empty release message are fixed by rellog.
 
 The configuration file is written in [KDL v2](https://github.com/kdl-org/kdl/blob/main/draft-marchan-kdl2.md).

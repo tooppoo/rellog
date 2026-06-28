@@ -31,7 +31,7 @@ It should define project-level settings such as:
 - allowed entry kinds;
 - known targets or components.
 
-It does not define a repository-host URL, and it does not expose Markdown rendering settings in v0. The release-note and changelog heading structure is fixed by rellog.
+It does not expose Markdown rendering settings in v0. The release-note and changelog heading structure is fixed by rellog.
 
 ## `.rellog/entries/`
 

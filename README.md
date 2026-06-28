@@ -68,7 +68,6 @@ See [docs/workflow.md](docs/workflow.md) for the intended workflow.
 - publish packages, binaries, or artifacts;
 - create GitHub Releases;
 - treat `.rellog/release-notes/*.md` as GitHub Release Notes;
-- require a Git repository, a remote, or a GitHub repository URL for initialization;
 - generate final release notes directly from commit history;
 - require Conventional Commits;
 - provide compatibility with Changesets file semantics.

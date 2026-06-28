@@ -6,9 +6,9 @@
 
 ## Context
 
-`rellog` was originally described as if a project had a particular forge remote and as if entry references were forge-specific work items and reviews. That made `rellog init` depend on repository state that is not essential to the tool.
+`rellog` was originally described around repository state and service-specific references. That coupled the release-note workflow to details that are not essential to the tool.
 
-The core job of `rellog` is to aggregate explicit human-written release entries into release-note files and `CHANGELOG.md`. Forge-hosted work items and reviews can be useful context, but they are not the domain model. Projects may want to reference GitLab issues, Forgejo reviews, Slack messages, design notes, documentation, or arbitrary web pages.
+The core job of `rellog` is to aggregate explicit human-written release entries into release-note files and `CHANGELOG.md`. Supporting references can be useful context, but they are not the domain model. Projects may want to reference tracker items, review pages, Slack messages, design notes, documentation, or arbitrary web pages.
 
 The project is still before a stable release, so the public contract can pivot without carrying compatibility for the old issue and pull-request fields.
 
@@ -16,15 +16,11 @@ The project is still before a stable release, so the public contract can pivot w
 
 `rellog` will be VCS-independent for v0.
 
-`rellog init` must not require a Git repository, a configured remote, or a repository-host URL.
-
-Configuration must not contain a repository-host URL field.
-
 Pending entries must use `links` for supporting references. `links` is a required array. Entries with no references must write `"links": []`.
 
 In v0, every link must be an absolute URL with scheme `http` or `https` and a non-empty host. Query strings and fragments are allowed.
 
-The CLI uses `--link <url>` for references. Removed forge-specific reference options are not compatibility aliases.
+The CLI uses `--link <url>` for references.
 
 Rendering configuration is not exposed in v0. Release-note files start with `## <release-id>`. `CHANGELOG.md` is `# CHANGELOG` followed by prepared release-note sections. Kind sections use level 3 headings, entry metadata subsections use level 4 headings, and empty releases render `No changelog-worthy changes.`.
 
@@ -33,10 +29,6 @@ Normal entry bodies are emitted as raw Markdown inside rellog body marker commen
 `<!-- rellog:` is a reserved marker namespace. Entry bodies containing that marker prefix are invalid.
 
 ## Consequences
-
-The configuration model is smaller and initialization can work in ordinary directories, Git repositories without remotes, and non-Git VCS projects.
-
-Forge-hosted work items and reviews remain possible as ordinary `links`, but rellog does not normalize service-specific numbers and does not validate repository ownership.
 
 Generated release notes can expose private URLs. Users must treat `links` as public-output candidates and avoid private references unless appropriate.
 

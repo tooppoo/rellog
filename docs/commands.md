@@ -26,8 +26,6 @@ Initialize `rellog` in the current directory.
 rellog init
 ```
 
-`rellog init` must not require a Git repository, a configured remote, or a GitHub repository URL. It can be used in an ordinary directory, in a Git repository without remotes, or in a project managed by another VCS.
-
 Expected effects:
 
 - create the `rellog` configuration file;

@@ -41,24 +41,21 @@ i.e.
 
 ## Harness setup
 
-The e2e harness must not create a Git repository, add a remote, or inject a
-repository-host URL into the test workdir.
+The e2e harness must not create hidden project state in the test workdir.
 
 Tests that need Git repository metadata must run `git init` inside the
 testscript. Tests that need an origin remote must also add that remote inside
 the testscript.
 
-This keeps VCS-independent scenarios honest: `rellog init` and the ordinary
-entry workflow must not pass only because the harness secretly created a Git
-repository.
+This keeps tests explicit: commands must not pass only because the harness
+secretly created unrelated state.
 
 ## Links
 
 Entry references use `links`.
 
 `links` must be an array of absolute `http` or `https` URLs. Query strings and
-fragments are allowed. The e2e fixtures must not require a repository remote or
-repository URL configuration for link validation.
+fragments are allowed. Link validation must depend only on the link value.
 
 Project-management URLs may appear as ordinary link values. They must not be
 treated as first-class entry fields.
