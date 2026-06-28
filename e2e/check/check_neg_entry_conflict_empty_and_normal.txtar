@@ -20,15 +20,13 @@ rellog check: FAILED
 {
   "kind": "empty",
   "targets": [],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No changelog-worthy changes."
 }
 -- .rellog/entries/0002.json --
 {
   "kind": "changed",
   "targets": ["rellog"],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "Normal entry"
 }

@@ -12,8 +12,7 @@ type addOptions struct {
 	Kind          string
 	Targets       []string
 	Body          string
-	Issues        []string
-	PRs           []string
+	Links         []string
 	DebugDatetime string
 }
 
@@ -48,36 +47,12 @@ func addEntry(opts addOptions) error {
 		}
 	}
 
-	// Normalize and validate issue/PR references
-	if len(opts.Issues) > 0 || len(opts.PRs) > 0 {
-		if cfg.githubURL == "" {
-			return &exitError{ExitCheckFailed, "github-url is required in " + configFile()}
-		}
+	var linkErrs []string
+	for _, link := range opts.Links {
+		linkErrs = append(linkErrs, validateLink(link)...)
 	}
-
-	var normalizedIssues []string
-	var normalizedPRs []string
-	var refErrs []string
-
-	for _, ref := range opts.Issues {
-		normalized, errs := validateAndNormalizeIssueRef(ref, cfg.githubURL)
-		if len(errs) > 0 {
-			refErrs = append(refErrs, errs...)
-		} else {
-			normalizedIssues = append(normalizedIssues, normalized)
-		}
-	}
-	for _, ref := range opts.PRs {
-		normalized, errs := validateAndNormalizePRRef(ref, cfg.githubURL)
-		if len(errs) > 0 {
-			refErrs = append(refErrs, errs...)
-		} else {
-			normalizedPRs = append(normalizedPRs, normalized)
-		}
-	}
-
-	if len(refErrs) > 0 {
-		return &exitError{ExitCheckFailed, strings.Join(refErrs, "\n")}
+	if len(linkErrs) > 0 {
+		return &exitError{ExitCheckFailed, strings.Join(linkErrs, "\n")}
 	}
 
 	// Check for empty entry conflict
@@ -102,8 +77,7 @@ func addEntry(opts addOptions) error {
 	e := entry{
 		Kind:    opts.Kind,
 		Targets: opts.Targets,
-		Issues:  normalizedIssues,
-		PRs:     normalizedPRs,
+		Links:   opts.Links,
 		Body:    opts.Body,
 	}
 	filename := resolveEntryFilename(opts.DebugDatetime)
@@ -141,8 +115,10 @@ func addEmptyEntry(debugDatetime string) error {
 	}
 
 	e := entry{
-		Kind: "empty",
-		Body: "No changelog-worthy changes.",
+		Kind:    "empty",
+		Targets: []string{},
+		Links:   []string{},
+		Body:    emptyReleaseMessage,
 	}
 	filename := resolveEntryFilename(debugDatetime)
 	return os.WriteFile(filepath.Join(entriesDir(), filename), formatEntryJSON(e), 0644)

@@ -21,12 +21,12 @@ exists .rellog/entries
 exists .rellog/release-notes
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --issue 12 --body 'Test Entry 1'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --link https://example.com/issues/12 --body 'Test Entry 1'
 ! stderr .
 exists .rellog/entries/20260626T123456.000000001Z.json
 cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/20260626T123456.000000001Z.json
 
-exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target rellog --pr 15 --body 'Test Entry 2'
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target rellog --link https://example.com/pull/15 --body 'Test Entry 2'
 ! stderr .
 exists .rellog/entries/20260626T123456.000000002Z.json
 cmp .rellog/entries/20260626T123456.000000002Z.json .rellog.expected/entries/20260626T123456.000000002Z.json
@@ -69,10 +69,9 @@ exec rellog ready v1.0.0
   "targets": [
     "rellog"
   ],
-  "issues": [
-    "https://github.com/tooppoo/rellog/issues/12"
+  "links": [
+    "https://example.com/issues/12"
   ],
-  "prs": [],
   "body": "Test Entry 1"
 }
 -- .rellog.expected/entries/20260626T123456.000000002Z.json --
@@ -81,9 +80,8 @@ exec rellog ready v1.0.0
   "targets": [
     "rellog"
   ],
-  "issues": [],
-  "prs": [
-    "https://github.com/tooppoo/rellog/pull/15"
+  "links": [
+    "https://example.com/pull/15"
   ],
   "body": "Test Entry 2"
 }

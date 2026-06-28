@@ -5,14 +5,10 @@ import (
 	"os"
 )
 
-func generateInitConfig(githubURL string) (string, error) {
-	if githubURL == "" {
-		return "", fmt.Errorf("githubURL must not be empty")
-	}
-	return fmt.Sprintf(`/- kdl-version 2
+func generateInitConfig() string {
+	return `/- kdl-version 2
 
 rellog config-version=1 {
-  github-url "%s"
   paths {
     changelog "CHANGELOG.md"
     entries ".rellog/entries"
@@ -29,14 +25,10 @@ rellog config-version=1 {
     }
   }
 }
-`, githubURL), nil
+`
 }
 
 func initRellog() error {
-	githubURL, err := detectGitHubURL()
-	if err != nil || githubURL == "" {
-		return &exitError{ExitNotGitRepo, "rellog init must be run inside a git repository"}
-	}
 	if err := os.MkdirAll(entriesDir(), 0755); err != nil {
 		return &exitError{ExitInvalidStructure, fmt.Sprintf("failed to create %s: %s", entriesDir(), err)}
 	}
@@ -47,10 +39,7 @@ func initRellog() error {
 	if info, err := os.Stat(configFile()); err == nil && info.Mode().IsRegular() {
 		return nil
 	}
-	config, err := generateInitConfig(githubURL)
-	if err != nil {
-		return &exitError{ExitNotGitRepo, err.Error()}
-	}
+	config := generateInitConfig()
 	if err := os.WriteFile(configFile(), []byte(config), 0644); err != nil {
 		return &exitError{ExitInvalidStructure, fmt.Sprintf("failed to create %s: %s", configFile(), err)}
 	}

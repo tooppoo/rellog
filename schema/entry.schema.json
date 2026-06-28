@@ -5,7 +5,7 @@
   "description": "Schema for one pending rellog changelog entry.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["kind", "targets", "issues", "prs", "body"],
+  "required": ["kind", "targets", "links", "body"],
   "allOf": [
     {
       "if": {
@@ -21,10 +21,7 @@
           "targets": {
             "maxItems": 0
           },
-          "issues": {
-            "maxItems": 0
-          },
-          "prs": {
+          "links": {
             "maxItems": 0
           }
         }
@@ -41,16 +38,12 @@
         "type": "string"
       }
     },
-    "issues": {
+    "links": {
       "type": "array",
       "items": {
-        "type": "string"
-      }
-    },
-    "prs": {
-      "type": "array",
-      "items": {
-        "type": "string"
+        "type": "string",
+        "format": "uri",
+        "pattern": "^https?://[^\\s/$.?#].*"
       }
     },
     "body": {

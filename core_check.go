@@ -22,11 +22,8 @@ func checkEmptyEntryFields(e entry) []checkError {
 	if len(e.Targets) > 0 {
 		errs = append(errs, checkError{"error[entry.empty.targets.invalid]", "empty entry targets must be an empty array."})
 	}
-	if len(e.Issues) > 0 {
-		errs = append(errs, checkError{"error[entry.empty.issues.invalid]", "empty entry issues must be an empty array."})
-	}
-	if len(e.PRs) > 0 {
-		errs = append(errs, checkError{"error[entry.empty.prs.invalid]", "empty entry prs must be an empty array."})
+	if len(e.Links) > 0 {
+		errs = append(errs, checkError{"error[entry.empty.links.invalid]", "empty entry links must be an empty array."})
 	}
 	return errs
 }
@@ -187,6 +184,12 @@ func checkRepository() ([]fileCheckResult, int, error) {
 				errs = append(errs, checkError{"error[entry.json.parse_failed]", "invalid JSON entry."})
 			} else {
 				e := pf.e
+				for _, field := range e.unknownFields {
+					errs = append(errs, checkError{
+						"error[entry.unknown_field]",
+						fmt.Sprintf("unknown entry field: %s.\n\nRemove unknown fields from the entry JSON.", field),
+					})
+				}
 				if e.Kind == "empty" {
 					emptyFieldErrs := checkEmptyEntryFields(e)
 					if len(emptyFieldErrs) > 0 {
@@ -230,32 +233,27 @@ func checkRepository() ([]fileCheckResult, int, error) {
 						}
 					}
 
-					if !e.issuesPresent {
-						errs = append(errs, checkError{"error[entry.issues.missing]", "missing required metadata: issues."})
-					} else if e.issuesIsScalar {
-						errs = append(errs, checkError{"error[entry.issues.invalid]", "issues must be an array."})
-					} else if configOK && entryConfig.githubURL != "" {
-						for _, issueURL := range e.Issues {
-							for _, msg := range validateStoredIssueURL(issueURL, entryConfig.githubURL) {
-								errs = append(errs, checkError{"error[entry.issues.invalid]", msg + "."})
-							}
-						}
-					}
-
-					if !e.prsPresent {
-						errs = append(errs, checkError{"error[entry.prs.missing]", "missing required metadata: prs."})
-					} else if e.prsIsScalar {
-						errs = append(errs, checkError{"error[entry.prs.invalid]", "prs must be an array."})
-					} else if configOK && entryConfig.githubURL != "" {
-						for _, prURL := range e.PRs {
-							for _, msg := range validateStoredPRURL(prURL, entryConfig.githubURL) {
-								errs = append(errs, checkError{"error[entry.prs.invalid]", msg + "."})
+					if !e.linksPresent {
+						errs = append(errs, checkError{"error[entry.links.missing]", "missing required metadata: links."})
+					} else if e.linksIsScalar {
+						errs = append(errs, checkError{"error[entry.links.invalid]", "links must be an array."})
+					} else if e.linksTypeError {
+						errs = append(errs, checkError{"error[entry.links.invalid]", "links must contain only strings."})
+					} else {
+						for _, link := range e.Links {
+							for _, msg := range validateLink(link) {
+								errs = append(errs, checkError{"error[entry.links.invalid]", msg + "."})
 							}
 						}
 					}
 
 					if e.Body == "" {
 						errs = append(errs, checkError{"error[entry.body.empty]", "entry body must not be empty."})
+					} else if strings.Contains(e.Body, reservedMarkerPrefix) {
+						errs = append(errs, checkError{
+							"error[entry.body.reserved_marker]",
+							"entry body must not contain rellog reserved marker comments.\n\nRemove comments beginning with `<!-- rellog:` from the entry body.",
+						})
 					}
 				}
 			}

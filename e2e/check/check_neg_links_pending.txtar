@@ -1,5 +1,3 @@
-skip pending: #22 contract, enable in #23
-
 ! exec rellog check
 ! stdout .
 cmp stderr expected.stderr
@@ -52,3 +50,37 @@ rellog config-version=1 {
 }
 -- expected.stderr --
 rellog check: FAILED
+
+4 files
+9 errors
+
+.rellog/entries/0001.json
+  error[entry.links.missing]
+    missing required metadata: links.
+
+.rellog/entries/0002.json
+  error[entry.links.invalid]
+    links must be an array.
+
+.rellog/entries/0003.json
+  error[entry.links.invalid]
+    links must contain only strings.
+
+.rellog/entries/0004.json
+  error[entry.links.invalid]
+    link URL must not be empty.
+
+  error[entry.links.invalid]
+    link URL must not be whitespace-only.
+
+  error[entry.links.invalid]
+    link URL "docs/design.md" must be absolute.
+
+  error[entry.links.invalid]
+    link URL "example.com/design" must be absolute.
+
+  error[entry.links.invalid]
+    link URL "https:///design" must include a host.
+
+  error[entry.links.invalid]
+    link URL "ftp://example.com/design" must use http or https.

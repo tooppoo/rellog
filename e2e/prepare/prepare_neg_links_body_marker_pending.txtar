@@ -1,5 +1,3 @@
-skip pending: #22 contract, enable in #23
-
 exec rellog init
 ! stderr .
 
@@ -12,13 +10,13 @@ rm .rellog/entries/20260626T123456.000000001Z.json
 cp invalid_links.json .rellog/entries/20260626T123456.000000001Z.json
 ! exec rellog prepare v1.0.0
 ! stdout .
-stderr 'invalid link'
+stderr 'link URL'
 
 rm .rellog/entries/20260626T123456.000000001Z.json
 cp reserved_marker.json .rellog/entries/20260626T123456.000000001Z.json
 ! exec rellog prepare v1.0.0
 ! stdout .
-stderr 'rellog marker'
+stderr 'rellog reserved marker'
 
 -- missing_links.json --
 {

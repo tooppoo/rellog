@@ -16,7 +16,6 @@ cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/202
     "t1",
     "t2"
   ],
-  "issues": [],
-  "prs": [],
+  "links": [],
   "body": "No Issue and PR"
 }

@@ -1,0 +1,27 @@
+exec rellog init
+! stderr .
+cp entry.json .rellog/entries/20260626T123456.000000001Z.json
+
+! exec rellog check
+! stdout .
+cmp stderr expected.stderr
+
+-- entry.json --
+{
+  "kind": "changed",
+  "targets": ["rellog"],
+  "links": [],
+  "issues": ["https://example.com/issues/1"],
+  "body": "Unknown field"
+}
+-- expected.stderr --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/20260626T123456.000000001Z.json
+  error[entry.unknown_field]
+    unknown entry field: issues.
+
+    Remove unknown fields from the entry JSON.

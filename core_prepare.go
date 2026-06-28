@@ -13,9 +13,20 @@ type prepareOptions struct {
 }
 
 func prepareRelease(opts prepareOptions) error {
-	// Validate release ID: must not contain path separators or traversal.
-	if strings.ContainsRune(opts.Version, '/') || opts.Version == ".." {
+	if err := validateReadyReleaseID(opts.Version); err != nil {
 		return &exitError{ExitCheckFailed, fmt.Sprintf("invalid release id: %q", opts.Version)}
+	}
+
+	checkResults, totalEntries, err := checkRepository()
+	if err != nil {
+		return err
+	}
+	if len(checkResults) > 0 {
+		return reportPrepareCheckFailure(checkResults)
+	}
+	if totalEntries == 0 {
+		fmt.Fprintf(os.Stderr, "No pending rellog entries found.\n\nAdd a changelog entry:\n  rellog add\n\nIf this release has no changelog-worthy changes, add an explicit empty entry:\n  rellog add-empty\n")
+		return &exitError{ExitCheckFailed, ""}
 	}
 
 	files, err := os.ReadDir(entriesDir())
@@ -44,39 +55,6 @@ func prepareRelease(opts prepareOptions) error {
 			return parseErr
 		}
 		entryFiles = append(entryFiles, entryFile{f.Name(), p, e})
-	}
-
-	if len(entryFiles) == 0 {
-		fmt.Fprintf(os.Stderr, "No pending rellog entries found.\n\nAdd a changelog entry:\n  rellog add\n\nIf this release has no changelog-worthy changes, add an explicit empty entry:\n  rellog add-empty\n")
-		return &exitError{ExitCheckFailed, ""}
-	}
-
-	// Validate entry URLs against github-url from config before doing anything.
-	cfg, cfgErr := readEntryValidationConfig()
-	if cfgErr != nil {
-		return cfgErr
-	}
-	if cfg.githubURL != "" {
-		var urlResults []fileCheckResult
-		for _, ef := range entryFiles {
-			var errs []checkError
-			for _, issueURL := range ef.e.Issues {
-				for _, msg := range validateStoredIssueURL(issueURL, cfg.githubURL) {
-					errs = append(errs, checkError{"error[entry.issues.invalid]", msg + "."})
-				}
-			}
-			for _, prURL := range ef.e.PRs {
-				for _, msg := range validateStoredPRURL(prURL, cfg.githubURL) {
-					errs = append(errs, checkError{"error[entry.prs.invalid]", msg + "."})
-				}
-			}
-			if len(errs) > 0 {
-				urlResults = append(urlResults, fileCheckResult{ef.path, errs})
-			}
-		}
-		if len(urlResults) > 0 {
-			return reportPrepareCheckFailure(urlResults)
-		}
 	}
 
 	// Detect empty/normal conflict.
@@ -109,7 +87,7 @@ func prepareRelease(opts prepareOptions) error {
 
 	var content string
 	if isEmptyRelease {
-		content = fmt.Sprintf("## %s\n\nNo changelog-worthy changes.\n", opts.Version)
+		content = fmt.Sprintf("%s %s\n\n%s\n", markdownHeading(releaseHeadingLevel), opts.Version, emptyReleaseMessage)
 	} else {
 		content = renderReleaseNote(opts.Version, entries)
 	}
@@ -157,9 +135,9 @@ func prepareRelease(opts prepareOptions) error {
 // inserted after that heading so the heading remains at the top.
 func mergeChangelog(newContent, existing string) string {
 	if existing == "" {
-		return newContent
+		return "# CHANGELOG\n\n" + newContent
 	}
-	const h1Header = "# Changelog\n"
+	const h1Header = "# CHANGELOG\n"
 	if strings.HasPrefix(existing, h1Header) {
 		rest := strings.TrimPrefix(existing, h1Header)
 		rest = strings.TrimPrefix(rest, "\n")

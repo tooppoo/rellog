@@ -3,6 +3,6 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 ! exists .rellog
 
-! exec rellog add --kind changed --target rellog --issue 12 --body 'Test Entry 1'
+! exec rellog add --kind changed --target rellog --body 'Test Entry 1'
 ! stdout .
 stderr 'Error: run `rellog init` first\n'

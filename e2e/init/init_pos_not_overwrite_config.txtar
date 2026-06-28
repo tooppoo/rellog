@@ -9,7 +9,6 @@ exec rellog init
 /- kdl-version 2
 
 rellog config-version=1 {
-  github-url "https://github.com/tooppoo/rellog"
   paths {
     entry_dir ".rellog-test/entries"
     release_note_dir ".rellog-test/release_notes"

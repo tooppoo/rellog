@@ -107,32 +107,6 @@ document {
                     }
                 }
             }
-
-            node rendering description="Markdown rendering options." {
-                max 1
-
-                children {
-                    node release-heading-level description="Markdown heading level used for each release." {
-                        max 6
-                        value ref=#"[id="heading-level"]"#
-                    }
-
-                    // Must be greater than release-heading-level; that cross-field rule is enforced by rellog.
-                    node section-heading-level description="Markdown heading level used for kind sections." {
-                        max 6
-                        value ref=#"[id="heading-level"]"#
-                    }
-
-                    node empty-message description="Message used when rendering an empty release." {
-                        max 1
-                        value {
-                            min 1
-                            max 1
-                            type string
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -143,13 +117,6 @@ document {
             max 1
             type string
             pattern #"^(?!\s*$)(?!/)(?![A-Za-z]:/)(?!.*\\)(?!.*//)(?!.*(?:^|/)\.{1,2}(?:/|$))(?!.*\/$).+$"#
-        }
-
-        value id=heading-level description="Markdown heading level from 1 through 6." {
-            min 1
-            max 6
-            type number
-            format u8
         }
     }
 }
