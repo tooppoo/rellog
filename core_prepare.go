@@ -155,13 +155,24 @@ func prepareRelease(opts prepareOptions) error {
 			//     rather than in the commit closure after artifacts are written.
 			if mkErr := os.MkdirAll(filepath.Dir(finalDir), 0755); mkErr != nil {
 				_ = os.RemoveAll(builtDir)
-				return mkErr
+				parentDir := filepath.Dir(finalDir)
+				fmt.Fprintf(os.Stderr,
+					"%s\n\n%s is not a directory. Remove it first:\n  rm %s\n",
+					mkErr, parentDir, parentDir)
+				return &exitError{ExitInvalidStructure, ""}
 			}
 		}
 		tempCacheDir = builtDir
 	}
 
 	// Write release note atomically.
+	releaseNoteDir := filepath.Dir(releaseNotePath)
+	if _, statErr := os.Stat(releaseNoteDir); os.IsNotExist(statErr) {
+		fmt.Fprintf(os.Stderr,
+			"cannot write release note: %s: no such directory\n\nCreate the parent directory:\n  mkdir -p %s\n",
+			releaseNoteDir, releaseNoteDir)
+		return &exitError{ExitInvalidStructure, ""}
+	}
 	if err := writeFileAtomic(releaseNotePath, []byte(content), 0644); err != nil {
 		return err
 	}

@@ -8,7 +8,7 @@ exec touch .rellog/consumed/cli
 
 ! exec rellog prepare cli/v1.0.0 --run
 ! stdout .
-stderr 'not a directory'
+cmp stderr expected.stderr
 
 ! exists .rellog/release-notes/cli/v1.0.0.md
 ! exists CHANGELOG.md
@@ -47,3 +47,8 @@ rellog config-version=1 {
   "links": [],
   "body": "Entry for consumed parent-file failure"
 }
+-- expected.stderr --
+mkdir .rellog/consumed/cli: not a directory
+
+.rellog/consumed/cli is not a directory. Remove it first:
+  rm .rellog/consumed/cli
