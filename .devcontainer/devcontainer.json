@@ -12,8 +12,8 @@
     "ghcr.io/devcontainers/features/go:1": {
       "version": "1.26.4"
     },
-    "ghcr.io/tooppoo/devcontainer-features/git-kura:0": {
-      "version": "v0.0.6"
+    "ghcr.io/tooppoo/catalog-devcontainer-features/git-kura:0": {
+      "version": "0.0.6"
     }
   },
   "customizations": {
