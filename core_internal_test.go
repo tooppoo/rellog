@@ -204,7 +204,7 @@ func TestBuildConsumedCacheTemp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("buildConsumedCacheTemp() error = %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	if _, err := os.Stat(filepath.Join(tempDir, "manifest.json")); err != nil {
 		t.Fatalf("manifest was not written: %v", err)
