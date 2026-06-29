@@ -16,15 +16,15 @@ type entry struct {
 	Body    string
 
 	// Parsing diagnostics for validation
-	targetsPresent  bool
-	targetsIsScalar bool
+	targetsPresent   bool
+	targetsIsScalar  bool
 	targetsTypeError bool
-	linksPresent    bool
-	linksIsScalar   bool
-	linksTypeError  bool
-	bodyPresent     bool
-	bodyTypeError   bool
-	unknownFields   []string
+	linksPresent     bool
+	linksIsScalar    bool
+	linksTypeError   bool
+	bodyPresent      bool
+	bodyTypeError    bool
+	unknownFields    []string
 }
 
 // entryFilename generates a timestamp-based filename for an entry.
