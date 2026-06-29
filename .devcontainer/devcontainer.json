@@ -22,7 +22,8 @@
         "golang.Go",
         "EditorConfig.EditorConfig",
         "brody715.txtar",
-        "kdl-org.kdl"
+        "kdl-org.kdl",
+        "skellock.just"
       ],
       "settings": {
         "editor.formatOnSave": true,
