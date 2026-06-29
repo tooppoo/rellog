@@ -284,7 +284,7 @@ Expected behavior:
 - fail if there are no pending entries;
 - fail with `ExitEntryConflict` if normal entries and an empty entry coexist;
 - aggregate pending entries in filename order;
-- reject release ids that are not path-safe;
+- reject release ids with empty path segments or dot-only segments (`.` or `..`);
 - fail if the target release-note file already exists;
 - without `--run`, print the generated release-note content and intended operations without changing files;
 - with `--run`, create the release-note file for the release id;
@@ -342,7 +342,7 @@ If this release has no changelog-worthy changes, add an explicit empty entry:
 
 If the release-note file for the release id already exists, the command should fail by default rather than silently overwriting it.
 
-For v0, release ids must be path-safe. Normal dots in values like `v1.0.1` are allowed. Path separators and dot segments such as `../v1.0.1` must be rejected.
+For v0, release ids are used as paths below the configured release-note directory. Path separators are allowed so projects can group release-note files. Each path segment must be non-empty and must not be `.` or `..`. Normal dots inside a segment, such as `v1.0.1`, are allowed. See [files.md](files.md) for the release-id path rule.
 
 When `CHANGELOG.md` already exists, `--run` inserts the release section at the top of the file. If the file starts with an H1 such as `# CHANGELOG`, `--run` inserts the release section directly below that H1 instead of duplicating it. Release-note files and `CHANGELOG.md` must end with a trailing newline.
 
@@ -376,5 +376,6 @@ Possible options:
 | 3    | `ExitCheckFailed`      | `rellog check` found one or more non-conflict validation errors in pending entries |
 | 4    | `ExitReleaseNotFound`  | The required release-note file does not exist; run `rellog prepare <release-id> --run` first |
 | 5    | `ExitEntryConflict`    | Empty and normal pending entries would coexist or already coexist        |
-| 6    | `ExitInvalidArgument`  | CLI usage or an argument such as `<release-id>` is invalid               |
-| 7    | `ExitReleaseNotReady`  | A release note exists, but changelog or pending-entry readiness checks failed |
+| 6    | `ExitNotGitRepo`       | The current directory is not inside a Git repository                    |
+| 7    | `ExitInvalidArgument`  | CLI usage or an argument such as `<release-id>` is invalid               |
+| 8    | `ExitReleaseNotReady`  | A release note exists, but changelog or pending-entry readiness checks failed |
