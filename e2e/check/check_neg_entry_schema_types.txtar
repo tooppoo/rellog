@@ -1,0 +1,88 @@
+mkdir -p .rellog/entries .rellog/release-notes
+cp config.kdl .rellog/config.kdl
+
+cp targets_number.json .rellog/entries/0001.json
+! exec rellog check
+cmp stdout targets_number.stdout.txt
+cmp stderr targets_number.stderr.txt
+rm .rellog/entries/0001.json
+
+cp body_null.json .rellog/entries/0002.json
+! exec rellog check
+cmp stdout body_null.stdout.txt
+cmp stderr body_null.stderr.txt
+rm .rellog/entries/0002.json
+
+cp body_missing.json .rellog/entries/0003.json
+! exec rellog check
+cmp stdout body_missing.stdout.txt
+cmp stderr body_missing.stderr.txt
+
+-- config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- targets_number.json --
+{
+  "kind": "changed",
+  "targets": [1],
+  "links": [],
+  "body": "Invalid targets element"
+}
+-- body_null.json --
+{
+  "kind": "changed",
+  "targets": ["cli"],
+  "links": [],
+  "body": null
+}
+-- body_missing.json --
+{
+  "kind": "changed",
+  "targets": ["cli"],
+  "links": []
+}
+-- targets_number.stdout.txt --
+-- targets_number.stderr.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/0001.json
+  error[entry.targets.invalid]
+    targets must contain only strings.
+-- body_null.stdout.txt --
+-- body_null.stderr.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/0002.json
+  error[entry.body.invalid]
+    body must be a string.
+-- body_missing.stdout.txt --
+-- body_missing.stderr.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/entries/0003.json
+  error[entry.body.missing]
+    missing required metadata: body.

@@ -1,0 +1,36 @@
+exec rellog init
+! stderr .
+mkdir -p .rellog/release-notes/cli
+cp entry.json .rellog/entries/20260626T123456.000000001Z.json
+
+exec rellog prepare cli/v1.0.0 --run
+stdout 'cli/v1\.0\.0 release prepared\n'
+! stderr .
+
+exists .rellog/release-notes/cli/v1.0.0.md
+exists CHANGELOG.md
+! exists .rellog/entries/20260626T123456.000000001Z.json
+exists .rellog/consumed/cli/v1.0.0/manifest.json
+exists .rellog/consumed/cli/v1.0.0/entries
+cmp .rellog/consumed/cli/v1.0.0/manifest.json expected.manifest.json
+cmp .rellog/consumed/cli/v1.0.0/entries/20260626T123456.000000001Z.json entry.json
+
+-- entry.json --
+{
+  "kind": "changed",
+  "targets": [
+    "cli"
+  ],
+  "links": [],
+  "body": "Path separator release id entry"
+}
+-- expected.manifest.json --
+{
+  "schemaVersion": 1,
+  "releaseId": "cli/v1.0.0",
+  "entries": [
+    {
+      "filename": "20260626T123456.000000001Z.json"
+    }
+  ]
+}

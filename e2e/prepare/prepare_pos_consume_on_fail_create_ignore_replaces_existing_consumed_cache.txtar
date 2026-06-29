@@ -1,0 +1,79 @@
+exec rellog init
+! stderr .
+cp entry.json .rellog/entries/20260626T123456.000000001Z.json
+mv config.kdl .rellog/config.kdl
+mkdir -p .rellog/consumed/v1.0.0/entries
+cp stale-entry.json .rellog/consumed/v1.0.0/entries/stale.json
+cp stale-manifest.json .rellog/consumed/v1.0.0/manifest.json
+
+exec rellog prepare v1.0.0 --run
+stdout 'v1\.0\.0 release prepared\n'
+! stderr .
+
+exists .rellog/release-notes/v1.0.0.md
+exists CHANGELOG.md
+! exists .rellog/entries/20260626T123456.000000001Z.json
+! exists .rellog/consumed/v1.0.0/entries/stale.json
+cmp .rellog/consumed/v1.0.0/manifest.json expected.manifest.json
+cmp .rellog/consumed/v1.0.0/entries/20260626T123456.000000001Z.json entry.json
+
+-- config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+
+  consume {
+    on-fail-create "ignore"
+  }
+}
+-- entry.json --
+{
+  "kind": "changed",
+  "targets": [
+    "cli"
+  ],
+  "links": [],
+  "body": "Fresh consumed entry"
+}
+-- stale-entry.json --
+{
+  "kind": "changed",
+  "targets": [
+    "old"
+  ],
+  "links": [],
+  "body": "Stale consumed entry"
+}
+-- stale-manifest.json --
+{
+  "schemaVersion": 1,
+  "releaseId": "v1.0.0",
+  "entries": [
+    {
+      "filename": "stale.json"
+    }
+  ]
+}
+-- expected.manifest.json --
+{
+  "schemaVersion": 1,
+  "releaseId": "v1.0.0",
+  "entries": [
+    {
+      "filename": "20260626T123456.000000001Z.json"
+    }
+  ]
+}
