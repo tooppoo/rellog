@@ -122,7 +122,7 @@ func prepareRelease(opts prepareOptions) error {
 	var tempCacheDir string
 	defer func() {
 		if tempCacheDir != "" {
-			os.RemoveAll(tempCacheDir)
+			_ = os.RemoveAll(tempCacheDir)
 		}
 	}()
 
@@ -146,7 +146,7 @@ func prepareRelease(opts prepareOptions) error {
 			// Preflight: detect any filesystem obstacle before writing release artifacts.
 			// (1) finalDir itself already exists.
 			if _, statErr := os.Stat(finalDir); statErr == nil {
-				os.RemoveAll(builtDir)
+				_ = os.RemoveAll(builtDir)
 				return fmt.Errorf("%s already exists", finalDir)
 			}
 			// (2) A path component of the parent is a file, not a directory (e.g.
@@ -154,7 +154,7 @@ func prepareRelease(opts prepareOptions) error {
 			//     Attempt to create the parent now so that the failure is caught here
 			//     rather than in the commit closure after artifacts are written.
 			if mkErr := os.MkdirAll(filepath.Dir(finalDir), 0755); mkErr != nil {
-				os.RemoveAll(builtDir)
+				_ = os.RemoveAll(builtDir)
 				return mkErr
 			}
 		}
@@ -244,7 +244,7 @@ func buildConsumedCacheTemp(releaseID string, entryFiles []entryFile) (string, e
 
 	entriesSubDir := filepath.Join(tempDir, "entries")
 	if err := os.Mkdir(entriesSubDir, 0755); err != nil {
-		os.RemoveAll(tempDir)
+		_ = os.RemoveAll(tempDir)
 		return "", err
 	}
 
@@ -257,11 +257,11 @@ func buildConsumedCacheTemp(releaseID string, entryFiles []entryFile) (string, e
 	for _, ef := range entryFiles {
 		data, err := os.ReadFile(ef.path)
 		if err != nil {
-			os.RemoveAll(tempDir)
+			_ = os.RemoveAll(tempDir)
 			return "", err
 		}
 		if err := os.WriteFile(filepath.Join(entriesSubDir, ef.name), data, 0644); err != nil {
-			os.RemoveAll(tempDir)
+			_ = os.RemoveAll(tempDir)
 			return "", err
 		}
 		manifest.Entries = append(manifest.Entries, consumedManifestEntry{Filename: ef.name})
@@ -269,18 +269,18 @@ func buildConsumedCacheTemp(releaseID string, entryFiles []entryFile) (string, e
 
 	manifestData, err := json.MarshalIndent(manifest, "", "  ")
 	if err != nil {
-		os.RemoveAll(tempDir)
+		_ = os.RemoveAll(tempDir)
 		return "", err
 	}
 	manifestData = append(manifestData, '\n')
 
 	if err := os.WriteFile(filepath.Join(tempDir, "manifest.json"), manifestData, 0644); err != nil {
-		os.RemoveAll(tempDir)
+		_ = os.RemoveAll(tempDir)
 		return "", err
 	}
 
 	if err := validateConsumedCacheDir(tempDir, releaseID); err != nil {
-		os.RemoveAll(tempDir)
+		_ = os.RemoveAll(tempDir)
 		return "", err
 	}
 
@@ -376,11 +376,11 @@ func writeFileAtomic(dst string, data []byte, perm os.FileMode) error {
 	ok := false
 	defer func() {
 		if !ok {
-			os.Remove(tmpPath)
+			_ = os.Remove(tmpPath)
 		}
 	}()
 	if _, err := tmp.Write(data); err != nil {
-		tmp.Close()
+		_ = tmp.Close()
 		return err
 	}
 	if err := tmp.Close(); err != nil {
