@@ -1,0 +1,54 @@
+exec rellog init
+! stderr .
+mkdir -p .rellog/release-notes/cli
+cp entry.json .rellog/entries/20260626T123456.000000001Z.json
+mv config.kdl .rellog/config.kdl
+mkdir -p .rellog/consumed
+exec touch .rellog/consumed/cli
+
+! exec rellog prepare cli/v1.0.0 --run
+! stdout .
+cmp stderr expected.stderr
+
+! exists .rellog/release-notes/cli/v1.0.0.md
+! exists CHANGELOG.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+exists .rellog/consumed/cli
+! exists .rellog/consumed/cli/v1.0.0/manifest.json
+
+-- config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+  }
+
+  consume {
+    on-fail-create "error"
+  }
+}
+-- entry.json --
+{
+  "kind": "changed",
+  "targets": [
+    "cli"
+  ],
+  "links": [],
+  "body": "Entry for consumed parent-file failure"
+}
+-- expected.stderr --
+mkdir .rellog/consumed/cli: not a directory
+
+.rellog/consumed/cli is not a directory. Remove it first:
+  rm .rellog/consumed/cli

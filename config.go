@@ -313,6 +313,36 @@ var validOnFailCreate = map[string]bool{
 	"ignore": true,
 }
 
+// readConsumeOnFailCreate returns the runtime value of consume.on-fail-create.
+// Defaults to "error" if the node is absent.
+func readConsumeOnFailCreate() (string, error) {
+	data, err := os.ReadFile(configFile())
+	if err != nil {
+		return "", err
+	}
+	doc, err := kdl.Parse(strings.NewReader(string(data)))
+	if err != nil {
+		return "", err
+	}
+	for _, n := range doc.Nodes {
+		if nodeName(n) != "rellog" {
+			continue
+		}
+		for _, child := range n.Children {
+			if nodeName(child) != "consume" {
+				continue
+			}
+			for _, gc := range child.Children {
+				if nodeName(gc) == "on-fail-create" && len(gc.Arguments) > 0 {
+					return gc.Arguments[0].ValueString(), nil
+				}
+			}
+		}
+		break
+	}
+	return "error", nil
+}
+
 func validateConsumeConfig(rellogNode *document.Node) []checkError {
 	var consumeNodes []*document.Node
 	for _, n := range rellogNode.Children {

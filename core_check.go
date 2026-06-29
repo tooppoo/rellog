@@ -17,6 +17,92 @@ type fileCheckResult struct {
 	Errors []checkError
 }
 
+// validateEntrySchema checks that e conforms to the structural entry schema
+// (unknown fields, required fields present, correct types, non-empty body, valid
+// links). It intentionally omits config-based whitelist checks (allowed kinds,
+// known targets) so that it can be used on entries that have already passed the
+// full check suite, such as consumed cache entries.
+func validateEntrySchema(e entry) []checkError {
+	var errs []checkError
+
+	for _, field := range e.unknownFields {
+		errs = append(errs, checkError{
+			"error[entry.unknown_field]",
+			fmt.Sprintf("unknown entry field: %s.\n\nRemove unknown fields from the entry JSON.", field),
+		})
+	}
+
+	if e.Kind == "empty" {
+		// For empty entries, targets, links and body must be present with correct types
+		// and empty values.
+		switch {
+		case !e.targetsPresent:
+			errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: targets."})
+		case e.targetsIsScalar:
+			errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
+		case e.targetsTypeError:
+			errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must contain only strings."})
+		}
+		switch {
+		case !e.linksPresent:
+			errs = append(errs, checkError{"error[entry.links.missing]", "missing required metadata: links."})
+		case e.linksIsScalar:
+			errs = append(errs, checkError{"error[entry.links.invalid]", "links must be an array."})
+		case e.linksTypeError:
+			errs = append(errs, checkError{"error[entry.links.invalid]", "links must contain only strings."})
+		}
+		if !e.bodyPresent {
+			errs = append(errs, checkError{"error[entry.body.missing]", "missing required metadata: body."})
+		} else if e.bodyTypeError {
+			errs = append(errs, checkError{"error[entry.body.invalid]", "body must be a string."})
+		}
+		errs = append(errs, checkEmptyEntryFields(e)...)
+		return errs
+	}
+
+	if e.Kind == "" {
+		errs = append(errs, checkError{"error[entry.kind.missing]", "missing required metadata: kind."})
+	}
+
+	switch {
+	case !e.targetsPresent:
+		errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: targets."})
+	case e.targetsIsScalar:
+		errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
+	case e.targetsTypeError:
+		errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must contain only strings."})
+	}
+
+	if !e.linksPresent {
+		errs = append(errs, checkError{"error[entry.links.missing]", "missing required metadata: links."})
+	} else if e.linksIsScalar {
+		errs = append(errs, checkError{"error[entry.links.invalid]", "links must be an array."})
+	} else if e.linksTypeError {
+		errs = append(errs, checkError{"error[entry.links.invalid]", "links must contain only strings."})
+	} else {
+		for _, link := range e.Links {
+			for _, msg := range validateLink(link) {
+				errs = append(errs, checkError{"error[entry.links.invalid]", msg + "."})
+			}
+		}
+	}
+
+	if !e.bodyPresent {
+		errs = append(errs, checkError{"error[entry.body.missing]", "missing required metadata: body."})
+	} else if e.bodyTypeError {
+		errs = append(errs, checkError{"error[entry.body.invalid]", "body must be a string."})
+	} else if e.Body == "" {
+		errs = append(errs, checkError{"error[entry.body.empty]", "entry body must not be empty."})
+	} else if strings.Contains(e.Body, reservedMarkerPrefix) {
+		errs = append(errs, checkError{
+			"error[entry.body.reserved_marker]",
+			"entry body must not contain rellog reserved marker comments.\n\nRemove comments beginning with `<!-- rellog:` from the entry body.",
+		})
+	}
+
+	return errs
+}
+
 func checkEmptyEntryFields(e entry) []checkError {
 	var errs []checkError
 	if len(e.Targets) > 0 {
@@ -215,6 +301,8 @@ func checkRepository() ([]fileCheckResult, int, error) {
 						errs = append(errs, checkError{"error[entry.targets.missing]", "missing required metadata: targets."})
 					case e.targetsIsScalar:
 						errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
+					case e.targetsTypeError:
+						errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must contain only strings."})
 					default:
 						if configOK && entryConfig.targetPolicy != "allow-unknown" {
 							for _, target := range e.Targets {
@@ -247,7 +335,11 @@ func checkRepository() ([]fileCheckResult, int, error) {
 						}
 					}
 
-					if e.Body == "" {
+					if !e.bodyPresent {
+						errs = append(errs, checkError{"error[entry.body.missing]", "missing required metadata: body."})
+					} else if e.bodyTypeError {
+						errs = append(errs, checkError{"error[entry.body.invalid]", "body must be a string."})
+					} else if e.Body == "" {
 						errs = append(errs, checkError{"error[entry.body.empty]", "entry body must not be empty."})
 					} else if strings.Contains(e.Body, reservedMarkerPrefix) {
 						errs = append(errs, checkError{

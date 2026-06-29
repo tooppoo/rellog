@@ -1,0 +1,28 @@
+exec rellog init
+! stderr .
+cp entry.json .rellog/entries/20260626T123456.000000001Z.json
+
+! exec rellog prepare cli/v1.0.0 --run
+! stdout .
+cmp stderr expected.stderr
+
+! exists .rellog/release-notes/cli/v1.0.0.md
+! exists CHANGELOG.md
+exists .rellog/entries/20260626T123456.000000001Z.json
+! exists .rellog/consumed/cli/v1.0.0/manifest.json
+! exists .rellog/consumed/cli/v1.0.0
+
+-- entry.json --
+{
+  "kind": "changed",
+  "targets": [
+    "cli"
+  ],
+  "links": [],
+  "body": "Entry for artifact failure"
+}
+-- expected.stderr --
+cannot write release note: .rellog/release-notes/cli: no such directory
+
+Create the parent directory:
+  mkdir -p .rellog/release-notes/cli
