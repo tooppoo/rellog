@@ -18,9 +18,12 @@ type entry struct {
 	// Parsing diagnostics for validation
 	targetsPresent  bool
 	targetsIsScalar bool
+	targetsTypeError bool
 	linksPresent    bool
 	linksIsScalar   bool
 	linksTypeError  bool
+	bodyPresent     bool
+	bodyTypeError   bool
 	unknownFields   []string
 }
 
@@ -80,13 +83,25 @@ func parseEntryJSON(data []byte) (entry, error) {
 	}
 
 	if bodyRaw, ok := raw["body"]; ok {
-		json.Unmarshal(bodyRaw, &e.Body) //nolint
+		e.bodyPresent = true
+		// json.Unmarshal silently no-ops when unmarshalling null into a non-pointer
+		// string, returning nil error while Body stays "". Guard with a token-type
+		// check so that null (and any other non-string value) sets bodyTypeError.
+		if len(bodyRaw) > 0 && bodyRaw[0] == '"' {
+			if err := json.Unmarshal(bodyRaw, &e.Body); err != nil {
+				e.bodyTypeError = true
+			}
+		} else {
+			e.bodyTypeError = true
+		}
 	}
 
 	if targetsRaw, ok := raw["targets"]; ok {
 		e.targetsPresent = true
 		if len(targetsRaw) > 0 && targetsRaw[0] == '[' {
-			json.Unmarshal(targetsRaw, &e.Targets) //nolint
+			if err := json.Unmarshal(targetsRaw, &e.Targets); err != nil {
+				e.targetsTypeError = true
+			}
 		} else {
 			e.targetsIsScalar = true
 		}
