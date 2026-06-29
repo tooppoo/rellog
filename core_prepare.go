@@ -21,7 +21,7 @@ type entryFile struct {
 
 func prepareRelease(opts prepareOptions) error {
 	if err := validateReadyReleaseID(opts.Version); err != nil {
-		return &exitError{ExitCheckFailed, fmt.Sprintf("invalid release id: %q", opts.Version)}
+		return err
 	}
 
 	checkResults, totalEntries, err := checkRepository()
