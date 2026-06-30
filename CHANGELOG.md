@@ -1,5 +1,15 @@
+# CHANGELOG
+
 ## v0.0.1
 
 ### added
 
-- First Release
+#### Details
+
+<!-- rellog:body:start -->
+First Release
+<!-- rellog:body:end -->
+
+#### Targets
+
+- cli

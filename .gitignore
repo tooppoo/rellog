@@ -1,5 +1,6 @@
 
 bin/
+tmp/
 
 # license
 third_party_licenses/
@@ -8,4 +9,5 @@ third_party_licenses/
 coverage.out
 coverage.out.tmp
 
-tmp/
+# rellog
+.rellog/consumed
