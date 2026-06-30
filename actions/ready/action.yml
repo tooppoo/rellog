@@ -1,0 +1,204 @@
+name: rellog ready
+description: Install rellog from this action repository and run rellog ready for a release id.
+
+inputs:
+  release-id:
+    required: true
+    description: Release id to check.
+  version:
+    required: false
+    description: rellog CLI version to install from GitHub Releases.
+  working-directory:
+    required: false
+    default: "."
+    description: Directory, relative to github.workspace, where rellog ready runs.
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve rellog version
+      id: version
+      shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        ACTION_REF: ${{ github.action_ref }}
+      run: |
+        set -euo pipefail
+
+        version="${INPUT_VERSION}"
+        if [[ -z "${version}" ]]; then
+          if [[ "${ACTION_REF}" =~ ^v[0-9]+(\.[0-9]+){2}([-+][0-9A-Za-z.-]+)?$ ]]; then
+            version="${ACTION_REF}"
+          else
+            {
+              echo "Unable to resolve the rellog CLI version from the action ref '${ACTION_REF}'."
+              echo "Use this action by a version tag such as v0.1.0, or set the 'version' input explicitly."
+            } >&2
+            exit 1
+          fi
+        fi
+
+        release_tag="${version#refs/tags/}"
+        if [[ ! "${release_tag}" =~ ^v[0-9]+(\.[0-9]+){2}([-+][0-9A-Za-z.-]+)?$ ]]; then
+          echo "Invalid rellog CLI version '${version}'. Set 'version' to a concrete version tag such as v0.1.0." >&2
+          exit 1
+        fi
+
+        archive_version="${release_tag#v}"
+        if [[ -z "${release_tag}" || -z "${archive_version}" || "${release_tag}" == "latest" ]]; then
+          echo "Invalid rellog CLI version '${version}'. Set 'version' to a concrete GitHub Release tag such as v0.1.0." >&2
+          exit 1
+        fi
+
+        {
+          echo "release_tag=${release_tag}"
+          echo "archive_version=${archive_version}"
+        } >> "${GITHUB_OUTPUT}"
+
+    - name: Select release asset
+      id: asset
+      shell: bash
+      env:
+        RUNNER_OS_NAME: ${{ runner.os }}
+        RUNNER_ARCH_NAME: ${{ runner.arch }}
+        ARCHIVE_VERSION: ${{ steps.version.outputs.archive_version }}
+      run: |
+        set -euo pipefail
+
+        case "${RUNNER_OS_NAME}/${RUNNER_ARCH_NAME}" in
+          Linux/X64) suffix="Linux_x86_64.tar.gz"; executable="rellog" ;;
+          Linux/ARM64) suffix="Linux_arm64.tar.gz"; executable="rellog" ;;
+          macOS/X64) suffix="Darwin_x86_64.tar.gz"; executable="rellog" ;;
+          macOS/ARM64) suffix="Darwin_arm64.tar.gz"; executable="rellog" ;;
+          Windows/X64) suffix="Windows_x86_64.zip"; executable="rellog.exe" ;;
+          Windows/ARM64) suffix="Windows_arm64.zip"; executable="rellog.exe" ;;
+          *)
+            echo "Unsupported runner platform: runner.os='${RUNNER_OS_NAME}', runner.arch='${RUNNER_ARCH_NAME}'." >&2
+            exit 1
+            ;;
+        esac
+
+        archive="rellog_v${ARCHIVE_VERSION}_${suffix}"
+        {
+          echo "archive=${archive}"
+          echo "executable=${executable}"
+        } >> "${GITHUB_OUTPUT}"
+
+    - name: Install rellog
+      id: install
+      shell: bash
+      env:
+        ACTION_REPOSITORY: ${{ github.action_repository }}
+        RELEASE_TAG: ${{ steps.version.outputs.release_tag }}
+        ARCHIVE_NAME: ${{ steps.asset.outputs.archive }}
+        EXECUTABLE_NAME: ${{ steps.asset.outputs.executable }}
+        RUNNER_OS_NAME: ${{ runner.os }}
+      run: |
+        set -euo pipefail
+
+        install_root="${RUNNER_TEMP}/rellog-ready-action"
+        download_dir="${install_root}/download"
+        extract_dir="${install_root}/extract"
+        bin_dir="${install_root}/bin"
+        rm -rf "${install_root}"
+        mkdir -p "${download_dir}" "${extract_dir}" "${bin_dir}"
+
+        archive_path="${download_dir}/${ARCHIVE_NAME}"
+        checksums_path="${download_dir}/checksums.txt"
+        release_url="https://github.com/${ACTION_REPOSITORY}/releases/download/${RELEASE_TAG}"
+
+        curl -fsSL "${release_url}/${ARCHIVE_NAME}" -o "${archive_path}"
+        curl -fsSL "${release_url}/checksums.txt" -o "${checksums_path}"
+
+        expected_sha="$(
+          awk -v asset="${ARCHIVE_NAME}" '
+            /^[[:space:]]*$/ { next }
+            NF != 2 || $1 !~ /^[0-9a-fA-F]{64}$/ { bad = 1; next }
+            $2 == asset { print tolower($1); found++ }
+            END {
+              if (bad || found != 1) {
+                exit 1
+              }
+            }
+          ' "${checksums_path}"
+        )" || {
+          echo "checksums.txt is missing, malformed, or does not contain exactly one checksum for ${ARCHIVE_NAME}." >&2
+          exit 1
+        }
+
+        if command -v sha256sum >/dev/null 2>&1; then
+          actual_sha="$(sha256sum "${archive_path}" | awk '{ print tolower($1) }')"
+        elif command -v shasum >/dev/null 2>&1; then
+          actual_sha="$(shasum -a 256 "${archive_path}" | awk '{ print tolower($1) }')"
+        else
+          echo "No SHA-256 checksum tool found. Expected sha256sum or shasum." >&2
+          exit 1
+        fi
+        if [[ "${actual_sha}" != "${expected_sha}" ]]; then
+          echo "Checksum verification failed for ${ARCHIVE_NAME}." >&2
+          exit 1
+        fi
+
+        if [[ "${RUNNER_OS_NAME}" == "Windows" ]]; then
+          win_archive_path="$(cygpath -w "${archive_path}")"
+          win_extract_dir="$(cygpath -w "${extract_dir}")"
+          POWERSHELL_ARCHIVE_PATH="${win_archive_path}" \
+            POWERSHELL_EXTRACT_DIR="${win_extract_dir}" \
+            powershell -NoProfile -Command 'Expand-Archive -LiteralPath $env:POWERSHELL_ARCHIVE_PATH -DestinationPath $env:POWERSHELL_EXTRACT_DIR -Force'
+        else
+          tar -xzf "${archive_path}" -C "${extract_dir}"
+        fi
+
+        rellog_path="$(find "${extract_dir}" -type f -name "${EXECUTABLE_NAME}" -print -quit)"
+        if [[ -z "${rellog_path}" ]]; then
+          echo "Archive ${ARCHIVE_NAME} did not contain ${EXECUTABLE_NAME}." >&2
+          exit 1
+        fi
+
+        cp "${rellog_path}" "${bin_dir}/${EXECUTABLE_NAME}"
+        if [[ "${RUNNER_OS_NAME}" != "Windows" ]]; then
+          chmod 0755 "${bin_dir}/${EXECUTABLE_NAME}"
+        fi
+
+        echo "${bin_dir}" >> "${GITHUB_PATH}"
+        echo "path=${bin_dir}/${EXECUTABLE_NAME}" >> "${GITHUB_OUTPUT}"
+
+    - name: Validate working directory
+      id: workdir
+      shell: bash
+      env:
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+      run: |
+        set -euo pipefail
+
+        if [[ "${INPUT_WORKING_DIRECTORY}" = /* || "${INPUT_WORKING_DIRECTORY}" =~ ^[A-Za-z]:[\\/] ]]; then
+          echo "working-directory must be relative to github.workspace." >&2
+          exit 1
+        fi
+
+        workspace="$(cd "${GITHUB_WORKSPACE}" && pwd -P)"
+        if ! resolved="$(cd "${workspace}/${INPUT_WORKING_DIRECTORY}" 2>/dev/null && pwd -P)"; then
+          echo "working-directory does not exist or is not a directory: ${INPUT_WORKING_DIRECTORY}" >&2
+          exit 1
+        fi
+
+        case "${resolved}" in
+          "${workspace}" | "${workspace}"/*) ;;
+          *)
+            echo "working-directory must resolve inside github.workspace: ${INPUT_WORKING_DIRECTORY}" >&2
+            exit 1
+            ;;
+        esac
+
+        echo "path=${resolved}" >> "${GITHUB_OUTPUT}"
+
+    - name: Run rellog ready
+      shell: bash
+      env:
+        RELEASE_ID: ${{ inputs.release-id }}
+        WORKING_DIRECTORY: ${{ steps.workdir.outputs.path }}
+      run: |
+        set -euo pipefail
+
+        cd "${WORKING_DIRECTORY}"
+        rellog ready "${RELEASE_ID}"
