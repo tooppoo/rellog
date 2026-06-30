@@ -88,6 +88,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 - [Philosophy](docs/philosophy.md)
 - [Files](docs/files.md)
+- [Ignore policy](docs/ignore-policy.md)
 - [Generated release notes](docs/release-notes.md)
 - [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)

@@ -2,7 +2,7 @@
 
 This document describes the project files and directories managed by `rellog`.
 
-For the release workflow, see [workflow.md](workflow.md). For command behavior, see [commands.md](commands.md). For generated release-note structure, see [release-notes.md](release-notes.md).
+For the release workflow, see [workflow.md](workflow.md). For command behavior, see [commands.md](commands.md). For generated release-note structure, see [release-notes.md](release-notes.md). For commit and ignore guidance, see [ignore-policy.md](ignore-policy.md).
 
 ## Project layout
 
@@ -185,6 +185,8 @@ Release-note files and `CHANGELOG.md` must end with a trailing newline.
 `.rellog/consumed/` stores consumed cache data created by `rellog prepare <release-id> --run`.
 
 Consumed data is not the source of truth for release readiness. It is a cache for later commands that need to reconstruct the exact entry set used to prepare a release.
+
+Projects may ignore `.rellog/consumed/` when they do not need to commit this cache. See [ignore-policy.md](ignore-policy.md).
 
 The v0 layout is:
 
