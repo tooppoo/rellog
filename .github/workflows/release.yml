@@ -35,11 +35,14 @@ jobs:
       - name: Save licenses
         run: just license-save
 
+      - name: create VERSION file
+        run: echo ${{ github.ref_name }} > VERSION
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7
         with:
           distribution: goreleaser
           version-file: .tool-versions
-          args: release --clean --release-notes .rellog/release-notes/${{ github.ref_name }}.md
+          args: release --clean --release-notes=.rellog/release-notes/${{ github.ref_name }}.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

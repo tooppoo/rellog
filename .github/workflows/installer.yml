@@ -1,0 +1,47 @@
+name: Installer
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  checksum-logic:
+    name: Checksum verification logic
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run installer unit tests
+        run: sh scripts/test/checksum.sh
+
+  smoke-linux:
+    strategy:
+      matrix:
+        runner:
+          - ubuntu-latest
+          - macos-latest
+    name: Smoke test (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install rellog
+        run: |
+          sh install.sh --version v0.0.2 --install-dir "$HOME/.local/bin"
+
+      - name: Verify binary is in install dir
+        run: test -x "$HOME/.local/bin/rellog"
+
+      - name: Verify rellog responds to -h
+        run: |
+          "$HOME/.local/bin/rellog" -h
+
+      - name: Install to custom dir
+        run: |
+          sh install.sh --version v0.0.2 --install-dir /tmp/rellog-custom-bin
+          test -x /tmp/rellog-custom-bin/rellog

@@ -30,6 +30,7 @@ archives:
     files:
       - README.md
       - LICENSE
+      - VERSION
       - third_party_licenses/**/*
 
 checksum:
