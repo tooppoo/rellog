@@ -11,3 +11,6 @@ coverage.out.tmp
 
 # rellog
 .rellog/consumed
+
+# tmp file in release
+VERSION
