@@ -43,6 +43,7 @@ jobs:
         run: |
           sh install.sh --version v0.0.2 --install-dir /tmp/rellog-custom-bin
           test -x /tmp/rellog-custom-bin/rellog
+
   smoke-with-latest:
     strategy:
       matrix:
