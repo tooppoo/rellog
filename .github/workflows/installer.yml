@@ -37,7 +37,8 @@ jobs:
         run: test -x "$HOME/.local/bin/rellog"
 
       - name: Verify rellog responds to -h
-        run: "$HOME/.local/bin/rellog" -h
+        run: |
+          "$HOME/.local/bin/rellog" -h
 
       - name: Install to custom dir
         run: |
@@ -62,7 +63,8 @@ jobs:
         run: test -x "$HOME/.local/bin/rellog"
 
       - name: Verify rellog responds to -h
-        run: "$HOME/.local/bin/rellog" -h
+        run: |
+          "$HOME/.local/bin/rellog" -h
 
       - name: Install to custom dir
         run: |
