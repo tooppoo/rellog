@@ -10,10 +10,10 @@
       "resolved": "ghcr.io/devcontainers/features/go@sha256:d85e921f91b41340055bb12b325d9d551170ed04b3b832e33530bf42f167c032",
       "integrity": "sha256:d85e921f91b41340055bb12b325d9d551170ed04b3b832e33530bf42f167c032"
     },
-    "ghcr.io/tooppoo/devcontainer-features/git-kura:0": {
-      "version": "0.1.0",
-      "resolved": "ghcr.io/tooppoo/devcontainer-features/git-kura@sha256:af21f06d4748a3ba510e176a6a618f3d3ab3b43605d396691beff98781e38d66",
-      "integrity": "sha256:af21f06d4748a3ba510e176a6a618f3d3ab3b43605d396691beff98781e38d66"
+    "ghcr.io/tooppoo/catalog-devcontainer-features/git-kura:0": {
+      "version": "0.1.1",
+      "resolved": "ghcr.io/tooppoo/catalog-devcontainer-features/git-kura@sha256:ca0f31cfed12be0ef488b16a1430255c668df1ffd78a8514d5a49cc4ada4a1e5",
+      "integrity": "sha256:ca0f31cfed12be0ef488b16a1430255c668df1ffd78a8514d5a49cc4ada4a1e5"
     }
   }
 }
