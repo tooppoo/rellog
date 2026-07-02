@@ -214,10 +214,12 @@ read_version_file() {
   url=$1
   content=$(curl -fsSL "$url" && printf x) || fail "failed to resolve latest version from $url"
   content=${content%x}
-  case "$content" in
-    *"$CR$LF") content=${content%"$CR$LF"} ;;
-    *"$LF") content=${content%"$LF"} ;;
-  esac
+  while true; do
+    case "$content" in
+      *[[:space:]]) content=${content%?} ;;
+      *) break ;;
+    esac
+  done
   [ -n "$content" ] || fail "VERSION file is empty"
   case "$content" in
     *"$CR"*|*"$LF"*) fail "VERSION file must contain a single line" ;;
@@ -281,15 +283,15 @@ detect_target() {
 
   case "$arch" in
     x86_64|amd64) arch=x86_64 ;;
-    arm64|aarch64) arch=aarch64 ;;
+    arm64|aarch64) arch=arm64 ;;
     *) fail "unsupported architecture: $arch" ;;
   esac
 
   case "$os/$arch" in
     linux/x86_64) ;;
-    linux/aarch64) ;;
+    linux/arm64) ;;
     darwin/x86_64) ;;
-    darwin/aarch64) ;;
+    darwin/arm64) ;;
     *) fail "unsupported target: $os/$arch" ;;
   esac
 
