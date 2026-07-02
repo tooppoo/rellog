@@ -43,6 +43,6 @@ jobs:
         with:
           distribution: goreleaser
           version-file: .tool-versions
-          args: release --clean --release-notes=.rellog/release-notes/${{ github.ref_name }}.md
+          args: release --release-notes=.rellog/release-notes/${{ github.ref_name }}.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

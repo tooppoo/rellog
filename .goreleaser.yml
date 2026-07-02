@@ -30,8 +30,11 @@ archives:
     files:
       - README.md
       - LICENSE
-      - VERSION
       - third_party_licenses/**/*
+
+release:
+  extra_files:
+    - glob: VERSION
 
 checksum:
   name_template: checksums.txt
