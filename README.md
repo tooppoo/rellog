@@ -93,6 +93,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 - [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)
 - [Configuration](docs/configuration.md)
+- [GitHub Action](docs/actions-ready.md)
 
 ## Project status
 
