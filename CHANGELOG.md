@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v0.0.3
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+update release workflow
+<!-- rellog:body:end -->
+
+#### Targets
+
+- cli
+
 ## v0.0.1
 
 ### added
