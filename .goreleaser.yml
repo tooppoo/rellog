@@ -45,9 +45,6 @@ checksum:
 snapshot:
   version_template: '{{ .Version }}-snapshot'
 
-changelog:
-  disable: true
-
 sboms:
   - id: rellog
     artifacts: archive
