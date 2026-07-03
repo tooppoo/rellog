@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
       - uses: extractions/setup-just@v4
 
-      - uses: tooppoo/rellog/actions/ready@v0.0.4
+      - uses: tooppoo/rellog/actions/ready@v0.0.5
         with:
           release-id: ${{ github.ref_name }}
 
