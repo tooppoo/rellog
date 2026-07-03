@@ -20,6 +20,7 @@ rellog config-version=1 {
       target "core"
       target "e2e"
       target "docs"
+      target "actions"
     }
   }
 }
