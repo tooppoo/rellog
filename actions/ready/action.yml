@@ -4,7 +4,7 @@ description: Install rellog from this action repository and run rellog ready for
 inputs:
   release-id:
     required: true
-    description: Release id to check.
+    description: Release id to check. (i.e. v1.0.0)
   version:
     required: false
     description: rellog CLI version to install from GitHub Releases.
