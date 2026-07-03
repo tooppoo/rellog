@@ -21,7 +21,7 @@ repository's `.rellog/` directory and `CHANGELOG.md`.
 ```yaml
 - uses: actions/checkout@v7
 
-- uses: tooppoo/rellog/actions/ready@v0.1.0
+- uses: tooppoo/rellog/actions/ready@v0.0.4
   with:
     release-id: v1.2.0
 ```
@@ -32,7 +32,7 @@ If the action is not referenced by a version tag, set the CLI version explicitly
 - uses: tooppoo/rellog/actions/ready@main
   with:
     release-id: v1.2.0
-    version: v0.1.0
+    version: v0.0.4
 ```
 
 ## Inputs
