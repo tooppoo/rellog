@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## v0.0.4
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+resolve version via ldflags
+<!-- rellog:body:end -->
+
+#### Targets
+
+- cli
+
 ## v0.0.3
 
 ### changed
