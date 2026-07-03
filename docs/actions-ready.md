@@ -1,8 +1,9 @@
 # rellog ready GitHub Action
 
-`tooppoo/rellog/actions/ready` installs the `rellog` CLI from this action
-repository's GitHub Releases, verifies the downloaded archive against the same
-release's `checksums.txt`, and runs:
+`tooppoo/rellog/actions/ready` installs the `rellog` CLI by running the
+repository's [`install.sh`](../install.sh) with the resolved version, which
+downloads the release archive, verifies it against the same release's
+`checksums.txt`, and extracts the binary. It then runs:
 
 ```sh
 rellog ready <release-id>
@@ -51,45 +52,37 @@ version tag such as `v0.1.0`. The action never falls back to `latest`. If the CL
 version cannot be resolved, the action fails and asks the caller to set
 `version`.
 
-The release tag resolves the GitHub Release. The archive name follows the
-repository's GoReleaser configuration:
-
-```text
-rellog_v<version>_<Os>_<arch>.tar.gz
-rellog_v<version>_<Os>_<arch>.zip
-checksums.txt
-```
-
-For a release tag such as `v0.1.0`, the archive version segment is `0.1.0`, so
-the Linux x64 archive is `rellog_v0.1.0_Linux_x86_64.tar.gz`.
+The resolved release tag is passed as `install.sh --version <tag>`, which
+resolves the platform archive, downloads it from the matching GitHub Release,
+and verifies it against that release's `checksums.txt`.
 
 ## Supported runners
 
-| `runner.os` | `runner.arch` | Asset suffix |
-| --- | --- | --- |
-| `Linux` | `X64` | `Linux_x86_64.tar.gz` |
-| `Linux` | `ARM64` | `Linux_arm64.tar.gz` |
-| `macOS` | `X64` | `Darwin_x86_64.tar.gz` |
-| `macOS` | `ARM64` | `Darwin_arm64.tar.gz` |
-| `Windows` | `X64` | `Windows_x86_64.zip` |
-| `Windows` | `ARM64` | `Windows_arm64.zip` |
+The action supports the same platforms as [`install.sh`](../install.sh):
 
-Other runner OS or architecture combinations fail before any archive download.
+| `runner.os` | `runner.arch` |
+| --- | --- |
+| `Linux` | `X64` |
+| `Linux` | `ARM64` |
+| `macOS` | `X64` |
+| `macOS` | `ARM64` |
+
+`Windows` runners are not supported. Other runner OS or architecture
+combinations fail before any archive download.
 
 ## Failure behavior
 
 The action fails before running `rellog ready` when:
 
 - `version` is omitted and the action ref is not a version tag;
-- the selected GitHub Release does not exist;
-- the platform archive asset does not exist;
-- the runner OS or architecture is unsupported;
-- archive download fails;
-- `checksums.txt` is missing, unreadable, malformed, missing the selected
-  archive, or has more than one entry for the selected archive;
-- the archive checksum does not match `checksums.txt`;
-- archive extraction fails;
-- the archive does not contain `rellog` or `rellog.exe`;
+- `install.sh` fails to install the resolved version, for example because:
+  - the selected GitHub Release or platform archive does not exist;
+  - the runner OS or architecture is unsupported;
+  - archive download fails;
+  - `checksums.txt` is missing, unreadable, malformed, missing the selected
+    archive, or has more than one entry for the selected archive;
+  - the archive checksum does not match `checksums.txt`;
+  - archive extraction fails;
 - `working-directory` is absolute, resolves outside `github.workspace`, does not
   exist, or is not a directory.
 
