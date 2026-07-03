@@ -12,6 +12,12 @@ Git log is not a release log.
 
 It is inspired by the [changesets](https://github.com/changesets/changesets) workflow, but it is not compatible with `changesets` and does not manage versions. Its scope is limited to collecting explicit changelog entries, preparing plain Markdown release-note files, and updating `CHANGELOG.md`.
 
+## Quick Start
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/tooppoo/rellog/refs/heads/main/install.sh | sh
+```
+
 ## Position
 
 `rellog` is based on a small distinction: Git history records how work happened, while changelogs and release notes explain what changed.
@@ -86,14 +92,14 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 ## Documentation
 
-- [Philosophy](docs/philosophy.md)
-- [Files](docs/files.md)
-- [Ignore policy](docs/ignore-policy.md)
-- [Generated release notes](docs/release-notes.md)
-- [Workflow](docs/workflow.md)
 - [Commands](docs/commands.md)
 - [Configuration](docs/configuration.md)
 - [GitHub Action](docs/actions-ready.md)
+- [Workflow](docs/workflow.md)
+- [Git Ignore policy](docs/ignore-policy.md)
+- [Files](docs/files.md)
+- [Generated release notes](docs/release-notes.md)
+- [Philosophy](docs/philosophy.md)
 
 ## Project status
 
