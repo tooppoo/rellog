@@ -8,7 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const appVersion = "0.0.1"
+// resolve the version from ldflags
+var version = "0.0.1"
 
 func Main() {
 	var showVersion bool
@@ -20,7 +21,7 @@ func Main() {
 		SilenceErrors: true,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if showVersion {
-				fmt.Printf("rellog v%s\n", appVersion)
+				fmt.Printf("rellog v%s\n", version)
 				return nil
 			}
 			return cmd.Help()
