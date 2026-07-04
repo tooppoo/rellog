@@ -28,46 +28,45 @@ v0 rendering is fixed.
 
 Normal entries render under their kind section in filename order.
 
-Each normal entry emits `#### Details`.
-
-The entry `body` is emitted between body marker comments:
+A kind section emits exactly one `#### Details` heading, holding one marker-delimited body block per contributing entry, in filename order:
 
 ```md
 #### Details
+
+<!-- rellog:body:start -->
+Added a GitHub Action that installs rellog from release archives.
+<!-- rellog:body:end -->
 
 <!-- rellog:body:start -->
 Added validation for pending changelog entries before release preparation.
 <!-- rellog:body:end -->
 ```
 
-The body is raw Markdown pass-through. rellog does not escape, indent, list-wrap, code-block, normalize, or repair it. Body Markdown may affect rendered Markdown appearance.
+Each entry's `body` occupies its own marker pair. The body is raw Markdown pass-through. rellog does not escape, indent, list-wrap, code-block, normalize, or repair it. Body Markdown may affect rendered Markdown appearance.
 
 The marker namespace `<!-- rellog:` is reserved. Entry bodies must not contain comments that start with `<!-- rellog:`. `rellog check` and `rellog prepare` fail when they find one.
 
-If an entry has one or more targets, `#### Targets` is emitted after `#### Details`. If an entry has no targets, `#### Targets` is omitted.
+If any entry in the kind section has one or more targets, `#### Targets` is emitted once, after `#### Details`: the union of every contributing entry's targets, in first-seen order (entries in filename order; within one entry, that entry's own list order), with duplicates removed. If no entry in the kind section has targets, `#### Targets` is omitted.
 
-If an entry has one or more links, `#### Links` is emitted after `#### Details` and `#### Targets`. If an entry has no links, `#### Links` is omitted.
+If any entry has one or more links, `#### Links` is emitted once, after `#### Details` and `#### Targets`, following the same union/first-seen/dedup rule as targets. If no entry has links, `#### Links` is omitted.
 
-Targets and links belong to each entry. They are not aggregated into release-wide sections.
+Targets and links are aggregated per kind section, not per entry: a value that appears on more than one entry within the same kind section is listed only once, at its first occurrence across those entries.
 
-Within one entry, links keep their specified order. Duplicate links within one entry are emitted only at their first occurrence. Links are not deduplicated across different entries.
-
-Normal entries are separated by one blank line.
+Body blocks are separated by one blank line.
 
 ## Entry block boundaries
 
-A normal entry block starts at `#### Details`.
+A kind section holds exactly one `#### Details`, at most one `#### Targets`, and at most one `#### Links`, in that order.
 
-The entry block ends before one of:
+Each entry contributes exactly one marker-delimited body range under `#### Details`.
 
-- the next `#### Details`
+The kind section ends before one of:
+
 - the next kind section heading
 - the next release heading
 - the end of the file
 
-`#### Targets` and `#### Links` belong to the immediately preceding `#### Details`.
-
-Body marker comments define the body range. Headings inside the marker pair are not structural rellog headings. If the body marker pair is malformed, rellog treats the generated Markdown as invalid structure.
+Body marker comments define each body range. Headings inside a marker pair are not structural rellog headings. If a body marker pair is malformed, rellog treats the generated Markdown as invalid structure.
 
 ## Normal release example
 
@@ -82,6 +81,10 @@ Body marker comments define the body range. Headings inside the marker pair are 
 Added validation for pending changelog entries before release preparation.
 <!-- rellog:body:end -->
 
+<!-- rellog:body:start -->
+Added a `--dry-run` flag to preview changes before writing them.
+<!-- rellog:body:end -->
+
 #### Targets
 
 - rellog
@@ -90,6 +93,8 @@ Added validation for pending changelog entries before release preparation.
 
 - https://example.com/design/21
 ```
+
+The two entries above share no target or link, so both entries' values simply appear; a target or link repeated across entries in the same kind section would appear only once.
 
 Generated release notes and changelogs are normally public project output. Links
 are emitted as written, so avoid private URLs unless that exposure is acceptable.

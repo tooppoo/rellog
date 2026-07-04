@@ -40,13 +40,6 @@ v1.0.0 release amended
 Base entry
 <!-- rellog:body:end -->
 
-#### Targets
-
-- rellog
-
-
-#### Details
-
 <!-- rellog:body:start -->
 Changed B (existing kind)
 <!-- rellog:body:end -->
@@ -62,13 +55,6 @@ Changed B (existing kind)
 <!-- rellog:body:start -->
 Fixed A (first-seen new kind)
 <!-- rellog:body:end -->
-
-#### Targets
-
-- rellog
-
-
-#### Details
 
 <!-- rellog:body:start -->
 Fixed D (same new kind, later filename)

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -440,12 +441,104 @@ func TestApplyKindInsertions(t *testing.T) {
 		}
 	})
 
+	t.Run("insert into existing kind section dedupes targets and links against full regenerate", func(t *testing.T) {
+		content := renderReleaseNote("v1.0.0", []entry{
+			{Kind: "changed", Body: "First", Targets: []string{"cli"}, Links: []string{"https://example.com/a"}},
+		}, cfg)
+		plan := []kindInsertion{{title: "changed", entries: []entry{
+			{Kind: "changed", Body: "Second", Targets: []string{"cli", "actions"}, Links: []string{"https://example.com/a", "https://example.com/b"}},
+		}}}
+		got, err := applyKindInsertions(content, plan)
+		if err != nil {
+			t.Fatalf("applyKindInsertions() error = %v", err)
+		}
+		want := renderReleaseNote("v1.0.0", []entry{
+			{Kind: "changed", Body: "First", Targets: []string{"cli"}, Links: []string{"https://example.com/a"}},
+			{Kind: "changed", Body: "Second", Targets: []string{"cli", "actions"}, Links: []string{"https://example.com/a", "https://example.com/b"}},
+		}, cfg)
+		if got != want {
+			t.Errorf("got:\n%q\nwant:\n%q", got, want)
+		}
+		if strings.Count(got, "#### Targets") != 1 {
+			t.Errorf("expected exactly one #### Targets heading, got:\n%s", got)
+		}
+		if strings.Count(got, "#### Links") != 1 {
+			t.Errorf("expected exactly one #### Links heading, got:\n%s", got)
+		}
+	})
+
 	t.Run("malformed marker range is an error", func(t *testing.T) {
 		_, err := applyKindInsertions("## v1.0.0\n\n<!-- rellog:body:start -->\n", nil)
 		if err == nil {
 			t.Fatal("expected error for unterminated body marker")
 		}
 	})
+}
+
+func TestParseKindSectionAggregate(t *testing.T) {
+	inner := renderKindSectionInner(
+		[]string{"First body", "Second body"},
+		[]string{"cli", "actions"},
+		[]string{"https://example.com/a"},
+	)
+	bodies, targets, links, err := parseKindSectionAggregate(inner)
+	if err != nil {
+		t.Fatalf("parseKindSectionAggregate() error = %v", err)
+	}
+	if got, want := bodies, []string{"First body", "Second body"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("bodies = %#v, want %#v", got, want)
+	}
+	if got, want := targets, []string{"cli", "actions"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("targets = %#v, want %#v", got, want)
+	}
+	if got, want := links, []string{"https://example.com/a"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("links = %#v, want %#v", got, want)
+	}
+
+	t.Run("no targets or links", func(t *testing.T) {
+		inner := renderKindSectionInner([]string{"Only body"}, nil, nil)
+		bodies, targets, links, err := parseKindSectionAggregate(inner)
+		if err != nil {
+			t.Fatalf("parseKindSectionAggregate() error = %v", err)
+		}
+		if got, want := bodies, []string{"Only body"}; !reflect.DeepEqual(got, want) {
+			t.Errorf("bodies = %#v, want %#v", got, want)
+		}
+		if len(targets) != 0 || len(links) != 0 {
+			t.Errorf("targets/links = %#v, %#v, want empty", targets, links)
+		}
+	})
+
+	t.Run("unterminated body marker is an error", func(t *testing.T) {
+		_, _, _, err := parseKindSectionAggregate("\n#### Details\n\n<!-- rellog:body:start -->\nBody\n")
+		if err == nil {
+			t.Fatal("expected error for unterminated body marker")
+		}
+	})
+}
+
+// TestRenderKindSectionAggregatesAcrossEntries is a direct regression test for
+// the reported bug: multiple entries in one kind section must not repeat
+// "#### Details" / "#### Targets" once per entry.
+func TestRenderKindSectionAggregatesAcrossEntries(t *testing.T) {
+	rendered := renderKindSection("added", []entry{
+		{Kind: "added", Body: "Added a GitHub Action", Targets: []string{"cli"}, Links: []string{"https://example.com/14"}},
+		{Kind: "added", Body: "support github actions", Targets: []string{"actions"}},
+		{Kind: "added", Body: "support basic functions", Targets: []string{"cli"}},
+	})
+
+	if got, want := strings.Count(rendered, "#### Details"), 1; got != want {
+		t.Errorf("#### Details count = %d, want %d in:\n%s", got, want, rendered)
+	}
+	if got, want := strings.Count(rendered, "#### Targets"), 1; got != want {
+		t.Errorf("#### Targets count = %d, want %d in:\n%s", got, want, rendered)
+	}
+	if got, want := strings.Count(rendered, "#### Links"), 1; got != want {
+		t.Errorf("#### Links count = %d, want %d in:\n%s", got, want, rendered)
+	}
+	if strings.Count(rendered, "- cli") != 1 {
+		t.Errorf("expected target %q to be deduped to one occurrence, got:\n%s", "cli", rendered)
+	}
 }
 
 func TestKindTitle(t *testing.T) {

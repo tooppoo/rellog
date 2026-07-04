@@ -975,11 +975,11 @@ func buildKindInsertionPlan(pendingEntries []entryFile, cfg entryValidationConfi
 }
 
 // applyKindInsertions splices plan into content: entries destined for a kind
-// title that already has a section are inserted at the end of that section's
-// content, replicating the same separator renderReleaseNote already produces
-// for multiple same-kind entries; entries destined for a title with no
-// existing section are appended as brand-new kind sections at the end of
-// content, in first-seen order.
+// title that already has a section are merged into that section's existing
+// aggregated Details/Targets/Links (the section is re-rendered in place, since
+// the aggregated format has no per-entry block left to append to); entries
+// destined for a title with no existing section are appended as brand-new
+// kind sections at the end of content, in first-seen order.
 func applyKindInsertions(content string, plan []kindInsertion) (string, error) {
 	sections, err := parseKindSections(content)
 	if err != nil {
@@ -992,37 +992,103 @@ func applyKindInsertions(content string, plan []kindInsertion) (string, error) {
 		}
 	}
 
-	type existingInsert struct {
-		pos  int
-		text string
+	type existingReplace struct {
+		start, end int
+		text       string
 	}
-	var existingInserts []existingInsert
+	var existingReplaces []existingReplace
 	var newSections strings.Builder
 
 	for _, ins := range plan {
 		if sec, ok := sectionByTitle[ins.title]; ok {
-			var sb strings.Builder
-			for _, e := range ins.entries {
-				sb.WriteString("\n")
-				renderEntryBlock(&sb, e)
+			bodies, targets, links, err := parseKindSectionAggregate(content[sec.start:sec.end])
+			if err != nil {
+				return "", err
 			}
-			existingInserts = append(existingInserts, existingInsert{pos: sec.end, text: sb.String()})
+			for _, e := range ins.entries {
+				bodies = append(bodies, e.Body)
+			}
+			targets = unionValues(targets, ins.entries, func(e entry) []string { return e.Targets })
+			links = unionValues(links, ins.entries, func(e entry) []string { return e.Links })
+			existingReplaces = append(existingReplaces, existingReplace{
+				start: sec.start,
+				end:   sec.end,
+				text:  renderKindSectionInner(bodies, targets, links),
+			})
 		} else {
 			newSections.WriteString(renderKindSection(ins.title, ins.entries))
 		}
 	}
 
-	sort.Slice(existingInserts, func(i, j int) bool { return existingInserts[i].pos < existingInserts[j].pos })
+	sort.Slice(existingReplaces, func(i, j int) bool { return existingReplaces[i].start < existingReplaces[j].start })
 
 	var result strings.Builder
 	last := 0
-	for _, ins := range existingInserts {
-		result.WriteString(content[last:ins.pos])
-		result.WriteString(ins.text)
-		last = ins.pos
+	for _, r := range existingReplaces {
+		result.WriteString(content[last:r.start])
+		result.WriteString(r.text)
+		last = r.end
 	}
 	result.WriteString(content[last:])
 	result.WriteString(newSections.String())
 
 	return result.String(), nil
+}
+
+// parseKindSectionAggregate parses a kind section's inner content (as
+// extracted by parseKindSections, i.e. the same shape renderKindSectionInner
+// produces) back into the entry bodies, targets, and links it was built from,
+// so amend's append mode can merge new entries into an already-aggregated
+// section without the original entry structs.
+func parseKindSectionAggregate(inner string) (bodies, targets, links []string, err error) {
+	const detailsHeading = "#### Details"
+	const targetsHeading = "#### Targets"
+	const linksHeading = "#### Links"
+
+	lines, offsets := splitLinesWithOffsets(inner)
+
+	section := ""
+	inBody := false
+	bodyStartLine := -1
+
+	for i, l := range lines {
+		trimmed := strings.TrimRight(l, "\r")
+		if inBody {
+			if trimmed == bodyMarkerEnd {
+				body := strings.TrimSuffix(inner[offsets[bodyStartLine+1]:offsets[i]], "\n")
+				bodies = append(bodies, body)
+				inBody = false
+				bodyStartLine = -1
+			}
+			continue
+		}
+		switch trimmed {
+		case detailsHeading:
+			section = "details"
+			continue
+		case targetsHeading:
+			section = "targets"
+			continue
+		case linksHeading:
+			section = "links"
+			continue
+		case bodyMarkerStart:
+			inBody = true
+			bodyStartLine = i
+			continue
+		}
+		if strings.HasPrefix(trimmed, "- ") {
+			value := strings.TrimPrefix(trimmed, "- ")
+			switch section {
+			case "targets":
+				targets = append(targets, value)
+			case "links":
+				links = append(links, value)
+			}
+		}
+	}
+	if inBody {
+		return nil, nil, nil, errMarkerUnterminated()
+	}
+	return bodies, targets, links, nil
 }

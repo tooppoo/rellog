@@ -1,0 +1,9 @@
+{
+  "kind": "fixed",
+  "targets": [
+    "core",
+    "docs"
+  ],
+  "links": [],
+  "body": "Aggregate `#### Details`/`#### Targets`/`#### Links` once per kind section instead of repeating them per entry, so a kind section with multiple entries no longer duplicates the same heading and target/link values."
+}

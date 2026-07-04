@@ -157,14 +157,16 @@ func kindTitle(kindID string, cfg entryValidationConfig) string {
 // `amend` to append a brand-new kind section into an existing document, so the
 // output must stay byte-identical to what a full regenerate would produce.
 func renderKindSection(title string, entries []entry) string {
+	bodies := make([]string, len(entries))
+	for i, e := range entries {
+		bodies[i] = e.Body
+	}
+	targets := unionValues(nil, entries, func(e entry) []string { return e.Targets })
+	links := unionValues(nil, entries, func(e entry) []string { return e.Links })
+
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "\n%s %s\n", markdownHeading(sectionHeadingLevel), title)
-	for i, e := range entries {
-		if i > 0 {
-			sb.WriteString("\n")
-		}
-		renderEntryBlock(&sb, e)
-	}
+	sb.WriteString(renderKindSectionInner(bodies, targets, links))
 	return sb.String()
 }
 

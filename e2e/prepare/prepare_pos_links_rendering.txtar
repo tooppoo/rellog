@@ -48,6 +48,10 @@ Raw **Markdown** body
 > body quote
 <!-- rellog:body:end -->
 
+<!-- rellog:body:start -->
+Second body
+<!-- rellog:body:end -->
+
 #### Targets
 
 - rellog
@@ -56,13 +60,6 @@ Raw **Markdown** body
 
 - https://example.com/first
 - https://example.com/second
-
-
-#### Details
-
-<!-- rellog:body:start -->
-Second body
-<!-- rellog:body:end -->
 create .rellog/release-notes/v1.0.0.md
 update CHANGELOG.md
 delete .rellog/entries/20260626T123456.000000001Z.json
@@ -83,6 +80,10 @@ Raw **Markdown** body
 > body quote
 <!-- rellog:body:end -->
 
+<!-- rellog:body:start -->
+Second body
+<!-- rellog:body:end -->
+
 #### Targets
 
 - rellog
@@ -91,13 +92,6 @@ Raw **Markdown** body
 
 - https://example.com/first
 - https://example.com/second
-
-
-#### Details
-
-<!-- rellog:body:start -->
-Second body
-<!-- rellog:body:end -->
 -- expected.changelog.md --
 # CHANGELOG
 
@@ -116,6 +110,10 @@ Raw **Markdown** body
 > body quote
 <!-- rellog:body:end -->
 
+<!-- rellog:body:start -->
+Second body
+<!-- rellog:body:end -->
+
 #### Targets
 
 - rellog
@@ -124,10 +122,3 @@ Raw **Markdown** body
 
 - https://example.com/first
 - https://example.com/second
-
-
-#### Details
-
-<!-- rellog:body:start -->
-Second body
-<!-- rellog:body:end -->
