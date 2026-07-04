@@ -1041,9 +1041,10 @@ func applyKindInsertions(content string, plan []kindInsertion) (string, error) {
 // so amend's append mode can merge new entries into an already-aggregated
 // section without the original entry structs.
 func parseKindSectionAggregate(inner string) (bodies, targets, links []string, err error) {
-	const detailsHeading = "#### Details"
-	const targetsHeading = "#### Targets"
-	const linksHeading = "#### Links"
+	subheading := markdownHeading(entrySubsectionHeadingLevel)
+	detailsHeading := subheading + " Details"
+	targetsHeading := subheading + " Targets"
+	linksHeading := subheading + " Links"
 
 	lines, offsets := splitLinesWithOffsets(inner)
 

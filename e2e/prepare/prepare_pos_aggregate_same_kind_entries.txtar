@@ -1,0 +1,77 @@
+exec rellog init
+! stderr .
+
+# Three entries in the same kind, mirroring a real regression: a kind
+# section with multiple entries must render one #### Details holding every
+# entry's body, and #### Targets/#### Links as the deduped union across
+# entries, not a repeated block per entry.
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind added --target cli --link https://example.com/issues/14 --body 'Added a GitHub Action that installs rellog from release archives.'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind added --target actions --body 'support github actions'
+! stderr .
+exec rellog add --debug-datetime 20260626T123456.000000003Z --kind added --target cli --body 'support basic functions'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+stdout 'v1\.0\.0 release prepared\n'
+! stderr .
+
+cmp .rellog/release-notes/v1.0.0.md expected.release.md
+cmp CHANGELOG.md expected.changelog.md
+
+-- expected.release.md --
+## v1.0.0
+
+### added
+
+#### Details
+
+<!-- rellog:body:start -->
+Added a GitHub Action that installs rellog from release archives.
+<!-- rellog:body:end -->
+
+<!-- rellog:body:start -->
+support github actions
+<!-- rellog:body:end -->
+
+<!-- rellog:body:start -->
+support basic functions
+<!-- rellog:body:end -->
+
+#### Targets
+
+- cli
+- actions
+
+#### Links
+
+- https://example.com/issues/14
+-- expected.changelog.md --
+# CHANGELOG
+
+## v1.0.0
+
+### added
+
+#### Details
+
+<!-- rellog:body:start -->
+Added a GitHub Action that installs rellog from release archives.
+<!-- rellog:body:end -->
+
+<!-- rellog:body:start -->
+support github actions
+<!-- rellog:body:end -->
+
+<!-- rellog:body:start -->
+support basic functions
+<!-- rellog:body:end -->
+
+#### Targets
+
+- cli
+- actions
+
+#### Links
+
+- https://example.com/issues/14

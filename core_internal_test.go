@@ -541,6 +541,40 @@ func TestRenderKindSectionAggregatesAcrossEntries(t *testing.T) {
 	}
 }
 
+func TestUnionValues(t *testing.T) {
+	extract := func(e entry) []string { return e.Targets }
+
+	t.Run("dedupes across entries in first-seen order", func(t *testing.T) {
+		got := unionValues(nil, []entry{
+			{Targets: []string{"cli", "actions"}},
+			{Targets: []string{"actions", "docs"}},
+		}, extract)
+		want := []string{"cli", "actions", "docs"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %#v, want %#v", got, want)
+		}
+	})
+
+	t.Run("dedupes duplicate values already present in seed", func(t *testing.T) {
+		// A seed parsed from an already-rendered kind section is not guaranteed
+		// to be pre-deduped (e.g. content still in the old per-entry format), so
+		// unionValues must not blindly trust it.
+		got := unionValues([]string{"cli", "cli", "actions"}, nil, extract)
+		want := []string{"cli", "actions"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %#v, want %#v", got, want)
+		}
+	})
+
+	t.Run("seed values take precedence over entry order", func(t *testing.T) {
+		got := unionValues([]string{"actions"}, []entry{{Targets: []string{"cli", "actions"}}}, extract)
+		want := []string{"actions", "cli"}
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %#v, want %#v", got, want)
+		}
+	})
+}
+
 func TestKindTitle(t *testing.T) {
 	cfg := entryValidationConfig{kindTitles: map[string]string{"fixed": "Bug Fixes"}}
 	if got := kindTitle("fixed", cfg); got != "Bug Fixes" {
