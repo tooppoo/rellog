@@ -97,6 +97,27 @@ During `rellog prepare <release-id> --run`, the prepared release-note content is
 
 `CHANGELOG.md` is not the source of pending release explanation. Pending entries are the source. `CHANGELOG.md` is the accumulated output.
 
+## Post-prepare pending-entry recovery
+
+Pending entries sometimes appear after `prepare --run` has already created the release-note file and updated `CHANGELOG.md` for `<release-id>` — for example, a changelog-worthy piece of work lands after preparation, or a reviewer asks for one more entry before the release ships. `rellog ready <release-id>` treats this state as not ready and points here.
+
+`rellog amend <release-id>` is the recovery path for exactly this situation. Like `prepare`, it is a dry run by default and requires `--run` to write files.
+
+```mermaid
+stateDiagram-v2
+  [*] --> Prepared
+  Prepared --> PendingAfterPrepare: add normal or empty entry
+  PendingAfterPrepare --> Amended: amend --run release id
+  Amended --> Ready: ready release id
+```
+
+`amend` picks its strategy automatically:
+
+- if `.rellog/consumed/<release-id>/` (written by `prepare --run`) is present and still matches the current release-note file and `CHANGELOG.md` section, `amend` regenerates the release from the original consumed entries plus the new pending entries;
+- otherwise, `amend` falls back to treating the existing release note as the source of truth and inserts the new pending entries into it directly, without regrouping or reordering what is already there.
+
+Either way, `amend --run` updates the release-note file and the matching `CHANGELOG.md` section together, and only removes the pending entries it consumed once those updates have succeeded. See [commands.md](commands.md) for the full behavior, including how empty and normal entries interact and the exit codes involved.
+
 ## Preparation guard
 
 Release-note preparation is the first guard.

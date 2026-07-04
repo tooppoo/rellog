@@ -1,0 +1,44 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+
+# Break the release note's marker pairing (append mode instead of regenerate,
+# since regenerate mode would also reject this via the consumed-cache mismatch
+# check; this test exercises the structural marker check specifically).
+rm -rf .rellog/consumed
+cp malformed-release-note.md .rellog/release-notes/v1.0.0.md
+
+exec rellog add --debug-datetime 20260627T000000.000000001Z --kind fixed --target rellog --body 'New entry'
+! stderr .
+
+cp .rellog/release-notes/v1.0.0.md release-note.before
+cp CHANGELOG.md changelog.before
+
+! exec rellog amend v1.0.0 --run
+stderr 'invalid generated Markdown structure'
+! stdout .
+
+cmp .rellog/release-notes/v1.0.0.md release-note.before
+cmp CHANGELOG.md changelog.before
+exists .rellog/entries/20260627T000000.000000001Z.json
+
+-- malformed-release-note.md --
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Base entry
+
+#### Targets
+
+- rellog

@@ -1,0 +1,35 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+
+exec rellog add-empty --debug-datetime 20260627T000000.000000001Z
+! stderr .
+
+! exec rellog amend v1.0.0 --run
+stderr 'entry conflict'
+! stdout .
+
+exists .rellog/entries/20260627T000000.000000001Z.json
+cmp .rellog/release-notes/v1.0.0.md expected.release-note.md
+
+-- expected.release-note.md --
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Base entry
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog

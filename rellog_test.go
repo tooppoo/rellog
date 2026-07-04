@@ -11,6 +11,7 @@ func TestE2E(t *testing.T) {
 	directories := []string{
 		"e2e/add-empty",
 		"e2e/add",
+		"e2e/amend",
 		"e2e/check",
 		"e2e/init",
 		"e2e/prepare",

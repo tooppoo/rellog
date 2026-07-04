@@ -13,12 +13,6 @@ type prepareOptions struct {
 	DryRun  bool
 }
 
-type entryFile struct {
-	name string
-	path string
-	e    entry
-}
-
 func prepareRelease(opts prepareOptions) error {
 	if err := validateReadyReleaseID(opts.Version); err != nil {
 		return err
@@ -36,26 +30,9 @@ func prepareRelease(opts prepareOptions) error {
 		return &exitError{ExitCheckFailed, ""}
 	}
 
-	files, err := os.ReadDir(entriesDir())
+	entryFiles, err := loadEntryFiles(entriesDir())
 	if err != nil {
 		return err
-	}
-
-	var entryFiles []entryFile
-	for _, f := range files {
-		if !strings.HasSuffix(f.Name(), ".json") {
-			continue
-		}
-		p := filepath.Join(entriesDir(), f.Name())
-		data, readErr := os.ReadFile(p)
-		if readErr != nil {
-			return readErr
-		}
-		e, parseErr := parseEntryJSON(data)
-		if parseErr != nil {
-			return parseErr
-		}
-		entryFiles = append(entryFiles, entryFile{f.Name(), p, e})
 	}
 
 	// Detect empty/normal conflict.
@@ -86,11 +63,16 @@ func prepareRelease(opts prepareOptions) error {
 	releaseNotePath := filepath.Join(releaseNotesDir(), opts.Version+".md")
 	changelogPath := "CHANGELOG.md"
 
+	entryCfg, err := readEntryValidationConfig()
+	if err != nil {
+		return err
+	}
+
 	var content string
 	if isEmptyRelease {
 		content = fmt.Sprintf("%s %s\n\n%s\n", markdownHeading(releaseHeadingLevel), opts.Version, emptyReleaseMessage)
 	} else {
-		content = renderReleaseNote(opts.Version, entries)
+		content = renderReleaseNote(opts.Version, entries, entryCfg)
 	}
 
 	// Check for existing release note before executing anything.

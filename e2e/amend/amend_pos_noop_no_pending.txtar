@@ -1,0 +1,20 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+
+exec rellog amend v1.0.0
+stdout 'v1\.0\.0 release unchanged\n'
+! stderr .
+
+exec rellog amend v1.0.0 --run
+stdout 'v1\.0\.0 release unchanged\n'
+! stderr .
+
+exists .rellog/consumed/v1.0.0/manifest.json

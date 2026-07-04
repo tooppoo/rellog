@@ -1,0 +1,57 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+
+cp corrupt-manifest.json .rellog/consumed/v1.0.0/manifest.json
+
+exec rellog add --debug-datetime 20260627T000000.000000001Z --kind fixed --target rellog --body 'New entry'
+! stderr .
+
+# Dry-run must also show the fallback warning.
+exec rellog amend v1.0.0
+stderr 'consumed cache.*unusable'
+
+exec rellog amend v1.0.0 --run
+stderr 'consumed cache.*unusable'
+stdout 'v1\.0\.0 release amended\n'
+
+! exists .rellog/entries/20260627T000000.000000001Z.json
+cmp .rellog/release-notes/v1.0.0.md expected.release-note.md
+# Append mode never touches an unusable consumed cache.
+cmp .rellog/consumed/v1.0.0/manifest.json corrupt-manifest.json
+
+-- corrupt-manifest.json --
+not json
+-- expected.release-note.md --
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Base entry
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+
+### fixed
+
+#### Details
+
+<!-- rellog:body:start -->
+New entry
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog

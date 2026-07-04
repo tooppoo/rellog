@@ -1,0 +1,12 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+! exec rellog amend ../v1.0.0 --run
+stderr 'invalid release id'
+! stdout .
+
+! exec rellog amend v1.0.0/.. --run
+stderr 'invalid release id'
+! stdout .

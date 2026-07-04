@@ -16,6 +16,7 @@ rellog check
 rellog status
 rellog ready <release-id>
 rellog prepare <release-id>
+rellog amend <release-id>
 ```
 
 ## `rellog init`
@@ -366,6 +367,65 @@ Possible options:
 - create GitHub Releases;
 - publish packages, binaries, or artifacts.
 
+## `rellog amend <release-id>`
+
+Add pending entries to a release that has already been prepared.
+
+```sh
+rellog amend v1.2.0
+```
+
+`amend` is used when a release note and `CHANGELOG.md` already exist for `<release-id>`, but additional pending entries should be included in the same release. See [workflow.md](workflow.md) for when to reach for `amend` instead of editing pending entries by hand.
+
+By default, `amend` is a dry run: it prints the resulting release-note content and the intended file operations without writing files or deleting pending entries. Pass `--run` to write:
+
+```sh
+rellog amend v1.2.0 --run
+```
+
+Successful `--run` stdout is exactly one line. If there were no pending entries to add:
+
+```text
+v1.2.0 release unchanged
+```
+
+If pending entries were added or merged:
+
+```text
+v1.2.0 release amended
+```
+
+`amend` uses the same release-id path rule as `ready` and `prepare`; see [files.md](files.md). Invalid release ids fail with `ExitInvalidArgument`. A missing release note fails with `ExitReleaseNotFound`.
+
+### Modes
+
+`amend` picks one of two modes automatically, based on whether `.rellog/consumed/<release-id>/` (written by `rellog prepare --run`) is present and usable:
+
+- **Regenerate mode** (consumed cache usable): `amend` rebuilds the release content from `consumed ∪ pending` entries. Before writing anything, it renders the consumed-only entry set and compares that rendering against the current release-note file and the matching `CHANGELOG.md` release section. If either artifact no longer matches — for example because someone hand-edited the release note after `prepare` — `amend --run` fails without changing any file.
+- **Append mode** (consumed cache absent or unusable): `amend` treats the existing release note as the source of truth and inserts each pending entry's rendered Markdown into the matching kind section, creating a new kind section (using the effective kind title from the current config) when none exists yet. Existing kind sections are never reordered or regrouped. The identical insertion is applied to the matching `CHANGELOG.md` release section.
+
+If consumed data exists but fails validation (structurally invalid, or inconsistent with the entry schema), `amend` reports the problem on stderr — in both dry-run and `--run` — and falls back to append mode. This is not itself a project error, since consumed data is only an optional cache.
+
+`amend` never writes `.rellog/consumed/` in append mode: append mode has no reliable "original entry set" to persist (that is exactly why it fell back), so persisting a partial one would make a later `amend` run draw the wrong conclusion. Regenerate mode does update the consumed cache, following the same `consume.on-fail-create` policy `prepare` uses.
+
+### Empty and normal entries
+
+A single release note must not mix empty and normal entries. `amend` applies the same merge rule prepare's own pending-entry conflict check applies, extended to compare the release's existing content against the incoming pending entries:
+
+- empty release + pending empty entries: merge succeeds; the pending empty entries are consumed and the release stays empty.
+- empty release + pending normal entries, or a normal release + a pending empty entry: entry conflict, `ExitEntryConflict`.
+- normal release + pending normal entries: ordinary amend behavior (regenerate or append).
+
+### Safety
+
+`amend --run` never leaves partial writes: release-note and `CHANGELOG.md` updates use the same atomic (write-temp-then-rename) approach as `prepare`, and pending entries are only deleted after the required artifact writes succeed.
+
+`amend` uses the fixed v0 generated Markdown structure from [release-notes.md](release-notes.md) and ignores headings inside rellog body marker ranges. If body markers are malformed in either the release note or the relevant `CHANGELOG.md` section, `amend` fails with `ExitCheckFailed` without changing files — this is the same code used for the regenerate-mode mismatch case above and for a `CHANGELOG.md` missing the target release section entirely.
+
+`amend` is a no-op only after validating that the current directory is a valid rellog project, the release id is valid, the release note exists, and `CHANGELOG.md` contains the target release section. It does not skip these checks just because there are no pending entries.
+
+`ready` and `check` do not inspect `.rellog/consumed/`; it is read only by `amend`.
+
 ## Exit codes
 
 | Code | Constant               | Description                                                             |
@@ -373,9 +433,9 @@ Possible options:
 | 0    | -                      | Success                                                                 |
 | 1    | `ExitNotInitialized`   | `rellog` has not been initialized; run `rellog init` first              |
 | 2    | `ExitInvalidStructure` | A path that must be a directory exists as a file (e.g. `.rellog/entries`) |
-| 3    | `ExitCheckFailed`      | `rellog check` found one or more non-conflict validation errors in pending entries |
+| 3    | `ExitCheckFailed`      | `rellog check` found one or more non-conflict validation errors in pending entries; also used by `amend` for a missing `CHANGELOG.md` release section, malformed body markers, and a regenerate-mode mismatch against the consumed cache |
 | 4    | `ExitReleaseNotFound`  | The required release-note file does not exist; run `rellog prepare <release-id> --run` first |
-| 5    | `ExitEntryConflict`    | Empty and normal pending entries would coexist or already coexist        |
+| 5    | `ExitEntryConflict`    | Empty and normal pending entries would coexist or already coexist; also used by `amend` when the release's existing empty/normal shape conflicts with incoming pending entries |
 | 6    | `ExitNotGitRepo`       | The current directory is not inside a Git repository                    |
 | 7    | `ExitInvalidArgument`  | CLI usage or an argument such as `<release-id>` is invalid               |
 | 8    | `ExitReleaseNotReady`  | A release note exists, but changelog or pending-entry readiness checks failed |

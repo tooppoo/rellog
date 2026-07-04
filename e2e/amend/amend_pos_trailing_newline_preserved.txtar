@@ -1,0 +1,51 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+
+rm -rf .rellog/consumed
+
+exec rellog add --debug-datetime 20260627T000000.000000001Z --kind fixed --target rellog --body 'New entry'
+! stderr .
+
+exec rellog amend v1.0.0 --run
+! stderr .
+
+# Byte-exact cmp against a fixture ending in exactly one trailing newline
+# verifies both files end with a single "\n", not zero or multiple.
+cmp .rellog/release-notes/v1.0.0.md expected.release-note.md
+exec sh -c 'sed -n "/^## v1.0.0/,\$p" CHANGELOG.md > changelog-section.txt'
+cmp changelog-section.txt expected.release-note.md
+
+-- expected.release-note.md --
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Base entry
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+
+### fixed
+
+#### Details
+
+<!-- rellog:body:start -->
+New entry
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog

@@ -1,0 +1,54 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+exec rellog prepare v1.0.0 --run
+! stderr .
+
+exec rellog add --debug-datetime 20260627T000000.000000001Z --kind fixed --target rellog --body 'New entry'
+! stderr .
+
+cp .rellog/release-notes/v1.0.0.md release-note.before
+cp CHANGELOG.md changelog.before
+
+exec rellog amend v1.0.0
+cmp stdout expected.stdout
+! stderr .
+
+cmp .rellog/release-notes/v1.0.0.md release-note.before
+cmp CHANGELOG.md changelog.before
+exists .rellog/entries/20260627T000000.000000001Z.json
+
+-- expected.stdout --
+## v1.0.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+Base entry
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+
+### fixed
+
+#### Details
+
+<!-- rellog:body:start -->
+New entry
+<!-- rellog:body:end -->
+
+#### Targets
+
+- rellog
+update .rellog/release-notes/v1.0.0.md
+update CHANGELOG.md
+delete .rellog/entries/20260627T000000.000000001Z.json

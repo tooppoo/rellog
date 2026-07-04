@@ -122,29 +122,85 @@ func parseEntryJSON(data []byte) (entry, error) {
 }
 
 // renderReleaseNote generates markdown release note content for the given version and entries.
-func renderReleaseNote(version string, entries []entry) string {
+// Entries are grouped under their effective kind title (see kindTitle), in first-seen order.
+func renderReleaseNote(version string, entries []entry, cfg entryValidationConfig) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "%s %s\n", markdownHeading(releaseHeadingLevel), version)
 
-	var kindOrder []string
-	kindEntries := map[string][]entry{}
+	var titleOrder []string
+	titleEntries := map[string][]entry{}
 	for _, e := range entries {
-		if _, seen := kindEntries[e.Kind]; !seen {
-			kindOrder = append(kindOrder, e.Kind)
+		title := kindTitle(e.Kind, cfg)
+		if _, seen := titleEntries[title]; !seen {
+			titleOrder = append(titleOrder, title)
 		}
-		kindEntries[e.Kind] = append(kindEntries[e.Kind], e)
+		titleEntries[title] = append(titleEntries[title], e)
 	}
 
-	for _, kind := range kindOrder {
-		fmt.Fprintf(&sb, "\n%s %s\n", markdownHeading(sectionHeadingLevel), kind)
-		for i, e := range kindEntries[kind] {
-			if i > 0 {
-				sb.WriteString("\n")
-			}
-			renderEntryBlock(&sb, e)
-		}
+	for _, title := range titleOrder {
+		sb.WriteString(renderKindSection(title, titleEntries[title]))
 	}
 	return sb.String()
+}
+
+// kindTitle returns the effective title for kindID: the configured title if
+// present, otherwise the kind id itself (see docs/configuration.md "kind.title").
+func kindTitle(kindID string, cfg entryValidationConfig) string {
+	if title, ok := cfg.kindTitles[kindID]; ok {
+		return title
+	}
+	return kindID
+}
+
+// renderKindSection renders one "### <title>" section with its entries, in the
+// same shape renderReleaseNote produces for a single kind. It is also used by
+// `amend` to append a brand-new kind section into an existing document, so the
+// output must stay byte-identical to what a full regenerate would produce.
+func renderKindSection(title string, entries []entry) string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "\n%s %s\n", markdownHeading(sectionHeadingLevel), title)
+	for i, e := range entries {
+		if i > 0 {
+			sb.WriteString("\n")
+		}
+		renderEntryBlock(&sb, e)
+	}
+	return sb.String()
+}
+
+// entryFile pairs a parsed entry with its filename and full path.
+type entryFile struct {
+	name string
+	path string
+	e    entry
+}
+
+// loadEntryFiles reads and parses every *.json entry file in dir, in
+// directory-listing order (which matches filename order for the generated
+// timestamp filenames). Non-.json files are ignored.
+func loadEntryFiles(dir string) ([]entryFile, error) {
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	var entryFiles []entryFile
+	for _, f := range files {
+		if !strings.HasSuffix(f.Name(), ".json") {
+			continue
+		}
+		p := filepath.Join(dir, f.Name())
+		data, readErr := os.ReadFile(p)
+		if readErr != nil {
+			return nil, readErr
+		}
+		e, parseErr := parseEntryJSON(data)
+		if parseErr != nil {
+			return nil, parseErr
+		}
+		entryFiles = append(entryFiles, entryFile{f.Name(), p, e})
+	}
+	return entryFiles, nil
 }
 
 func readEntries() ([]entry, error) {

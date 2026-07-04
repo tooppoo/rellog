@@ -1,0 +1,11 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+! exec rellog amend v9.9.9 --run
+stderr 'release not found: v9\.9\.9'
+! stdout .
