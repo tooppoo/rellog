@@ -7,5 +7,15 @@ exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --tar
 ! stderr .
 
 ! exec rellog amend v9.9.9 --run
-stderr 'release not found: v9\.9\.9'
+cmp stderr expected.stderr
 ! stdout .
+
+-- expected.stderr --
+Error: release not found: v9.9.9
+
+No release-note file exists at:
+  .rellog/release-notes/v9.9.9.md
+
+`rellog amend` only adds entries to a release that has already been prepared.
+Prepare the release first:
+  rellog prepare v9.9.9 --run

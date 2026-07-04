@@ -4,9 +4,9 @@ exec rellog init
 ! stderr .
 
 ! exec rellog amend ../v1.0.0 --run
-stderr 'invalid release id'
+stderr 'Error: invalid release id: "\.\./v1\.0\.0"\n'
 ! stdout .
 
 ! exec rellog amend v1.0.0/.. --run
-stderr 'invalid release id'
+stderr 'Error: invalid release id: "v1\.0\.0/\.\."\n'
 ! stdout .

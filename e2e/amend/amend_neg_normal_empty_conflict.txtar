@@ -13,12 +13,26 @@ exec rellog add-empty --debug-datetime 20260627T000000.000000001Z
 ! stderr .
 
 ! exec rellog amend v1.0.0 --run
-stderr 'entry conflict'
+cmp stderr expected.stderr
 ! stdout .
 
 exists .rellog/entries/20260627T000000.000000001Z.json
 cmp .rellog/release-notes/v1.0.0.md expected.release-note.md
 
+-- expected.stderr --
+Error: entry conflict: pending empty entry cannot be added to a release with normal entries
+
+release: v1.0.0
+release note:
+  .rellog/release-notes/v1.0.0.md
+pending empty entry:
+  .rellog/entries/20260627T000000.000000001Z.json
+
+v1.0.0 already contains normal (non-empty) content, so an empty entry (created with `rellog add-empty`) cannot be merged into it.
+
+If the empty entry was created by mistake, remove it:
+  rm .rellog/entries/20260627T000000.000000001Z.json
+If it was meant for a different or future release, move it out of the pending entries directory before running amend again.
 -- expected.release-note.md --
 ## v1.0.0
 

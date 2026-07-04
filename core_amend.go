@@ -39,20 +39,20 @@ func amendRelease(opts amendOptions) error {
 	releaseNoteData, err := os.ReadFile(releaseNotePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return &exitError{ExitReleaseNotFound, "release not found: " + releaseID}
+			return &exitError{ExitReleaseNotFound, releaseNotFoundMessage(releaseID, releaseNotePath)}
 		}
 		return err
 	}
 	releaseNoteContent := string(releaseNoteData)
 
 	if err := checkMarkersBalanced(releaseNoteContent); err != nil {
-		return &exitError{ExitCheckFailed, "invalid generated Markdown structure in " + releaseNotePath + ": " + err.Error()}
+		return &exitError{ExitCheckFailed, malformedStructureMessage(releaseNotePath, releaseID, err)}
 	}
 
 	changelogData, err := os.ReadFile(paths.changelogPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return &exitError{ExitCheckFailed, "changelog does not exist: " + paths.changelogPath}
+			return &exitError{ExitCheckFailed, changelogMissingMessage(paths.changelogPath, releaseID)}
 		}
 		return err
 	}
@@ -60,10 +60,10 @@ func amendRelease(opts amendOptions) error {
 
 	before, section, after, found, err := extractChangelogSection(changelogContent, releaseID)
 	if err != nil {
-		return &exitError{ExitCheckFailed, "invalid generated Markdown structure in " + paths.changelogPath + ": " + err.Error()}
+		return &exitError{ExitCheckFailed, malformedStructureMessage(paths.changelogPath, releaseID, err)}
 	}
 	if !found {
-		return &exitError{ExitCheckFailed, fmt.Sprintf("changelog is missing release section for %s: %s", releaseID, paths.changelogPath)}
+		return &exitError{ExitCheckFailed, changelogMissingSectionMessage(paths.changelogPath, releaseID)}
 	}
 
 	entryFiles, err := loadEntryFiles(paths.entriesDir)
@@ -88,10 +88,8 @@ func amendRelease(opts amendOptions) error {
 		}
 	}
 	if pendingEmptyPath != "" && pendingHasNormal {
-		return &exitError{ExitEntryConflict,
-			fmt.Sprintf("entry conflict: empty entry %s cannot coexist with normal entries", pendingEmptyPath)}
+		return &exitError{ExitEntryConflict, pendingInternalConflictMessage(pendingEmptyPath)}
 	}
-	pendingIsEmpty := pendingEmptyPath != ""
 
 	cfg, err := readEntryValidationConfig()
 	if err != nil {
@@ -100,7 +98,7 @@ func amendRelease(opts amendOptions) error {
 
 	consumedEntries, consumedState, consumedErr := loadConsumedCache(releaseID)
 	if consumedState == consumedUnusable {
-		fmt.Fprintf(os.Stderr, "warning: consumed cache for %s is unusable, falling back to append mode: %s\n", releaseID, consumedErr)
+		fmt.Fprint(os.Stderr, consumedUnusableWarning(releaseID, consumedErr))
 	}
 
 	deletePaths := make([]string, 0, len(entryFiles))
@@ -119,8 +117,6 @@ func amendRelease(opts amendOptions) error {
 			changelogAfter:     after,
 			consumedEntries:    consumedEntries,
 			pendingEntries:     entryFiles,
-			pendingIsEmpty:     pendingIsEmpty,
-			pendingHasNormal:   pendingHasNormal,
 			cfg:                cfg,
 			dryRun:             opts.DryRun,
 			deletePaths:        deletePaths,
@@ -136,8 +132,6 @@ func amendRelease(opts amendOptions) error {
 		changelogSection:   section,
 		changelogAfter:     after,
 		pendingEntries:     entryFiles,
-		pendingIsEmpty:     pendingIsEmpty,
-		pendingHasNormal:   pendingHasNormal,
 		cfg:                cfg,
 		dryRun:             opts.DryRun,
 		deletePaths:        deletePaths,
@@ -154,8 +148,6 @@ type regenerateInput struct {
 	changelogAfter     string
 	consumedEntries    []entryFile
 	pendingEntries     []entryFile
-	pendingIsEmpty     bool
-	pendingHasNormal   bool
 	cfg                entryValidationConfig
 	dryRun             bool
 	deletePaths        []string
@@ -164,7 +156,7 @@ type regenerateInput struct {
 func amendRegenerate(in regenerateInput) error {
 	baselineIsEmpty := allKindEmpty(in.consumedEntries)
 
-	if err := checkEmptyNormalMerge(baselineIsEmpty, in.pendingIsEmpty, in.pendingHasNormal); err != nil {
+	if err := checkEmptyNormalMerge(in.releaseID, in.releaseNotePath, baselineIsEmpty, in.pendingEntries); err != nil {
 		return err
 	}
 
@@ -175,10 +167,10 @@ func amendRegenerate(in regenerateInput) error {
 	consumedOnlyContent := renderAmendReleaseContent(in.releaseID, consumedOnly, in.cfg)
 
 	if strings.TrimRight(consumedOnlyContent, "\n") != strings.TrimRight(in.releaseNoteContent, "\n") {
-		return &exitError{ExitCheckFailed, "release note does not match consumed cache; " + in.releaseNotePath + " was modified after `rellog prepare`"}
+		return &exitError{ExitCheckFailed, regenerateMismatchMessage("release note", in.releaseNotePath, in.releaseID)}
 	}
 	if strings.TrimRight(consumedOnlyContent, "\n") != strings.TrimRight(in.changelogSection, "\n") {
-		return &exitError{ExitCheckFailed, "changelog release section does not match consumed cache; " + in.changelogPath + " was modified after `rellog prepare`"}
+		return &exitError{ExitCheckFailed, regenerateMismatchMessage("changelog release section", in.changelogPath, in.releaseID)}
 	}
 
 	combined := append([]entry{}, consumedOnly...)
@@ -238,8 +230,6 @@ type appendInput struct {
 	changelogSection   string
 	changelogAfter     string
 	pendingEntries     []entryFile
-	pendingIsEmpty     bool
-	pendingHasNormal   bool
 	cfg                entryValidationConfig
 	dryRun             bool
 	deletePaths        []string
@@ -248,7 +238,7 @@ type appendInput struct {
 func amendAppend(in appendInput) error {
 	baselineIsEmpty := isEmptyReleaseContent(in.releaseNoteContent, in.releaseID)
 
-	if err := checkEmptyNormalMerge(baselineIsEmpty, in.pendingIsEmpty, in.pendingHasNormal); err != nil {
+	if err := checkEmptyNormalMerge(in.releaseID, in.releaseNotePath, baselineIsEmpty, in.pendingEntries); err != nil {
 		return err
 	}
 
@@ -271,11 +261,11 @@ func amendAppend(in appendInput) error {
 
 	newReleaseNoteContent, err := applyKindInsertions(in.releaseNoteContent, plan)
 	if err != nil {
-		return &exitError{ExitCheckFailed, "invalid generated Markdown structure in " + in.releaseNotePath + ": " + err.Error()}
+		return &exitError{ExitCheckFailed, malformedStructureMessage(in.releaseNotePath, in.releaseID, err)}
 	}
 	newSectionContent, err := applyKindInsertions(in.changelogSection, plan)
 	if err != nil {
-		return &exitError{ExitCheckFailed, "invalid generated Markdown structure in " + in.changelogPath + ": " + err.Error()}
+		return &exitError{ExitCheckFailed, malformedStructureMessage(in.changelogPath, in.releaseID, err)}
 	}
 
 	newReleaseNoteContent = ensureTrailingNewline(newReleaseNoteContent)
@@ -309,14 +299,234 @@ func amendAppend(in appendInput) error {
 
 // checkEmptyNormalMerge applies the amend empty/normal merge rules: a single
 // release note must not mix empty and normal entries.
-func checkEmptyNormalMerge(baselineIsEmpty, pendingIsEmpty, pendingHasNormal bool) error {
-	if baselineIsEmpty && pendingHasNormal {
-		return &exitError{ExitEntryConflict, "entry conflict: pending normal entries cannot be added to an empty release"}
+func checkEmptyNormalMerge(releaseID, releaseNotePath string, baselineIsEmpty bool, pendingEntries []entryFile) error {
+	var pendingEmptyPath string
+	var pendingNormalPaths []string
+	for _, ef := range pendingEntries {
+		if ef.e.Kind == "empty" {
+			pendingEmptyPath = ef.path
+		} else {
+			pendingNormalPaths = append(pendingNormalPaths, ef.path)
+		}
 	}
-	if !baselineIsEmpty && pendingIsEmpty {
-		return &exitError{ExitEntryConflict, "entry conflict: pending empty entry cannot be added to a release with normal entries"}
+
+	if baselineIsEmpty && len(pendingNormalPaths) > 0 {
+		return &exitError{ExitEntryConflict, emptyBaselineConflictMessage(releaseID, releaseNotePath, pendingNormalPaths)}
+	}
+	if !baselineIsEmpty && pendingEmptyPath != "" {
+		return &exitError{ExitEntryConflict, normalBaselineConflictMessage(releaseID, releaseNotePath, pendingEmptyPath)}
 	}
 	return nil
+}
+
+// releaseNotFoundMessage explains that the required release-note file is
+// missing and how to create it.
+func releaseNotFoundMessage(releaseID, releaseNotePath string) string {
+	var sb strings.Builder
+	sb.WriteString("release not found: ")
+	sb.WriteString(releaseID)
+	sb.WriteString("\n\n")
+	sb.WriteString("No release-note file exists at:\n  ")
+	sb.WriteString(releaseNotePath)
+	sb.WriteString("\n\n")
+	sb.WriteString("`rellog amend` only adds entries to a release that has already been prepared.\n")
+	sb.WriteString("Prepare the release first:\n  rellog prepare ")
+	sb.WriteString(releaseID)
+	sb.WriteString(" --run")
+	return sb.String()
+}
+
+// changelogMissingMessage explains that the configured changelog file does
+// not exist and how to create it.
+func changelogMissingMessage(changelogPath, releaseID string) string {
+	var sb strings.Builder
+	sb.WriteString("changelog does not exist: ")
+	sb.WriteString(changelogPath)
+	sb.WriteString("\n\n")
+	sb.WriteString(changelogPath)
+	sb.WriteString(" is required to amend a release, but it was not found.\n")
+	sb.WriteString("If the release note was prepared normally, ")
+	sb.WriteString(changelogPath)
+	sb.WriteString(" should already exist alongside it.\n")
+	sb.WriteString("Restore the file if it was deleted, or run `rellog prepare ")
+	sb.WriteString(releaseID)
+	sb.WriteString(" --run` again to recreate it.")
+	return sb.String()
+}
+
+// changelogMissingSectionMessage explains that the changelog does not
+// contain the expected release heading for releaseID, and how to fix it.
+func changelogMissingSectionMessage(changelogPath, releaseID string) string {
+	heading := markdownHeading(releaseHeadingLevel) + " " + releaseID
+	var sb strings.Builder
+	sb.WriteString("changelog is missing release section for ")
+	sb.WriteString(releaseID)
+	sb.WriteString(": ")
+	sb.WriteString(changelogPath)
+	sb.WriteString("\n\n")
+	sb.WriteString("Expected to find this heading outside rellog body marker ranges:\n  ")
+	sb.WriteString(heading)
+	sb.WriteString("\n\n")
+	sb.WriteString("but it was not found in ")
+	sb.WriteString(changelogPath)
+	sb.WriteString(".\n")
+	sb.WriteString("If ")
+	sb.WriteString(changelogPath)
+	sb.WriteString(" was hand-edited, restore the release section for ")
+	sb.WriteString(releaseID)
+	sb.WriteString(".\n")
+	sb.WriteString("Otherwise, run `rellog prepare ")
+	sb.WriteString(releaseID)
+	sb.WriteString(" --run` first.")
+	return sb.String()
+}
+
+// malformedStructureMessage explains that a generated Markdown file has a
+// malformed rellog body marker range and cannot be safely processed.
+func malformedStructureMessage(path, releaseID string, cause error) string {
+	var sb strings.Builder
+	sb.WriteString("invalid generated Markdown structure in ")
+	sb.WriteString(path)
+	sb.WriteString(": ")
+	sb.WriteString(cause.Error())
+	sb.WriteString("\n\n")
+	sb.WriteString("rellog cannot safely insert or verify entries while a rellog body marker pair (")
+	sb.WriteString(bodyMarkerStart)
+	sb.WriteString(" / ")
+	sb.WriteString(bodyMarkerEnd)
+	sb.WriteString(") is malformed.\n")
+	sb.WriteString("Fix the marker pair in ")
+	sb.WriteString(path)
+	sb.WriteString(", then run `rellog amend ")
+	sb.WriteString(releaseID)
+	sb.WriteString("` again.")
+	return sb.String()
+}
+
+// pendingInternalConflictMessage explains that the pending entries directory
+// itself already contains both an empty entry and normal entries, and how to
+// resolve it.
+func pendingInternalConflictMessage(pendingEmptyPath string) string {
+	var sb strings.Builder
+	sb.WriteString("entry conflict: empty entry ")
+	sb.WriteString(pendingEmptyPath)
+	sb.WriteString(" cannot coexist with normal entries\n\n")
+	sb.WriteString("Pending entries currently include both an empty entry and one or more normal entries.\n")
+	sb.WriteString("A release note must not mix empty and normal entries.\n\n")
+	sb.WriteString("If normal entries should be included in this release, remove the empty entry:\n  rm ")
+	sb.WriteString(pendingEmptyPath)
+	sb.WriteString("\n")
+	sb.WriteString("Otherwise, if this release truly has no changelog-worthy changes, remove the normal entries instead.")
+	return sb.String()
+}
+
+// emptyBaselineConflictMessage explains that pending normal entries cannot be
+// merged into a release that was already prepared as empty, and how to
+// proceed.
+func emptyBaselineConflictMessage(releaseID, releaseNotePath string, pendingNormalPaths []string) string {
+	var sb strings.Builder
+	sb.WriteString("entry conflict: pending normal entries cannot be added to an empty release\n\n")
+	sb.WriteString("release: ")
+	sb.WriteString(releaseID)
+	sb.WriteString("\n")
+	sb.WriteString("release note:\n  ")
+	sb.WriteString(releaseNotePath)
+	sb.WriteString("\n\n")
+	sb.WriteString("Pending normal entries:\n")
+	for _, p := range pendingNormalPaths {
+		sb.WriteString("  ")
+		sb.WriteString(p)
+		sb.WriteString("\n")
+	}
+	sb.WriteString("\n")
+	sb.WriteString(releaseID)
+	sb.WriteString(" was already prepared as an empty release (\"")
+	sb.WriteString(emptyReleaseMessage)
+	sb.WriteString("\"). `rellog amend` does not convert an empty release into a normal one.\n\n")
+	sb.WriteString("If these entries belong in ")
+	sb.WriteString(releaseID)
+	sb.WriteString(", edit ")
+	sb.WriteString(releaseNotePath)
+	sb.WriteString(" and the matching CHANGELOG.md section by hand to replace the empty-release template with normal content, then run `rellog amend ")
+	sb.WriteString(releaseID)
+	sb.WriteString("` again.\n")
+	sb.WriteString("Otherwise, if these entries belong to a different or future release, remove them from the pending entries directory or move them there before running amend.")
+	return sb.String()
+}
+
+// normalBaselineConflictMessage explains that a pending empty entry cannot be
+// merged into a release that already has normal content, and how to proceed.
+func normalBaselineConflictMessage(releaseID, releaseNotePath, pendingEmptyPath string) string {
+	var sb strings.Builder
+	sb.WriteString("entry conflict: pending empty entry cannot be added to a release with normal entries\n\n")
+	sb.WriteString("release: ")
+	sb.WriteString(releaseID)
+	sb.WriteString("\n")
+	sb.WriteString("release note:\n  ")
+	sb.WriteString(releaseNotePath)
+	sb.WriteString("\n")
+	sb.WriteString("pending empty entry:\n  ")
+	sb.WriteString(pendingEmptyPath)
+	sb.WriteString("\n\n")
+	sb.WriteString(releaseID)
+	sb.WriteString(" already contains normal (non-empty) content, so an empty entry (created with `rellog add-empty`) cannot be merged into it.\n\n")
+	sb.WriteString("If the empty entry was created by mistake, remove it:\n  rm ")
+	sb.WriteString(pendingEmptyPath)
+	sb.WriteString("\n")
+	sb.WriteString("If it was meant for a different or future release, move it out of the pending entries directory before running amend again.")
+	return sb.String()
+}
+
+// regenerateMismatchMessage explains that a release artifact no longer
+// matches the consumed-only rendering, so regenerate mode cannot safely
+// proceed, and how to recover.
+func regenerateMismatchMessage(what, path, releaseID string) string {
+	var sb strings.Builder
+	sb.WriteString(what)
+	sb.WriteString(" does not match the consumed cache; ")
+	sb.WriteString(path)
+	sb.WriteString(" was modified after `rellog prepare`\n\n")
+	sb.WriteString("release: ")
+	sb.WriteString(releaseID)
+	sb.WriteString("\n")
+	sb.WriteString(what)
+	sb.WriteString(":\n  ")
+	sb.WriteString(path)
+	sb.WriteString("\n\n")
+	sb.WriteString("rellog cannot safely regenerate ")
+	sb.WriteString(path)
+	sb.WriteString(" from `.rellog/consumed/")
+	sb.WriteString(releaseID)
+	sb.WriteString("/` because its content no longer matches what `rellog prepare` originally wrote.\n\n")
+	sb.WriteString("If ")
+	sb.WriteString(path)
+	sb.WriteString(" was hand-edited intentionally, remove the consumed cache so `amend` falls back to appending onto the current content instead:\n  rm -r .rellog/consumed/")
+	sb.WriteString(releaseID)
+	sb.WriteString("\n")
+	sb.WriteString("Then run `rellog amend ")
+	sb.WriteString(releaseID)
+	sb.WriteString("` again.\n")
+	sb.WriteString("If the edit was unintentional, restore ")
+	sb.WriteString(path)
+	sb.WriteString(" to its prepared state instead.")
+	return sb.String()
+}
+
+// consumedUnusableWarning explains, on stderr, why amend fell back to
+// append mode and what the underlying problem was, terminated with a
+// trailing newline so callers can fmt.Fprint it directly.
+func consumedUnusableWarning(releaseID string, cause error) string {
+	var sb strings.Builder
+	sb.WriteString("warning: consumed cache for ")
+	sb.WriteString(releaseID)
+	sb.WriteString(" is unusable, falling back to append mode: ")
+	sb.WriteString(cause.Error())
+	sb.WriteString("\n")
+	sb.WriteString("This does not block `amend`, but the release will not be able to use regenerate mode until the cache is fixed.\n")
+	sb.WriteString("Investigate or remove the cache directory if it is no longer needed:\n  .rellog/consumed/")
+	sb.WriteString(releaseID)
+	sb.WriteString("\n")
+	return sb.String()
 }
 
 func printAmendPreview(content, releaseNotePath, changelogPath string, deletePaths []string, contentChanges bool) {

@@ -16,10 +16,10 @@ exec rellog add --debug-datetime 20260627T000000.000000001Z --kind fixed --targe
 
 # Dry-run must also show the fallback warning.
 exec rellog amend v1.0.0
-stderr 'consumed cache.*unusable'
+cmp stderr expected.stderr
 
 exec rellog amend v1.0.0 --run
-stderr 'consumed cache.*unusable'
+cmp stderr expected.stderr
 stdout 'v1\.0\.0 release amended\n'
 
 ! exists .rellog/entries/20260627T000000.000000001Z.json
@@ -29,6 +29,11 @@ cmp .rellog/consumed/v1.0.0/manifest.json corrupt-manifest.json
 
 -- corrupt-manifest.json --
 not json
+-- expected.stderr --
+warning: consumed cache for v1.0.0 is unusable, falling back to append mode: consumed cache: invalid manifest JSON: invalid character 'o' in literal null (expecting 'u')
+This does not block `amend`, but the release will not be able to use regenerate mode until the cache is fixed.
+Investigate or remove the cache directory if it is no longer needed:
+  .rellog/consumed/v1.0.0
 -- expected.release-note.md --
 ## v1.0.0
 

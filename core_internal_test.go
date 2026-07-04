@@ -508,6 +508,26 @@ func TestCheckMarkersBalanced(t *testing.T) {
 	if err := checkMarkersBalanced(bodyMarkerEnd + "\n"); err == nil {
 		t.Error("expected error for unmatched end marker")
 	}
+	if err := checkMarkersBalanced(bodyMarkerStart + "\n" + bodyMarkerStart + "\nBody\n" + bodyMarkerEnd + "\n"); err == nil {
+		t.Error("expected error for a second start marker before a matching end")
+	}
+}
+
+func TestAllKindEmpty(t *testing.T) {
+	if allKindEmpty(nil) {
+		t.Error("allKindEmpty(nil) = true, want false")
+	}
+	if allKindEmpty([]entryFile{}) {
+		t.Error("allKindEmpty([]) = true, want false")
+	}
+	allEmpty := []entryFile{{e: entry{Kind: "empty"}}, {e: entry{Kind: "empty"}}}
+	if !allKindEmpty(allEmpty) {
+		t.Error("allKindEmpty(all empty) = false, want true")
+	}
+	mixed := []entryFile{{e: entry{Kind: "empty"}}, {e: entry{Kind: "changed"}}}
+	if allKindEmpty(mixed) {
+		t.Error("allKindEmpty(mixed) = true, want false")
+	}
 }
 
 func TestIsEmptyReleaseContent(t *testing.T) {
@@ -604,6 +624,61 @@ func TestAmendExitCodes(t *testing.T) {
 		err := amendRelease(amendOptions{Version: "v1.0.0", DryRun: true})
 		if got, want := exitCode(t, err), ExitReleaseNotFound; got != want {
 			t.Errorf("exit code = %d, want %d (ExitReleaseNotFound)", got, want)
+		}
+	})
+
+	t.Run("changelog missing", func(t *testing.T) {
+		withTempWorkingDir(t)
+		if err := initRellog(); err != nil {
+			t.Fatal(err)
+		}
+		writeAmendFixtureEntry(t, "20260626T000000.000000001Z.json", validEntryJSON())
+		if err := prepareRelease(prepareOptions{Version: "v1.0.0"}); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove("CHANGELOG.md"); err != nil {
+			t.Fatal(err)
+		}
+		writeAmendFixtureEntry(t, "20260627T000000.000000001Z.json", validEntryJSON())
+		err := amendRelease(amendOptions{Version: "v1.0.0", DryRun: true})
+		if got, want := exitCode(t, err), ExitCheckFailed; got != want {
+			t.Errorf("exit code = %d, want %d (ExitCheckFailed)", got, want)
+		}
+	})
+
+	t.Run("changelog missing release section", func(t *testing.T) {
+		withTempWorkingDir(t)
+		if err := initRellog(); err != nil {
+			t.Fatal(err)
+		}
+		writeAmendFixtureEntry(t, "20260626T000000.000000001Z.json", validEntryJSON())
+		if err := prepareRelease(prepareOptions{Version: "v1.0.0"}); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile("CHANGELOG.md", []byte("# CHANGELOG\n\n## v9.9.9\n\nUnrelated release.\n"), 0644); err != nil {
+			t.Fatal(err)
+		}
+		writeAmendFixtureEntry(t, "20260627T000000.000000001Z.json", validEntryJSON())
+		err := amendRelease(amendOptions{Version: "v1.0.0", DryRun: true})
+		if got, want := exitCode(t, err), ExitCheckFailed; got != want {
+			t.Errorf("exit code = %d, want %d (ExitCheckFailed)", got, want)
+		}
+	})
+
+	t.Run("pending entries directory itself has an empty/normal conflict", func(t *testing.T) {
+		withTempWorkingDir(t)
+		if err := initRellog(); err != nil {
+			t.Fatal(err)
+		}
+		writeAmendFixtureEntry(t, "20260626T000000.000000001Z.json", validEntryJSON())
+		if err := prepareRelease(prepareOptions{Version: "v1.0.0"}); err != nil {
+			t.Fatal(err)
+		}
+		writeAmendFixtureEntry(t, "20260627T000000.000000001Z.json", `{"kind":"empty","targets":[],"links":[],"body":"No changelog-worthy changes."}`)
+		writeAmendFixtureEntry(t, "20260628T000000.000000001Z.json", validEntryJSON())
+		err := amendRelease(amendOptions{Version: "v1.0.0", DryRun: true})
+		if got, want := exitCode(t, err), ExitEntryConflict; got != want {
+			t.Errorf("exit code = %d, want %d (ExitEntryConflict)", got, want)
 		}
 	})
 

@@ -22,13 +22,18 @@ cp .rellog/release-notes/v1.0.0.md release-note.before
 cp CHANGELOG.md changelog.before
 
 ! exec rellog amend v1.0.0 --run
-stderr 'invalid generated Markdown structure'
+cmp stderr expected.stderr
 ! stdout .
 
 cmp .rellog/release-notes/v1.0.0.md release-note.before
 cmp CHANGELOG.md changelog.before
 exists .rellog/entries/20260627T000000.000000001Z.json
 
+-- expected.stderr --
+Error: invalid generated Markdown structure in .rellog/release-notes/v1.0.0.md: unterminated <!-- rellog:body:start -->
+
+rellog cannot safely insert or verify entries while a rellog body marker pair (<!-- rellog:body:start --> / <!-- rellog:body:end -->) is malformed.
+Fix the marker pair in .rellog/release-notes/v1.0.0.md, then run `rellog amend v1.0.0` again.
 -- malformed-release-note.md --
 ## v1.0.0
 

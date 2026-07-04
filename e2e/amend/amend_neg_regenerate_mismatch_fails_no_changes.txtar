@@ -18,9 +18,23 @@ cp .rellog/release-notes/v1.0.0.md release-note.before
 cp CHANGELOG.md changelog.before
 
 ! exec rellog amend v1.0.0 --run
-stderr 'was modified after'
+cmp stderr expected.stderr
 ! stdout .
 
 cmp .rellog/release-notes/v1.0.0.md release-note.before
 cmp CHANGELOG.md changelog.before
 exists .rellog/entries/20260627T000000.000000001Z.json
+
+-- expected.stderr --
+Error: release note does not match the consumed cache; .rellog/release-notes/v1.0.0.md was modified after `rellog prepare`
+
+release: v1.0.0
+release note:
+  .rellog/release-notes/v1.0.0.md
+
+rellog cannot safely regenerate .rellog/release-notes/v1.0.0.md from `.rellog/consumed/v1.0.0/` because its content no longer matches what `rellog prepare` originally wrote.
+
+If .rellog/release-notes/v1.0.0.md was hand-edited intentionally, remove the consumed cache so `amend` falls back to appending onto the current content instead:
+  rm -r .rellog/consumed/v1.0.0
+Then run `rellog amend v1.0.0` again.
+If the edit was unintentional, restore .rellog/release-notes/v1.0.0.md to its prepared state instead.
