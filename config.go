@@ -89,6 +89,7 @@ var validTargetPolicies = map[string]bool{
 
 type entryValidationConfig struct {
 	allowedKinds map[string]bool
+	kindTitles   map[string]string
 	knownTargets map[string]bool
 	targetPolicy string
 }
@@ -105,6 +106,7 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 
 	cfg := entryValidationConfig{
 		allowedKinds: map[string]bool{},
+		kindTitles:   map[string]string{},
 		knownTargets: map[string]bool{},
 		targetPolicy: "deny-unknown",
 	}
@@ -135,7 +137,13 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 		case "kinds":
 			for _, kindNode := range n.Children {
 				if nodeName(kindNode) == "kind" && len(kindNode.Arguments) == 1 {
-					cfg.allowedKinds[kindNode.Arguments[0].ValueString()] = true
+					id := kindNode.Arguments[0].ValueString()
+					cfg.allowedKinds[id] = true
+					if titleVal, ok := kindNode.Properties.Get("title"); ok {
+						if title := strings.TrimSpace(titleVal.ValueString()); title != "" {
+							cfg.kindTitles[id] = title
+						}
+					}
 				}
 			}
 		case "targets":

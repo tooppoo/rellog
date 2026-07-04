@@ -32,8 +32,8 @@ Decide what each pending entry means:
 
   1. If the entry was created by mistake, remove it.
   2. If the entry should be included in this release, run:
-       rellog replace v1.0.0
+       rellog amend v1.0.0
      Review the dry-run output, then run:
-       rellog replace v1.0.0 --run
+       rellog amend v1.0.0 --run
   3. If the entry is for a future release, move it out of the pending entries directory
      and restore it after this release is completed.

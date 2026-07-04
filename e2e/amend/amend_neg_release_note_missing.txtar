@@ -1,0 +1,21 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+! stderr .
+
+exec rellog add --debug-datetime 20260626T000000.000000001Z --kind changed --target rellog --body 'Base entry'
+! stderr .
+
+! exec rellog amend v9.9.9 --run
+cmp stderr expected.stderr
+! stdout .
+
+-- expected.stderr --
+Error: release not found: v9.9.9
+
+No release-note file exists at:
+  .rellog/release-notes/v9.9.9.md
+
+`rellog amend` only adds entries to a release that has already been prepared.
+Prepare the release first:
+  rellog prepare v9.9.9 --run
