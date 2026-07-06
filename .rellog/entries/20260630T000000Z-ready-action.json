@@ -1,6 +1,0 @@
-{
-  "kind": "added",
-  "targets": ["cli"],
-  "links": ["https://github.com/tooppoo/rellog/issues/14"],
-  "body": "Added a GitHub Action that installs rellog from release archives, verifies checksums, and runs `rellog ready` for release workflows."
-}

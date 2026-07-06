@@ -1,5 +1,23 @@
 # CHANGELOG
 
+## v0.1.0
+
+### changed
+
+#### Details
+
+<!-- rellog:body:start -->
+implements TUI for interactive addition command `rellog add`
+<!-- rellog:body:end -->
+
+#### Targets
+
+- cli
+
+#### Links
+
+- https://github.com/tooppoo/rellog/issues/11
+
 ## v0.0.4
 
 ### changed
