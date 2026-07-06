@@ -22,7 +22,11 @@ exists .rellog/entries/20260626T123456.000000001Z.json
   "body": "Entry for artifact failure"
 }
 -- expected.stderr --
-cannot write release note: .rellog/release-notes/cli: no such directory
+rellog check: FAILED
 
-Create the parent directory:
-  mkdir -p .rellog/release-notes/cli
+1 files
+1 errors
+
+.rellog/entries/20260626T123456.000000001Z.json
+  error[entry.targets.unknown]
+    target "cli" is not defined in rellog.entries.targets.

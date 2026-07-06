@@ -1,0 +1,70 @@
+# entries.targets is required structural vocabulary: a config without it, or
+# with an empty targets block, is invalid.
+
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+
+mv no_targets.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr no_targets.expected.txt
+
+mv empty_targets.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr empty_targets.expected.txt
+
+-- no_targets.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "changed"
+    }
+  }
+}
+-- empty_targets.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+    }
+  }
+}
+-- no_targets.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.entries.targets.missing]
+    rellog.entries.targets is required.
+-- empty_targets.expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.entries.targets.empty]
+    rellog.entries.targets must declare at least one target.

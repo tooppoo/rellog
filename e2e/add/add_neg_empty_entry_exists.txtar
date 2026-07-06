@@ -8,7 +8,7 @@ exec rellog add-empty --debug-datetime 20260626T123456.123456789Z
 ! stderr .
 exists .rellog/entries/20260626T123456.123456789Z.json
 
-exec sh -c 'rellog add --debug-datetime 20260626T123457.000000001Z --kind changed --target rellog --body "Normal entry"; test "$?" -eq 5'
+exec sh -c 'rellog add --debug-datetime 20260626T123457.000000001Z --kind changed --target app --body "Normal entry"; test "$?" -eq 5'
 ! stdout .
 stderr 'Error: entry conflict: empty entry already exists; normal entry cannot be added\n'
 

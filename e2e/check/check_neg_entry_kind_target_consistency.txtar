@@ -2,44 +2,37 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 exec mkdir -p .rellog/entries .rellog/release-notes
 
-exec cp unknown_kind.kdl .rellog/config.kdl
+exec cp base_config.kdl .rellog/config.kdl
 exec cp unknown_kind.json .rellog/entries/0001.json
 ! exec rellog check
 ! stdout .
 cmp stderr unknown_kind.expected.txt
 
-exec cp deny_unknown_target.kdl .rellog/config.kdl
+# Targets are strict structural vocabulary: an entry target not declared in
+# entries.targets is always an error.
+exec cp base_config.kdl .rellog/config.kdl
 exec cp unknown_target.json .rellog/entries/0001.json
 ! exec rellog check
 ! stdout .
-cmp stderr deny_unknown_target.expected.txt
+cmp stderr unknown_target.expected.txt
 
-exec cp warn_unknown_target.kdl .rellog/config.kdl
-exec cp unknown_target.json .rellog/entries/0001.json
-exec rellog check
-cmp stdout warn_unknown_target.stdout.txt
-cmp stderr warn_unknown_target.stderr.txt
-
-exec cp allow_unknown_target.kdl .rellog/config.kdl
-exec cp unknown_target.json .rellog/entries/0001.json
-exec rellog check
-stdout 'rellog check: OK \(entries: 1\)\n'
-! stderr .
-
+# Config errors suppress config-dependent entry checks (unknown kind/target
+# are not reported while the config itself is invalid).
 exec cp invalid_config.kdl .rellog/config.kdl
 exec cp unknown_kind_and_target.json .rellog/entries/0001.json
 ! exec rellog check
 ! stdout .
 cmp stderr invalid_config.expected.txt
 
-exec cp deny_unknown_target.kdl .rellog/config.kdl
+exec cp base_config.kdl .rellog/config.kdl
 exec cp scalar_targets.json .rellog/entries/0001.json
-exec cp empty_targets.json .rellog/entries/0002.json
+exec cp missing_targets.json .rellog/entries/0002.json
+exec cp empty_targets.json .rellog/entries/0003.json
 ! exec rellog check
 ! stdout .
 cmp stderr invalid_targets_shape.expected.txt
 
--- unknown_kind.kdl --
+-- base_config.kdl --
 /- kdl-version 2
 
 rellog config-version=1 {
@@ -50,72 +43,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
-    kinds {
-      kind "changed"
-    }
-  }
-}
--- deny_unknown_target.kdl --
-/- kdl-version 2
-
-rellog config-version=1 {
-  paths {
-    changelog "CHANGELOG.md"
-    entries ".rellog/entries"
-    release-notes ".rellog/release-notes"
-  }
-
-  entries {
-    target-policy "deny-unknown"
-
     kinds {
       kind "changed"
     }
 
     targets {
       target "rellog"
-    }
-  }
-}
--- warn_unknown_target.kdl --
-/- kdl-version 2
-
-rellog config-version=1 {
-  paths {
-    changelog "CHANGELOG.md"
-    entries ".rellog/entries"
-    release-notes ".rellog/release-notes"
-  }
-
-  entries {
-    target-policy "warn-unknown"
-
-    kinds {
-      kind "changed"
-    }
-
-    targets {
-      target "rellog"
-    }
-  }
-}
--- allow_unknown_target.kdl --
-/- kdl-version 2
-
-rellog config-version=1 {
-  paths {
-    changelog "CHANGELOG.md"
-    entries ".rellog/entries"
-    release-notes ".rellog/release-notes"
-  }
-
-  entries {
-    target-policy "allow-unknown"
-
-    kinds {
-      kind "changed"
     }
   }
 }
@@ -135,12 +68,16 @@ rellog config-version=1 {
     kinds {
       kind "changed"
     }
+
+    targets {
+      target "api"
+    }
   }
 }
 -- unknown_kind.json --
 {
   "kind": "fixed",
-  "targets": ["api"],
+  "targets": ["rellog"],
   "links": [],
   "body": "Unknown kind"
 }
@@ -165,9 +102,16 @@ rellog config-version=1 {
   "links": [],
   "body": "Scalar targets"
 }
+-- missing_targets.json --
+{
+  "kind": "changed",
+  "links": [],
+  "body": "Missing targets"
+}
 -- empty_targets.json --
 {
   "kind": "changed",
+  "targets": [],
   "links": [],
   "body": "Empty targets"
 }
@@ -180,7 +124,7 @@ rellog check: FAILED
 .rellog/entries/0001.json
   error[entry.kind.unknown]
     kind "fixed" is not defined in rellog.entries.kinds.
--- deny_unknown_target.expected.txt --
+-- unknown_target.expected.txt --
 rellog check: FAILED
 
 1 files
@@ -189,17 +133,6 @@ rellog check: FAILED
 .rellog/entries/0001.json
   error[entry.targets.unknown]
     target "api" is not defined in rellog.entries.targets.
--- warn_unknown_target.stdout.txt --
-rellog check: OK (entries: 1)
--- warn_unknown_target.stderr.txt --
-rellog check: WARNING
-
-1 files
-1 warnings
-
-.rellog/entries/0001.json
-  warning[entry.targets.unknown]
-    target "api" is not defined in rellog.entries.targets.
 -- invalid_config.expected.txt --
 rellog check: FAILED
 
@@ -207,15 +140,15 @@ rellog check: FAILED
 1 errors
 
 .rellog/config.kdl
-  error[rellog.entries.target-policy.invalid]
-    target-policy "known-only" is not supported.
+  error[rellog.entries.unknown_node]
+    unknown node: entries.target-policy
 
-    Allowed values are: deny-unknown, warn-unknown, allow-unknown.
+    Remove unknown nodes from .rellog/config.kdl.
 -- invalid_targets_shape.expected.txt --
 rellog check: FAILED
 
-2 files
-2 errors
+3 files
+3 errors
 
 .rellog/entries/0001.json
   error[entry.targets.invalid]
@@ -224,3 +157,7 @@ rellog check: FAILED
 .rellog/entries/0002.json
   error[entry.targets.missing]
     missing required metadata: targets.
+
+.rellog/entries/0003.json
+  error[entry.targets.empty]
+    entry must declare at least one target.

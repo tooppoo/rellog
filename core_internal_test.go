@@ -295,7 +295,7 @@ func makeConsumedCacheFixture(t *testing.T, _, manifest string, entries map[stri
 }
 
 func validEntryJSON() string {
-	return `{"kind":"changed","targets":["cli"],"links":[],"body":"Body"}`
+	return `{"kind":"changed","targets":["app"],"links":[],"body":"Body"}`
 }
 
 func TestExtractChangelogSection(t *testing.T) {
@@ -406,18 +406,55 @@ func TestParseKindSections(t *testing.T) {
 }
 
 func TestApplyKindInsertions(t *testing.T) {
-	cfg := entryValidationConfig{}
+	cfg := entryValidationConfig{
+		targetOrder:  []string{"cli", "actions"},
+		targetTitles: map[string]string{"cli": "CLI"},
+	}
 
-	t.Run("insert into existing kind section matches full regenerate", func(t *testing.T) {
-		content := renderReleaseNote("v1.0.0", []entry{{Kind: "changed", Body: "First"}}, cfg)
-		plan := []kindInsertion{{title: "changed", entries: []entry{{Kind: "changed", Body: "Second"}}}}
-		got, err := applyKindInsertions(content, plan)
+	t.Run("insert into existing target section matches full regenerate", func(t *testing.T) {
+		content := renderReleaseNote("v1.0.0", []entry{{Kind: "changed", Targets: []string{"cli"}, Body: "First"}}, cfg)
+		plan := []kindInsertion{{title: "changed", entries: []entry{{Kind: "changed", Targets: []string{"cli"}, Body: "Second"}}}}
+		got, err := applyKindInsertions(content, plan, cfg)
 		if err != nil {
 			t.Fatalf("applyKindInsertions() error = %v", err)
 		}
 		want := renderReleaseNote("v1.0.0", []entry{
-			{Kind: "changed", Body: "First"},
-			{Kind: "changed", Body: "Second"},
+			{Kind: "changed", Targets: []string{"cli"}, Body: "First"},
+			{Kind: "changed", Targets: []string{"cli"}, Body: "Second"},
+		}, cfg)
+		if got != want {
+			t.Errorf("got:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
+	t.Run("insert new target section into existing kind matches full regenerate", func(t *testing.T) {
+		content := renderReleaseNote("v1.0.0", []entry{{Kind: "changed", Targets: []string{"cli"}, Body: "First"}}, cfg)
+		plan := []kindInsertion{{title: "changed", entries: []entry{{Kind: "changed", Targets: []string{"actions"}, Body: "Second"}}}}
+		got, err := applyKindInsertions(content, plan, cfg)
+		if err != nil {
+			t.Fatalf("applyKindInsertions() error = %v", err)
+		}
+		want := renderReleaseNote("v1.0.0", []entry{
+			{Kind: "changed", Targets: []string{"cli"}, Body: "First"},
+			{Kind: "changed", Targets: []string{"actions"}, Body: "Second"},
+		}, cfg)
+		if got != want {
+			t.Errorf("got:\n%q\nwant:\n%q", got, want)
+		}
+	})
+
+	t.Run("combined target set inserts into its combined section", func(t *testing.T) {
+		content := renderReleaseNote("v1.0.0", []entry{{Kind: "changed", Targets: []string{"cli", "actions"}, Body: "First"}}, cfg)
+		// Reversed target declaration order in the entry must still land in
+		// the same "CLI / actions" section.
+		plan := []kindInsertion{{title: "changed", entries: []entry{{Kind: "changed", Targets: []string{"actions", "cli"}, Body: "Second"}}}}
+		got, err := applyKindInsertions(content, plan, cfg)
+		if err != nil {
+			t.Fatalf("applyKindInsertions() error = %v", err)
+		}
+		want := renderReleaseNote("v1.0.0", []entry{
+			{Kind: "changed", Targets: []string{"cli", "actions"}, Body: "First"},
+			{Kind: "changed", Targets: []string{"actions", "cli"}, Body: "Second"},
 		}, cfg)
 		if got != want {
 			t.Errorf("got:\n%q\nwant:\n%q", got, want)
@@ -425,15 +462,15 @@ func TestApplyKindInsertions(t *testing.T) {
 	})
 
 	t.Run("append new kind section matches full regenerate", func(t *testing.T) {
-		content := renderReleaseNote("v1.0.0", []entry{{Kind: "changed", Body: "First"}}, cfg)
-		plan := []kindInsertion{{title: "fixed", entries: []entry{{Kind: "fixed", Body: "Bug"}}}}
-		got, err := applyKindInsertions(content, plan)
+		content := renderReleaseNote("v1.0.0", []entry{{Kind: "changed", Targets: []string{"cli"}, Body: "First"}}, cfg)
+		plan := []kindInsertion{{title: "fixed", entries: []entry{{Kind: "fixed", Targets: []string{"cli"}, Body: "Bug"}}}}
+		got, err := applyKindInsertions(content, plan, cfg)
 		if err != nil {
 			t.Fatalf("applyKindInsertions() error = %v", err)
 		}
 		want := renderReleaseNote("v1.0.0", []entry{
-			{Kind: "changed", Body: "First"},
-			{Kind: "fixed", Body: "Bug"},
+			{Kind: "changed", Targets: []string{"cli"}, Body: "First"},
+			{Kind: "fixed", Targets: []string{"cli"}, Body: "Bug"},
 		}, cfg)
 		if got != want {
 			t.Errorf("got:\n%q\nwant:\n%q", got, want)
@@ -441,7 +478,7 @@ func TestApplyKindInsertions(t *testing.T) {
 	})
 
 	t.Run("malformed marker range is an error", func(t *testing.T) {
-		_, err := applyKindInsertions("## v1.0.0\n\n<!-- rellog:body:start -->\n", nil)
+		_, err := applyKindInsertions("## v1.0.0\n\n<!-- rellog:body:start -->\n", nil, cfg)
 		if err == nil {
 			t.Fatal("expected error for unterminated body marker")
 		}

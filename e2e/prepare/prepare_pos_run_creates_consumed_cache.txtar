@@ -22,7 +22,7 @@ cmp .rellog/consumed/v1.0.0/entries/20260626T123456.000000002Z.json entry-two.js
 {
   "kind": "changed",
   "targets": [
-    "cli"
+    "app"
   ],
   "links": [
     "https://example.com/design/17"
@@ -33,7 +33,7 @@ cmp .rellog/consumed/v1.0.0/entries/20260626T123456.000000002Z.json entry-two.js
 {
   "kind": "fixed",
   "targets": [
-    "docs"
+    "app"
   ],
   "links": [],
   "body": "Second consumed entry"

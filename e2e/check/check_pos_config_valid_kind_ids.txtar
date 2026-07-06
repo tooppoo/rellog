@@ -38,10 +38,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "a"
+    }
+
+    targets {
+      target "cli"
     }
   }
 }
@@ -56,12 +58,14 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "Added"
       kind "Changed"
       kind "Fixed"
+    }
+
+    targets {
+      target "cli"
     }
   }
 }
@@ -76,11 +80,13 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "breaking-change"
       kind "security-fix"
+    }
+
+    targets {
+      target "cli"
     }
   }
 }
@@ -95,10 +101,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "Breaking-change"
+    }
+
+    targets {
+      target "cli"
     }
   }
 }

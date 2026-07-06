@@ -20,7 +20,7 @@ rellog check: FAILED
 -- .rellog/entries/0001.json --
 {
   "kind": "changed",
-  "targets": ["rellog"],
+  "targets": ["app"],
   "links": [],
   "body": "Normal entry"
 }

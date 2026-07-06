@@ -1,8 +1,0 @@
-{
-  "kind": "added",
-  "targets": [
-    "actions"
-  ],
-  "links": [],
-  "body": "support github actions"
-}

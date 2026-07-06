@@ -259,11 +259,11 @@ func amendAppend(in appendInput) error {
 
 	plan := buildKindInsertionPlan(in.pendingEntries, in.cfg)
 
-	newReleaseNoteContent, err := applyKindInsertions(in.releaseNoteContent, plan)
+	newReleaseNoteContent, err := applyKindInsertions(in.releaseNoteContent, plan, in.cfg)
 	if err != nil {
 		return &exitError{ExitCheckFailed, malformedStructureMessage(in.releaseNotePath, in.releaseID, err)}
 	}
-	newSectionContent, err := applyKindInsertions(in.changelogSection, plan)
+	newSectionContent, err := applyKindInsertions(in.changelogSection, plan, in.cfg)
 	if err != nil {
 		return &exitError{ExitCheckFailed, malformedStructureMessage(in.changelogPath, in.releaseID, err)}
 	}
@@ -874,19 +874,21 @@ func extractChangelogSection(content, releaseID string) (before, section, after 
 	return before, raw, after, true, nil
 }
 
-// kindSection is one "### <title>" section parsed out of a single release
+// kindSection is one heading-delimited section parsed out of a single release
 // section's content (as extracted by extractChangelogSection, or a
 // release-note file's full content, which is itself exactly one section).
+// Kind sections use level-3 headings; target-set sections within a kind use
+// level-4 headings.
 type kindSection struct {
 	title      string
 	start, end int
 }
 
-// parseKindSections finds every level-3 kind-title heading outside rellog
+// parseHeadingSections finds every heading of the given level outside rellog
 // body marker ranges within content, returning each section's content extent
-// (from right after its heading line to the next kind heading or EOF).
-func parseKindSections(content string) ([]kindSection, error) {
-	kindPrefix := markdownHeading(sectionHeadingLevel) + " "
+// (from right after its heading line to the next same-level heading or EOF).
+func parseHeadingSections(content string, level int) ([]kindSection, error) {
+	headingPrefix := markdownHeading(level) + " "
 
 	lines, offsets := splitLinesWithOffsets(content)
 
@@ -912,9 +914,9 @@ func parseKindSections(content string) ([]kindSection, error) {
 		if inBody {
 			continue
 		}
-		if strings.HasPrefix(trimmed, kindPrefix) {
+		if strings.HasPrefix(trimmed, headingPrefix) {
 			headingLines = append(headingLines, i)
-			titles = append(titles, strings.TrimPrefix(trimmed, kindPrefix))
+			titles = append(titles, strings.TrimPrefix(trimmed, headingPrefix))
 		}
 	}
 	if inBody {
@@ -928,8 +930,8 @@ func parseKindSections(content string) ([]kindSection, error) {
 		if idx+1 < len(headingLines) {
 			nextHeadingLine := headingLines[idx+1]
 			end = offsets[nextHeadingLine]
-			// renderKindSection always emits exactly one blank-line separator
-			// immediately before a "### " heading (its own leading "\n"). That
+			// Rendering always emits exactly one blank-line separator
+			// immediately before a section heading (its own leading "\n"). That
 			// line belongs to the next heading, not this section's trailing
 			// content, so exclude it here — otherwise an insertion at `end`
 			// would land after the separator, gluing this section's last entry
@@ -941,6 +943,18 @@ func parseKindSections(content string) ([]kindSection, error) {
 		sections = append(sections, kindSection{title: titles[idx], start: start, end: end})
 	}
 	return sections, nil
+}
+
+// parseKindSections finds every level-3 kind-title heading outside rellog
+// body marker ranges within content.
+func parseKindSections(content string) ([]kindSection, error) {
+	return parseHeadingSections(content, sectionHeadingLevel)
+}
+
+// parseTargetSections finds every level-4 target-set heading outside rellog
+// body marker ranges within one kind section's content.
+func parseTargetSections(content string) ([]kindSection, error) {
+	return parseHeadingSections(content, targetSectionHeadingLevel)
 }
 
 // kindInsertion is one entry of an amend append-mode insertion plan: the
@@ -974,13 +988,17 @@ func buildKindInsertionPlan(pendingEntries []entryFile, cfg entryValidationConfi
 	return plan
 }
 
-// applyKindInsertions splices plan into content: entries destined for a kind
-// title that already has a section are inserted at the end of that section's
-// content, replicating the same separator renderReleaseNote already produces
-// for multiple same-kind entries; entries destined for a title with no
-// existing section are appended as brand-new kind sections at the end of
-// content, in first-seen order.
-func applyKindInsertions(content string, plan []kindInsertion) (string, error) {
+// applyKindInsertions splices plan into content following the
+// kind -> target-set -> entry structure:
+//   - entries destined for a kind title with no existing section are appended
+//     as brand-new kind sections at the end of content, in first-seen order;
+//   - within an existing kind section, entries destined for a target-set title
+//     that already has a "#### " section are inserted at the end of that
+//     target section, replicating the separator renderTargetSection produces
+//     for multiple entries;
+//   - target-set titles with no existing section are appended as brand-new
+//     target sections at the end of the kind section.
+func applyKindInsertions(content string, plan []kindInsertion, cfg entryValidationConfig) (string, error) {
 	sections, err := parseKindSections(content)
 	if err != nil {
 		return "", err
@@ -1000,19 +1018,50 @@ func applyKindInsertions(content string, plan []kindInsertion) (string, error) {
 	var newSections strings.Builder
 
 	for _, ins := range plan {
-		if sec, ok := sectionByTitle[ins.title]; ok {
-			var sb strings.Builder
-			for _, e := range ins.entries {
-				sb.WriteString("\n")
-				renderEntryBlock(&sb, e)
+		sec, ok := sectionByTitle[ins.title]
+		if !ok {
+			newSections.WriteString(renderKindSection(ins.title, ins.entries, cfg))
+			continue
+		}
+
+		kindContent := content[sec.start:sec.end]
+		targetSections, err := parseTargetSections(kindContent)
+		if err != nil {
+			return "", err
+		}
+		targetSectionByTitle := map[string]kindSection{}
+		for _, ts := range targetSections {
+			if _, exists := targetSectionByTitle[ts.title]; !exists {
+				targetSectionByTitle[ts.title] = ts
 			}
-			existingInserts = append(existingInserts, existingInsert{pos: sec.end, text: sb.String()})
-		} else {
-			newSections.WriteString(renderKindSection(ins.title, ins.entries))
+		}
+
+		var setOrder []string
+		setEntries := map[string][]entry{}
+		for _, e := range ins.entries {
+			setTitle := targetSetTitle(e.Targets, cfg)
+			if _, seen := setEntries[setTitle]; !seen {
+				setOrder = append(setOrder, setTitle)
+			}
+			setEntries[setTitle] = append(setEntries[setTitle], e)
+		}
+
+		for _, setTitle := range setOrder {
+			if ts, ok := targetSectionByTitle[setTitle]; ok {
+				var sb strings.Builder
+				for _, e := range setEntries[setTitle] {
+					renderEntryBlock(&sb, e)
+				}
+				existingInserts = append(existingInserts, existingInsert{pos: sec.start + ts.end, text: sb.String()})
+			} else {
+				existingInserts = append(existingInserts, existingInsert{pos: sec.end, text: renderTargetSection(setTitle, setEntries[setTitle])})
+			}
 		}
 	}
 
-	sort.Slice(existingInserts, func(i, j int) bool { return existingInserts[i].pos < existingInserts[j].pos })
+	// Stable: multiple new target sections appended at the same kind-section
+	// end must keep their plan order.
+	sort.SliceStable(existingInserts, func(i, j int) bool { return existingInserts[i].pos < existingInserts[j].pos })
 
 	var result strings.Builder
 	last := 0

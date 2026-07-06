@@ -71,6 +71,8 @@ func validateEntrySchema(e entry) []checkError {
 		errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
 	case e.targetsTypeError:
 		errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must contain only strings."})
+	case len(e.Targets) == 0:
+		errs = append(errs, checkError{"error[entry.targets.empty]", "entry must declare at least one target."})
 	}
 
 	if !e.linksPresent {
@@ -303,18 +305,16 @@ func checkRepository() ([]fileCheckResult, int, error) {
 						errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must be an array."})
 					case e.targetsTypeError:
 						errs = append(errs, checkError{"error[entry.targets.invalid]", "targets must contain only strings."})
+					case len(e.Targets) == 0:
+						errs = append(errs, checkError{"error[entry.targets.empty]", "entry must declare at least one target."})
 					default:
-						if configOK && entryConfig.targetPolicy != "allow-unknown" {
+						if configOK {
 							for _, target := range e.Targets {
 								if entryConfig.knownTargets[target] {
 									continue
 								}
-								code := "error[entry.targets.unknown]"
-								if entryConfig.targetPolicy == "warn-unknown" {
-									code = "warning[entry.targets.unknown]"
-								}
 								errs = append(errs, checkError{
-									code,
+									"error[entry.targets.unknown]",
 									fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target),
 								})
 							}

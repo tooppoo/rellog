@@ -3,7 +3,7 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Must not overwrite'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target app --body 'Must not overwrite'
 ! stderr .
 
 mkdir -p .rellog/release-notes

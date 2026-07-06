@@ -99,15 +99,8 @@ jobs:
           tmp="$(mktemp -d)"
           cd "$tmp"
 
-          git init
-          git config user.name "CI"
-          git config user.email "ci@example.invalid"
-          echo "hello" > README.md
-          git add README.md
-          git commit -m "init"
-
           rellog init
-          rellog add --kind added --target test --body "Smoke Test"
+          rellog add --kind added --target app --body "Smoke Test"
           rellog status
           rellog prepare v1.0.0
           rellog prepare --run v1.0.0
@@ -168,15 +161,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path $tmp | Out-Null
           Set-Location $tmp
 
-          git init
-          git config user.name "CI"
-          git config user.email "ci@example.invalid"
-          "hello" | Out-File README.md -Encoding utf8
-          git add README.md
-          git commit -m "init"
-
           rellog init
-          rellog add --kind added --target test --body "Smoke Test"
+          rellog add --kind added --target app --body "Smoke Test"
           rellog status
           rellog prepare v1.0.0
           rellog prepare --run v1.0.0

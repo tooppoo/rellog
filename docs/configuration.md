@@ -9,7 +9,7 @@ The configuration file defines project-level policies used by rellog commands, s
 * which entry targets are known
 * how consumed-cache creation failures are reported during release preparation
 
-The configuration file also does not expose rendering settings in v0. Release-note and changelog heading levels, entry subsection headings, and the empty release message are fixed by rellog.
+The configuration file also does not expose rendering settings in v0. Release-note and changelog heading levels, target section headings, and the empty release message are fixed by rellog.
 
 The configuration file is written in [KDL v2](https://github.com/kdl-org/kdl/blob/main/draft-marchan-kdl2.md).
 
@@ -26,8 +26,6 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "deny-unknown"
-
     kinds {
       kind "added" description="New user-visible functionality."
       kind "changed" description="Changes to existing user-visible behavior."
@@ -92,7 +90,7 @@ Fixed values:
 | ------- | ----- |
 | Release heading level | `2` |
 | Kind section heading level | `3` |
-| Entry subsection heading level | `4` |
+| Target section heading level | `4` |
 | Empty release message | `No changelog-worthy changes.` |
 
 Generated release-note files start with `## <release-id>`.
@@ -108,26 +106,6 @@ Implementations should keep heading levels as constants and generate Markdown he
 The `rellog` node must have a `config-version` property.
 
 Only `config-version=1` is supported.
-
-### `entries.target-policy` (optional default = "deny-unknown")
-
-`target-policy` controls how rellog handles entry targets that are not listed in `entries.targets`.
-
-```kdl
-target-policy "deny-unknown"
-```
-
-Allowed values are:
-
-| Value           | Meaning                                                      |
-| --------------- | ------------------------------------------------------------ |
-| `deny-unknown`  | Unknown targets are errors.                                  |
-| `warn-unknown`  | Unknown targets produce warnings, but commands may continue. |
-| `allow-unknown` | Unknown targets are accepted without diagnostics.            |
-
-If `target-policy` is `deny-unknown` or `warn-unknown`, `entries.targets` is required and must contain at least one `target`.
-
-If `target-policy` is `allow-unknown`, `entries.targets` is optional.
 
 ### `consume.on-fail-create` (optional default = "error")
 
@@ -336,8 +314,6 @@ The `entries` section is required.
 
 ```kdl
 entries {
-  target-policy "deny-unknown"
-
   kinds {
     kind "added"
     kind "changed"
@@ -349,6 +325,8 @@ entries {
   }
 }
 ```
+
+`entries` may contain only `kinds` and `targets`. Any other child node — including the removed `target-policy` node — is rejected as unknown configuration.
 
 ### `consume` (optional)
 
@@ -499,9 +477,9 @@ else:
   require kind to be listed in entries.kinds
 ```
 
-### `entries.targets` (required when `target-policy` is "deny-unknown" or "warn-unknown")
+### `entries.targets` (required)
 
-The `targets` section defines known entry targets.
+The `targets` section declares the entry targets. Targets are required structural vocabulary, like kinds: target headings are rendered under kind headings in generated release notes, so the declared targets define generated release-note structure.
 
 ```kdl
 targets {
@@ -510,15 +488,16 @@ targets {
 }
 ```
 
-Whether `targets` is required depends on `target-policy`.
+`targets` is always required and must contain at least one `target` node.
 
-| `target-policy` | `targets` |
-| --------------- | --------- |
-| `deny-unknown`  | Required  |
-| `warn-unknown`  | Required  |
-| `allow-unknown` | Optional  |
+Every target used by an entry must be declared here:
 
-If `targets` is present, it must contain at least one `target` node.
+* an entry whose `targets` contains an undeclared target is an error
+* a normal entry must declare at least one target
+
+There is no policy to allow or warn on unknown targets. A typo in an entry target would otherwise become public release-note structure, so unknown targets are rejected for the same quality reason as unknown kinds. (The former `entries.target-policy` node was removed; a config that still contains it is rejected as unknown configuration.)
+
+Declaration order is structural: when an entry declares multiple targets, the combined target-set heading lists the targets in `entries.targets` declaration order.
 
 #### `target` (required)
 
@@ -574,7 +553,7 @@ Target ids must be unique.
 
 ## Minimal valid configuration
 
-A minimal configuration using strict target validation:
+A minimal valid configuration:
 
 ```kdl
 /- kdl-version 2
@@ -600,31 +579,7 @@ rellog config-version=1 {
 }
 ```
 
-`target-policy` is omitted here, so it defaults to `deny-unknown`.
-
-A minimal configuration allowing arbitrary targets:
-
-```kdl
-/- kdl-version 2
-
-rellog config-version=1 {
-  paths {
-    changelog "CHANGELOG.md"
-    entries ".rellog/entries"
-    release-notes ".rellog/release-notes"
-  }
-
-  entries {
-    target-policy "allow-unknown"
-
-    kinds {
-      kind "added"
-      kind "changed"
-      kind "fixed"
-    }
-  }
-}
-```
+Target validation is always strict: every entry target must be declared in `entries.targets`, so there is no smaller valid configuration without a `targets` block.
 
 ## Validation summary
 
@@ -667,11 +622,8 @@ Error codes use the dotted path to the configuration node or property where the 
 | Code                                            | Condition                                             |
 | ----------------------------------------------- | ----------------------------------------------------- |
 | `rellog.entries.missing`                        | `entries` is missing.                                 |
-| `rellog.entries.target-policy.invalid`          | `target-policy` has an unsupported value.             |
-| `rellog.entries.target-policy.type`             | `target-policy` is not a string.                      |
-| `rellog.entries.target-policy.duplicate`        | `target-policy` appears more than once.               |
-| `rellog.entries.targets.required`               | `targets` is required by `target-policy` but missing. |
-| `rellog.entries.unexpected_children`            | `entries` has unexpected children.                    |
+| `rellog.entries.targets.missing`                | `targets` is missing.                                 |
+| `rellog.entries.unknown_node`                   | `entries` has an unknown child node (including the removed `target-policy`). |
 
 ### Consume
 

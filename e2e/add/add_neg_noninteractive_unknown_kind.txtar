@@ -3,6 +3,6 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 exec rellog init
 ! stderr .
 
-! exec rellog add --kind experimental --target rellog --body 'Unknown kind'
+! exec rellog add --kind experimental --target app --body 'Unknown kind'
 stderr 'kind "experimental" is not defined in rellog.entries.kinds\.'
 exec sh -c 'test -z "$(ls .rellog/entries)"'

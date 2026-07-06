@@ -81,17 +81,14 @@ var validKindRe = regexp.MustCompile(`^[A-Za-z][a-z0-9]*(?:-[a-z0-9]+)*$`)
 
 var builtinKinds = map[string]bool{"empty": true}
 
-var validTargetPolicies = map[string]bool{
-	"deny-unknown":  true,
-	"warn-unknown":  true,
-	"allow-unknown": true,
-}
-
 type entryValidationConfig struct {
 	allowedKinds map[string]bool
 	kindTitles   map[string]string
 	knownTargets map[string]bool
-	targetPolicy string
+	// targetOrder holds target ids in entries.targets declaration order,
+	// which defines heading order for combined target-set sections.
+	targetOrder  []string
+	targetTitles map[string]string
 }
 
 func readEntryValidationConfig() (entryValidationConfig, error) {
@@ -108,7 +105,7 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 		allowedKinds: map[string]bool{},
 		kindTitles:   map[string]string{},
 		knownTargets: map[string]bool{},
-		targetPolicy: "deny-unknown",
+		targetTitles: map[string]string{},
 	}
 
 	var entriesNode *document.Node
@@ -130,10 +127,6 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 
 	for _, n := range entriesNode.Children {
 		switch nodeName(n) {
-		case "target-policy":
-			if len(n.Arguments) > 0 {
-				cfg.targetPolicy = n.Arguments[0].ValueString()
-			}
 		case "kinds":
 			for _, kindNode := range n.Children {
 				if nodeName(kindNode) == "kind" && len(kindNode.Arguments) == 1 {
@@ -149,7 +142,16 @@ func readEntryValidationConfig() (entryValidationConfig, error) {
 		case "targets":
 			for _, targetNode := range n.Children {
 				if nodeName(targetNode) == "target" && len(targetNode.Arguments) == 1 {
-					cfg.knownTargets[targetNode.Arguments[0].ValueString()] = true
+					id := targetNode.Arguments[0].ValueString()
+					if !cfg.knownTargets[id] {
+						cfg.targetOrder = append(cfg.targetOrder, id)
+					}
+					cfg.knownTargets[id] = true
+					if titleVal, ok := targetNode.Properties.Get("title"); ok {
+						if title := strings.TrimSpace(titleVal.ValueString()); title != "" {
+							cfg.targetTitles[id] = title
+						}
+					}
 				}
 			}
 		}
@@ -437,19 +439,21 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 		return []checkError{{"error[rellog.entries.missing]", "rellog.entries is required but not found."}}
 	}
 
-	// Validate target-policy if present
+	// Only kinds and targets are supported under entries. target-policy was
+	// removed: targets are strict structural vocabulary and unknown entry
+	// targets are always errors, so any target-policy node is unknown
+	// configuration.
+	allowedEntriesChildren := map[string]bool{
+		"kinds":   true,
+		"targets": true,
+	}
 	for _, n := range entriesNode.Children {
-		if nodeName(n) == "target-policy" {
-			if len(n.Arguments) > 0 {
-				val := n.Arguments[0].ValueString()
-				if !validTargetPolicies[val] {
-					return []checkError{{
-						"error[rellog.entries.target-policy.invalid]",
-						fmt.Sprintf("target-policy %q is not supported.\n\nAllowed values are: deny-unknown, warn-unknown, allow-unknown.", val),
-					}}
-				}
-			}
-			break
+		name := nodeName(n)
+		if !allowedEntriesChildren[name] {
+			return []checkError{{
+				"error[rellog.entries.unknown_node]",
+				fmt.Sprintf("unknown node: entries.%s\n\nRemove unknown nodes from %s.", name, configFile()),
+			}}
 		}
 	}
 
@@ -523,5 +527,75 @@ func validateEntriesConfig(rellogNode *document.Node) []checkError {
 			})
 		}
 	}
-	return valErrs
+	if len(valErrs) > 0 {
+		return valErrs
+	}
+
+	return validateTargetsConfig(entriesNode)
+}
+
+// validateTargetsConfig validates rellog.entries.targets. Targets are strict
+// structural vocabulary: they are rendered as release-note headings, so the
+// targets node is required and must declare at least one target.
+func validateTargetsConfig(entriesNode *document.Node) []checkError {
+	var targetsNode *document.Node
+	for _, n := range entriesNode.Children {
+		if nodeName(n) == "targets" {
+			targetsNode = n
+			break
+		}
+	}
+	if targetsNode == nil {
+		return []checkError{{"error[rellog.entries.targets.missing]", "rellog.entries.targets is required."}}
+	}
+
+	var values []string
+	var perNodeErrs []checkError
+	for _, n := range targetsNode.Children {
+		if nodeName(n) != "target" {
+			continue
+		}
+		if len(n.Arguments) == 0 {
+			perNodeErrs = append(perNodeErrs, checkError{
+				"error[rellog.entries.targets.target.argument_count]",
+				"target node must have exactly one argument, but none was provided.",
+			})
+			continue
+		}
+		if len(n.Arguments) > 1 {
+			args := make([]string, len(n.Arguments))
+			for i, a := range n.Arguments {
+				args[i] = `"` + a.ValueString() + `"`
+			}
+			perNodeErrs = append(perNodeErrs, checkError{
+				"error[rellog.entries.targets.target.argument_count]",
+				"target node must have exactly one argument.\nBut multiple arguments were provided: " + strings.Join(args, " ") + ".",
+			})
+			continue
+		}
+		values = append(values, n.Arguments[0].ValueString())
+	}
+	if len(perNodeErrs) > 0 {
+		return perNodeErrs
+	}
+
+	if len(values) == 0 {
+		return []checkError{{
+			"error[rellog.entries.targets.empty]",
+			"rellog.entries.targets must declare at least one target.",
+		}}
+	}
+
+	seen := map[string]bool{}
+	var dupErrs []checkError
+	for _, v := range values {
+		if seen[v] {
+			dupErrs = append(dupErrs, checkError{
+				"error[rellog.entries.targets.target.id.duplicate]",
+				fmt.Sprintf("The target id %q is duplicated.", v),
+			})
+		}
+		seen[v] = true
+	}
+	return dupErrs
 }

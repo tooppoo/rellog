@@ -1,0 +1,39 @@
+# target-policy was removed from the configuration schema: `allow-unknown`
+# is no longer accepted. A config containing target-policy fails validation,
+# and `rellog add` no longer honors the old allow-unknown behavior — unknown
+# targets are always errors.
+
+exec rellog init
+! stderr .
+exec cp allow_unknown_target.kdl .rellog/config.kdl
+
+! exec rellog check
+stderr 'error\[rellog\.entries\.unknown_node\]'
+stderr 'unknown node: entries\.target-policy'
+
+! exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target api --body 'No longer allowed'
+stderr 'target "api" is not defined in rellog\.entries\.targets\.'
+! exists .rellog/entries/20260626T123456.123456789Z.json
+
+-- allow_unknown_target.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}

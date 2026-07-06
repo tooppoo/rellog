@@ -92,10 +92,9 @@ Rules:
 - Link values may be rendered into public release notes and changelogs; avoid private URLs unless that exposure is acceptable.
 - Entry JSON always includes `targets` and `links` as arrays. Empty fields are written as `[]`.
 - Interactive and non-interactive mode must validate `kind` against `rellog.entries.kinds`. An undefined kind is an error and no entry file is created.
-- Interactive and non-interactive mode must handle targets that are not listed in `rellog.entries.targets` according to `target-policy`:
-  - `deny-unknown`: fail with an error and do not create an entry file.
-  - `warn-unknown`: print a warning to stderr and create the entry file.
-  - `allow-unknown`: create the entry file without a warning.
+- Interactive and non-interactive mode must validate targets against `rellog.entries.targets`. Targets are strict structural vocabulary:
+  - a normal entry must declare at least one target; otherwise `rellog add` fails and no entry file is created.
+  - a target that is not listed in `rellog.entries.targets` is an error and no entry file is created.
 
 ## `rellog add-empty`
 
@@ -138,7 +137,8 @@ Expected checks:
 - `targets` and `links` are present and are arrays;
 - `targets` and `links` are empty arrays when `kind` is `empty`;
 - entry kind is allowed;
-- target is known, unless the project allows unknown targets;
+- every normal entry declares at least one target;
+- every entry target is declared in `rellog.entries.targets` (unknown targets are errors);
 - every link is an absolute `http` or `https` URL with a non-empty host;
 - link query strings and fragments are accepted;
 - body is not empty;
@@ -301,19 +301,16 @@ Dry-run stdout is a human-readable preview. It contains the generated release-no
 
 ### Changed
 
-#### Details
+#### rellog
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Added validation for pending changelog entries before release preparation.
 <!-- rellog:body:end -->
 
-#### Targets
-
-- rellog
-
-#### Links
-
+Refs:
 - https://example.com/design/21
+<!-- rellog:entry:end -->
 create .rellog/release-notes/v1.0.1.md
 update CHANGELOG.md
 delete .rellog/entries/20260626T123456.123456789Z.json
@@ -402,7 +399,7 @@ v1.2.0 release amended
 `amend` picks one of two modes automatically, based on whether `.rellog/consumed/<release-id>/` (written by `rellog prepare --run`) is present and usable:
 
 - **Regenerate mode** (consumed cache usable): `amend` rebuilds the release content from `consumed ∪ pending` entries. Before writing anything, it renders the consumed-only entry set and compares that rendering against the current release-note file and the matching `CHANGELOG.md` release section. If either artifact no longer matches — for example because someone hand-edited the release note after `prepare` — `amend --run` fails without changing any file.
-- **Append mode** (consumed cache absent or unusable): `amend` treats the existing release note as the source of truth and inserts each pending entry's rendered Markdown into the matching kind section, creating a new kind section (using the effective kind title from the current config) when none exists yet. Existing kind sections are never reordered or regrouped. The identical insertion is applied to the matching `CHANGELOG.md` release section.
+- **Append mode** (consumed cache absent or unusable): `amend` treats the existing release note as the source of truth and inserts each pending entry's rendered Markdown into the matching target section of the matching kind section, creating a new target section (or a new kind section, using the effective titles from the current config) when none exists yet. Existing kind and target sections are never reordered or regrouped. The identical insertion is applied to the matching `CHANGELOG.md` release section.
 
 If consumed data exists but fails validation (structurally invalid, or inconsistent with the entry schema), `amend` reports the problem on stderr — in both dry-run and `--run` — and falls back to append mode. This is not itself a project error, since consumed data is only an optional cache.
 

@@ -42,11 +42,17 @@ jobs:
       - name: create VERSION file
         run: echo ${{ github.ref_name }} > VERSION
 
+      - name: craete release note file as input
+        run: |
+          cat .rellog/release-notes/${{ github.ref_name }}.md \
+            | grep -v "^## " \
+            > tmp/release-notes.md
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7
         with:
           distribution: goreleaser
           version-file: .tool-versions
-          args: release --release-notes=.rellog/release-notes/${{ github.ref_name }}.md
+          args: release --release-notes=tmp/release-notes.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

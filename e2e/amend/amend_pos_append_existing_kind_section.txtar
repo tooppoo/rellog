@@ -3,7 +3,7 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'First entry'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target app --body 'First entry'
 ! stderr .
 
 exec rellog prepare v1.0.0 --run
@@ -11,7 +11,7 @@ exec rellog prepare v1.0.0 --run
 
 rm -rf .rellog/consumed
 
-exec rellog add --debug-datetime 20260627T123456.000000001Z --kind changed --target rellog --body 'Second entry (existing kind)'
+exec rellog add --debug-datetime 20260627T123456.000000001Z --kind changed --target app --body 'Second entry (existing kind)'
 ! stderr .
 
 exec rellog amend v1.0.0 --run
@@ -31,23 +31,16 @@ v1.0.0 release amended
 
 ### changed
 
-#### Details
+#### app
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 First entry
 <!-- rellog:body:end -->
+<!-- rellog:entry:end -->
 
-#### Targets
-
-- rellog
-
-
-#### Details
-
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Second entry (existing kind)
 <!-- rellog:body:end -->
-
-#### Targets
-
-- rellog
+<!-- rellog:entry:end -->

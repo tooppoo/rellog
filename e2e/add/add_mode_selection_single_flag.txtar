@@ -1,0 +1,61 @@
+# Mode selection: any single real add flag (--kind/--target/--body/--link)
+# switches to non-interactive mode and must not consume stdin as interactive
+# answers. Each case pipes a stdin "trap" whose first line is a valid kind;
+# if the flag were ignored and the stdin fallback used instead, the trap
+# values would produce a different (or unexpectedly successful) entry.
+
+exec rellog init
+! stderr .
+
+# --debug-datetime alone is not a real add flag: stdin fallback is used.
+stdin trap.txt
+exec rellog add --debug-datetime 20260626T123456.000000001Z
+! stderr .
+exists .rellog/entries/20260626T123456.000000001Z.json
+cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/from_stdin.json
+rm .rellog/entries/20260626T123456.000000001Z.json
+
+# --kind alone: non-interactive; the trap lines are never read. Targets are
+# strict structural vocabulary, so a kind-only entry now fails on the
+# missing target instead of consuming the trap (which would have succeeded).
+stdin trap.txt
+! exec rellog add --kind changed --debug-datetime 20260626T123456.000000002Z
+stderr 'entry must declare at least one target\.'
+! exists .rellog/entries/20260626T123456.000000002Z.json
+
+# --target alone: non-interactive; the trap's valid kind line is never read,
+# so validation fails on the empty kind and no entry is written.
+stdin trap.txt
+! exec rellog add --target t1 --debug-datetime 20260626T123456.000000003Z
+stderr 'kind "" is not defined in rellog\.entries\.kinds\.'
+! exists .rellog/entries/20260626T123456.000000003Z.json
+
+# --body alone: same as --target alone.
+stdin trap.txt
+! exec rellog add --body 'Body from flag' --debug-datetime 20260626T123456.000000004Z
+stderr 'kind "" is not defined in rellog\.entries\.kinds\.'
+! exists .rellog/entries/20260626T123456.000000004Z.json
+
+# --link alone: same as --target alone. Regression test: --link used to be
+# missing from the real-flag check, silently discarding the link value.
+stdin trap.txt
+! exec rellog add --link https://example.com/flag-link --debug-datetime 20260626T123456.000000005Z
+stderr 'kind "" is not defined in rellog\.entries\.kinds\.'
+! exists .rellog/entries/20260626T123456.000000005Z.json
+
+-- trap.txt --
+added
+app
+Trap body
+https://example.com/trap
+-- .rellog.expected/entries/from_stdin.json --
+{
+  "kind": "added",
+  "targets": [
+    "app"
+  ],
+  "links": [
+    "https://example.com/trap"
+  ],
+  "body": "Trap body"
+}

@@ -3,6 +3,7 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
 exec rellog init
 ! stderr .
+exec cp custom_config.kdl .rellog/config.kdl
 
 exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target t1 --target t2 --body 'No Issue and PR'
 ! stderr .
@@ -18,4 +19,25 @@ cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/202
   ],
   "links": [],
   "body": "No Issue and PR"
+}
+-- custom_config.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+      target "t1"
+      target "t2"
+    }
+  }
 }
