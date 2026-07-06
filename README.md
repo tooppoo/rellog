@@ -94,7 +94,8 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 - [Commands](docs/commands.md)
 - [Configuration](docs/configuration.md)
-- [GitHub Action](docs/actions-ready.md)
+- [GitHub Action: ready](docs/actions-ready.md)
+- [GitHub Action: create release note](docs/actions-create-release-note.md)
 - [Workflow](docs/workflow.md)
 - [Git Ignore policy](docs/ignore-policy.md)
 - [Files](docs/files.md)

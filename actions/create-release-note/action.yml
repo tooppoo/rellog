@@ -1,0 +1,48 @@
+name: rellog create release note
+description: Create a GitHub Release using a rellog-generated release note as the body.
+
+inputs:
+  release-id:
+    required: true
+    description: Release id to publish. Used as the release tag and to locate .rellog/release-notes/<release-id>.md. (i.e. v1.0.0)
+  files:
+    required: false
+    description: Newline-delimited list of path globs for asset files to attach to the release. Forwarded to softprops/action-gh-release's `files` input.
+
+runs:
+  using: composite
+  steps:
+    # remove the version header, because action-gh-release will add it automatically as the release title.
+    - name: Strip version header from release note
+      id: note
+      shell: bash
+      env:
+        RELEASE_ID: ${{ inputs.release-id }}
+      run: |
+        set -euo pipefail
+
+        if [[ ! "${RELEASE_ID}" =~ ^v[0-9]+(\.[0-9]+){2}([-+][0-9A-Za-z.-]+)?$ ]]; then
+          echo "release-id must be a version tag such as v1.0.0, got: ${RELEASE_ID}" >&2
+          exit 1
+        fi
+
+        source_file="${GITHUB_WORKSPACE}/.rellog/release-notes/${RELEASE_ID}.md"
+        if [[ ! -f "${source_file}" ]]; then
+          echo "Release note file not found: ${source_file}" >&2
+          exit 1
+        fi
+
+        out_dir="${RUNNER_TEMP}/create-release-note-action"
+        mkdir -p "${out_dir}"
+        out_file="${out_dir}/release-notes.md"
+
+        sed '/^## /d' "${source_file}" > "${out_file}"
+
+        echo "path=${out_file}" >> "${GITHUB_OUTPUT}"
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+      with:
+        tag_name: ${{ inputs.release-id }}
+        body_path: ${{ steps.note.outputs.path }}
+        files: ${{ inputs.files }}
