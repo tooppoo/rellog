@@ -1,0 +1,82 @@
+name: Test create-release-note action
+
+on:
+  pull_request:
+    paths:
+      - "actions/create-release-note/**"
+      - ".github/workflows/test-create-release-note-action.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Prepare test release note
+        id: prepare
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+
+          release_id="v0.0.0-test.${RUN_ID}.${RUN_ATTEMPT}"
+
+          mkdir -p .rellog/release-notes
+          {
+            echo "## ${release_id}"
+            echo
+            echo "test body for create-release-note action verification (run ${RUN_ID})"
+          } > ".rellog/release-notes/${release_id}.md"
+
+          mkdir -p create-release-note-action-test-assets
+          echo "dummy asset for create-release-note action test" \
+            > create-release-note-action-test-assets/dummy.txt
+
+          echo "release-id=${release_id}" >> "${GITHUB_OUTPUT}"
+
+      - name: Run create-release-note action
+        uses: ./actions/create-release-note
+        with:
+          release-id: ${{ steps.prepare.outputs.release-id }}
+          files: create-release-note-action-test-assets/dummy.txt
+
+      - name: Verify release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.prepare.outputs.release-id }}
+        run: |
+          set -euo pipefail
+
+          body="$(gh release view "${RELEASE_ID}" --json body --jq .body)"
+
+          if [[ "${body}" == *"## ${RELEASE_ID}"* ]]; then
+            echo "version header was not stripped from the release body" >&2
+            exit 1
+          fi
+
+          if [[ "${body}" != *"test body for create-release-note action verification"* ]]; then
+            echo "release body does not contain the expected content" >&2
+            exit 1
+          fi
+
+          asset_names="$(gh release view "${RELEASE_ID}" --json assets --jq '.assets[].name')"
+          if [[ "${asset_names}" != *"dummy.txt"* ]]; then
+            echo "expected asset dummy.txt was not attached to the release" >&2
+            exit 1
+          fi
+
+      - name: Delete test release
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_ID: ${{ steps.prepare.outputs.release-id }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "${RELEASE_ID}" ]]; then
+            gh release delete "${RELEASE_ID}" --yes --cleanup-tag
+          fi
