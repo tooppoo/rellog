@@ -100,7 +100,7 @@ jobs:
           cd "$tmp"
 
           rellog init
-          rellog add --kind added --target e2e --body "Smoke Test"
+          rellog add --kind added --target app --body "Smoke Test"
           rellog status
           rellog prepare v1.0.0
           rellog prepare --run v1.0.0
@@ -162,7 +162,7 @@ jobs:
           Set-Location $tmp
 
           rellog init
-          rellog add --kind added --target e2e --body "Smoke Test"
+          rellog add --kind added --target app --body "Smoke Test"
           rellog status
           rellog prepare v1.0.0
           rellog prepare --run v1.0.0
