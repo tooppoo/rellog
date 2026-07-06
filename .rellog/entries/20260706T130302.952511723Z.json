@@ -1,8 +1,0 @@
-{
-  "kind": "fixed",
-  "targets": [
-    "cli"
-  ],
-  "links": [],
-  "body": "ensure .rellog/entries before add entry"
-}

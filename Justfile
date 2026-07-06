@@ -42,6 +42,7 @@ coverage:
     @bash scripts/test/coverage.sh
 
 release-tag version:
+    rellog ready {{ version }}
     git tag -d latest 2>/dev/null || true
     git push origin --delete latest 2>/dev/null || true
 

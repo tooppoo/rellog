@@ -1,5 +1,27 @@
 # CHANGELOG
 
+## v0.1.1
+
+### fixed
+
+#### cli
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+ensure .rellog/entries before add entry
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+
+### added
+
+#### actions
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+add `tooppoo/rellog/actions/create-release-note`
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+
 ## v0.1.0
 
 ### changed

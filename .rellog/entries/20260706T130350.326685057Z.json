@@ -1,8 +1,0 @@
-{
-  "kind": "added",
-  "targets": [
-    "actions"
-  ],
-  "links": [],
-  "body": "add `tooppoo/rellog/actions/create-release-note`"
-}
