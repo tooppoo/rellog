@@ -16,12 +16,44 @@ type addOptions struct {
 	DebugDatetime string
 }
 
-func addEntry(opts addOptions) error {
+// checkEntryStorePreconditions verifies the entry store is usable: rellog is
+// initialized and the entries path is a directory.
+func checkEntryStorePreconditions() error {
 	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
 		return &exitError{ExitNotInitialized, "run `rellog init` first"}
 	}
 	if info, err := os.Stat(entriesDir()); err == nil && !info.IsDir() {
 		return &exitError{ExitInvalidStructure, entriesDir() + " is not a directory"}
+	}
+	return nil
+}
+
+// checkNoEmptyEntryConflict fails when an empty entry already exists, in
+// which case a normal entry can never be added.
+func checkNoEmptyEntryConflict() error {
+	entries, err := os.ReadDir(entriesDir())
+	if err != nil {
+		return err
+	}
+	for _, f := range entries {
+		if !strings.HasSuffix(f.Name(), ".json") {
+			continue
+		}
+		data, readErr := os.ReadFile(filepath.Join(entriesDir(), f.Name()))
+		if readErr != nil {
+			return readErr
+		}
+		e, parseErr := parseEntryJSON(data)
+		if parseErr == nil && e.Kind == "empty" {
+			return &exitError{ExitEntryConflict, "entry conflict: empty entry already exists; normal entry cannot be added"}
+		}
+	}
+	return nil
+}
+
+func addEntry(opts addOptions) error {
+	if err := checkEntryStorePreconditions(); err != nil {
+		return err
 	}
 
 	cfg, err := readEntryValidationConfig()
@@ -55,23 +87,8 @@ func addEntry(opts addOptions) error {
 		return &exitError{ExitCheckFailed, strings.Join(linkErrs, "\n")}
 	}
 
-	// Check for empty entry conflict
-	entries, err := os.ReadDir(entriesDir())
-	if err != nil {
+	if err := checkNoEmptyEntryConflict(); err != nil {
 		return err
-	}
-	for _, f := range entries {
-		if !strings.HasSuffix(f.Name(), ".json") {
-			continue
-		}
-		data, readErr := os.ReadFile(filepath.Join(entriesDir(), f.Name()))
-		if readErr != nil {
-			return readErr
-		}
-		e, parseErr := parseEntryJSON(data)
-		if parseErr == nil && e.Kind == "empty" {
-			return &exitError{ExitEntryConflict, "entry conflict: empty entry already exists; normal entry cannot be added"}
-		}
 	}
 
 	e := entry{
@@ -85,11 +102,8 @@ func addEntry(opts addOptions) error {
 }
 
 func addEmptyEntry(debugDatetime string) error {
-	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
-		return &exitError{ExitNotInitialized, "run `rellog init` first"}
-	}
-	if info, err := os.Stat(entriesDir()); err == nil && !info.IsDir() {
-		return &exitError{ExitInvalidStructure, entriesDir() + " is not a directory"}
+	if err := checkEntryStorePreconditions(); err != nil {
+		return err
 	}
 
 	files, err := os.ReadDir(entriesDir())
