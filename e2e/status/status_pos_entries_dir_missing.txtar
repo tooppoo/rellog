@@ -1,0 +1,18 @@
+exec rellog init
+! stderr .
+
+# entries/ is empty right after init, so git checkouts commonly omit it.
+# status must recreate the directory transparently instead of erroring.
+exec sh -c 'rm -rf .rellog/entries'
+! exists .rellog/entries
+
+exec rellog status
+cmp stdout empty.expected.txt
+! stderr .
+exists .rellog/entries
+
+-- empty.expected.txt --
+Unreleased entries: 0
+State: normal
+Prepare allowed: yes
+

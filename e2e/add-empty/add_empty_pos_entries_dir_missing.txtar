@@ -1,0 +1,12 @@
+
+exec rellog init
+! stderr .
+
+# entries/ is empty right after init, so git checkouts commonly omit it.
+# add-empty must recreate the directory transparently instead of erroring.
+exec sh -c 'rm -rf .rellog/entries'
+! exists .rellog/entries
+
+exec rellog add-empty --debug-datetime 20260626T123456.123456789Z
+! stderr .
+exists .rellog/entries/20260626T123456.123456789Z.json

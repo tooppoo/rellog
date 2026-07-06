@@ -1,0 +1,25 @@
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+
+exec rellog init
+! stderr .
+
+# entries/ is empty right after init, so git checkouts commonly omit it.
+# add must recreate the directory transparently instead of erroring.
+exec sh -c 'rm -rf .rellog/entries'
+! exists .rellog/entries
+
+exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target app --body 'Recreates missing entries dir'
+! stderr .
+exists .rellog/entries/20260626T123456.123456789Z.json
+cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/20260626T123456.123456789Z.json
+
+-- .rellog.expected/entries/20260626T123456.123456789Z.json --
+{
+  "kind": "changed",
+  "targets": [
+    "app"
+  ],
+  "links": [],
+  "body": "Recreates missing entries dir"
+}

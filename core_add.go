@@ -17,12 +17,20 @@ type addOptions struct {
 }
 
 // checkEntryStorePreconditions verifies the entry store is usable: rellog is
-// initialized and the entries path is a directory.
+// initialized and the entries path is a directory. The entries directory is
+// not tracked by git when empty, so a fresh checkout may be missing it even
+// though rellog was initialized; in that case it is created transparently.
 func checkEntryStorePreconditions() error {
 	if _, err := os.Stat(baseDir); os.IsNotExist(err) {
 		return &exitError{ExitNotInitialized, "run `rellog init` first"}
 	}
-	if info, err := os.Stat(entriesDir()); err == nil && !info.IsDir() {
+	info, err := os.Stat(entriesDir())
+	switch {
+	case os.IsNotExist(err):
+		return os.MkdirAll(entriesDir(), 0755)
+	case err != nil:
+		return err
+	case !info.IsDir():
 		return &exitError{ExitInvalidStructure, entriesDir() + " is not a directory"}
 	}
 	return nil

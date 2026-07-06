@@ -270,6 +270,9 @@ func loadEntryFiles(dir string) ([]entryFile, error) {
 }
 
 func readEntries() ([]entry, error) {
+	if err := checkEntryStorePreconditions(); err != nil {
+		return nil, err
+	}
 	files, err := os.ReadDir(entriesDir())
 	if err != nil {
 		return nil, err
