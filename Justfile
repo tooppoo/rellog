@@ -40,3 +40,19 @@ check: lint ci
 
 coverage:
     @bash scripts/test/coverage.sh
+
+release-tag version:
+    git tag -d latest 2>/dev/null || true
+    git push origin --delete latest 2>/dev/null || true
+
+    git tag -a latest -m "@latest({{ version}})"
+    git tag -a {{ version }} -m "@{{ version }}"
+
+[private]
+release-tag-del version:
+    # this command is for testint and debuggint. this would be removed in future.
+    git tag -d latest 2>/dev/null || true
+    git push origin --delete latest 2>/dev/null || true
+
+    git tag -d {{ version }} 2>/dev/null || true
+    git push origin --delete {{ version }} 2>/dev/null || true
