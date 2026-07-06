@@ -5,50 +5,19 @@ inputs:
   release-id:
     required: true
     description: Release id to publish. Used as the release tag and to locate .rellog/release-notes/<release-id>.md. (i.e. v1.0.0)
-  working-directory:
+  files:
     required: false
-    default: "."
-    description: Directory, relative to github.workspace, containing the .rellog directory.
+    description: Newline-delimited list of path globs for asset files to attach to the release. Forwarded to softprops/action-gh-release's `files` input.
 
 runs:
   using: composite
   steps:
-    - name: Validate working directory
-      id: workdir
-      shell: bash
-      env:
-        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
-      run: |
-        set -euo pipefail
-
-        if [[ "${INPUT_WORKING_DIRECTORY}" = /* || "${INPUT_WORKING_DIRECTORY}" =~ ^[A-Za-z]:[\\/] ]]; then
-          echo "working-directory must be relative to github.workspace." >&2
-          exit 1
-        fi
-
-        workspace="$(cd "${GITHUB_WORKSPACE}" && pwd -P)"
-        if ! resolved="$(cd "${workspace}/${INPUT_WORKING_DIRECTORY}" 2>/dev/null && pwd -P)"; then
-          echo "working-directory does not exist or is not a directory: ${INPUT_WORKING_DIRECTORY}" >&2
-          exit 1
-        fi
-
-        case "${resolved}" in
-          "${workspace}" | "${workspace}"/*) ;;
-          *)
-            echo "working-directory must resolve inside github.workspace: ${INPUT_WORKING_DIRECTORY}" >&2
-            exit 1
-            ;;
-        esac
-
-        echo "path=${resolved}" >> "${GITHUB_OUTPUT}"
-
     # remove the version header, because action-gh-release will add it automatically as the release title.
     - name: Strip version header from release note
       id: note
       shell: bash
       env:
         RELEASE_ID: ${{ inputs.release-id }}
-        WORKING_DIRECTORY: ${{ steps.workdir.outputs.path }}
       run: |
         set -euo pipefail
 
@@ -57,7 +26,7 @@ runs:
           exit 1
         fi
 
-        source_file="${WORKING_DIRECTORY}/.rellog/release-notes/${RELEASE_ID}.md"
+        source_file="${GITHUB_WORKSPACE}/.rellog/release-notes/${RELEASE_ID}.md"
         if [[ ! -f "${source_file}" ]]; then
           echo "Release note file not found: ${source_file}" >&2
           exit 1
@@ -76,3 +45,4 @@ runs:
       with:
         tag_name: ${{ inputs.release-id }}
         body_path: ${{ steps.note.outputs.path }}
+        files: ${{ inputs.files }}
