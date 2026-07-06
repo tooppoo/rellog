@@ -40,7 +40,6 @@ type addFormModel struct {
 
 	kindCandidates   []string
 	targetCandidates []string
-	targetPolicy     string
 
 	focus     addFormField
 	listOpen  bool
@@ -72,7 +71,6 @@ func newAddFormModel(cfg entryValidationConfig) addFormModel {
 		links:            newInput("absolute http(s) URLs, space or comma separated"),
 		kindCandidates:   slices.Sorted(maps.Keys(cfg.allowedKinds)),
 		targetCandidates: slices.Sorted(maps.Keys(cfg.knownTargets)),
-		targetPolicy:     cfg.targetPolicy,
 	}
 	m.kind.Focus()
 	return m
@@ -289,9 +287,6 @@ func (m addFormModel) viewString() string {
 			} else {
 				sb.WriteString("  " + c + "\n")
 			}
-		}
-		if m.focus == fieldTargets {
-			sb.WriteString(styles.hint.Render("target-policy: "+m.targetPolicy) + "\n")
 		}
 	}
 

@@ -1,0 +1,102 @@
+# entries.target-policy was removed from the configuration schema. Any
+# target-policy node — including previously valid values — is rejected as
+# unknown configuration.
+
+exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
+
+exec rellog init
+
+mv deny_unknown.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+mv allow_unknown.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+mv unknown_value.kdl .rellog/config.kdl
+! exec rellog check
+! stdout .
+cmp stderr expected.txt
+
+-- deny_unknown.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "deny-unknown"
+
+    kinds {
+      kind "added"
+      kind "changed"
+      kind "fixed"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}
+-- allow_unknown.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "allow-unknown"
+
+    kinds {
+      kind "added"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}
+-- unknown_value.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    target-policy "foo"
+
+    kinds {
+      kind "added"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}
+-- expected.txt --
+rellog check: FAILED
+
+1 files
+1 errors
+
+.rellog/config.kdl
+  error[rellog.entries.unknown_node]
+    unknown node: entries.target-policy
+
+    Remove unknown nodes from .rellog/config.kdl.

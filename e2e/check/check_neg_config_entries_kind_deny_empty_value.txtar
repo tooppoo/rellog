@@ -1,6 +1,5 @@
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
-
 exec rellog init
 
 ! exec rellog check
@@ -22,7 +21,10 @@ rellog config-version=1 {
       kind // empty value
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- expected.txt --

@@ -20,54 +20,71 @@ v0 rendering is fixed.
 | --------- | ------- |
 | Release | `## <release-id>` |
 | Kind section | `### <kind title>` |
-| Entry details | `#### Details` |
-| Entry targets | `#### Targets` |
-| Entry links | `#### Links` |
+| Target section | `#### <target-set title>` |
+
+Entries are grouped as `release -> kind -> target section -> entry`.
+
+`Details`, `Targets`, and `Links` headings are not emitted. Entry metadata does not render as headings: targets become the target section heading, and links render under the plain `Refs:` label.
+
+## Target sections
+
+Within a kind section, entries are grouped by their target set and rendered under `#### <target-set title>` headings.
+
+The target heading uses the effective target title:
+
+* `target.title`, if configured in `entries.targets`
+* otherwise, the target id
+
+Target-set sections appear in first-seen entry (filename) order within their kind section. Entries within one target section keep filename order.
+
+### Multiple targets
+
+An entry with multiple targets renders once, under a combined target-set heading. The entry body is not duplicated into multiple target sections.
+
+The combined heading joins the effective target titles with ` / `, in `entries.targets` declaration order (regardless of the order in the entry file):
+
+```md
+#### CLI / GitHub Actions
+```
 
 ## Normal entries
 
-Normal entries render under their kind section in filename order.
-
-Each normal entry emits `#### Details`.
-
-The entry `body` is emitted between body marker comments:
+Each rendered entry is wrapped by entry marker comments, and the entry `body` is wrapped by body marker comments:
 
 ```md
-#### Details
+#### CLI
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Added validation for pending changelog entries before release preparation.
 <!-- rellog:body:end -->
+
+Refs:
+- https://example.com/design/21
+<!-- rellog:entry:end -->
 ```
 
 The body is raw Markdown pass-through. rellog does not escape, indent, list-wrap, code-block, normalize, or repair it. Body Markdown may affect rendered Markdown appearance.
 
 The marker namespace `<!-- rellog:` is reserved. Entry bodies must not contain comments that start with `<!-- rellog:`. `rellog check` and `rellog prepare` fail when they find one.
 
-If an entry has one or more targets, `#### Targets` is emitted after `#### Details`. If an entry has no targets, `#### Targets` is omitted.
+Entry markers preserve machine-readable entry boundaries now that entries no longer emit metadata headings.
 
-If an entry has one or more links, `#### Links` is emitted after `#### Details` and `#### Targets`. If an entry has no links, `#### Links` is omitted.
+### Refs
 
-Targets and links belong to each entry. They are not aggregated into release-wide sections.
+If an entry has one or more links, they render under the plain `Refs:` label after the body. `Refs:` is a label, not a Markdown heading.
+
+`Refs:` is emitted only when the entry has links. Empty `Refs:` blocks are never emitted.
 
 Within one entry, links keep their specified order. Duplicate links within one entry are emitted only at their first occurrence. Links are not deduplicated across different entries.
 
-Normal entries are separated by one blank line.
+Normal entries within a target section are separated by one blank line.
 
 ## Entry block boundaries
 
-A normal entry block starts at `#### Details`.
+A normal entry block is delimited by the `<!-- rellog:entry:start -->` / `<!-- rellog:entry:end -->` marker pair.
 
-The entry block ends before one of:
-
-- the next `#### Details`
-- the next kind section heading
-- the next release heading
-- the end of the file
-
-`#### Targets` and `#### Links` belong to the immediately preceding `#### Details`.
-
-Body marker comments define the body range. Headings inside the marker pair are not structural rellog headings. If the body marker pair is malformed, rellog treats the generated Markdown as invalid structure.
+Body marker comments define the body range. Headings inside the body marker pair are not structural rellog headings. If the body marker pair is malformed, rellog treats the generated Markdown as invalid structure.
 
 ## Normal release example
 
@@ -76,19 +93,24 @@ Body marker comments define the body range. Headings inside the marker pair are 
 
 ### Changed
 
-#### Details
+#### CLI
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Added validation for pending changelog entries before release preparation.
 <!-- rellog:body:end -->
 
-#### Targets
-
-- rellog
-
-#### Links
-
+Refs:
 - https://example.com/design/21
+<!-- rellog:entry:end -->
+
+#### CLI / Docs
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+Documented and validated the new prepare flow.
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
 ```
 
 Generated release notes and changelogs are normally public project output. Links
@@ -98,7 +120,7 @@ are emitted as written, so avoid private URLs unless that exposure is acceptable
 
 Empty release notes render only the fixed empty release message.
 
-They do not include `#### Details`, `#### Targets`, or `#### Links`.
+They do not include kind sections, target sections, or entry markers.
 
 ```md
 ## v1.0.1

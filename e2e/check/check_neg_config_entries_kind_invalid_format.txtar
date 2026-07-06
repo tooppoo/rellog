@@ -1,6 +1,5 @@
 exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 
-
 exec rellog init
 
 mv rellog.entries.kinds.multibyte.kdl .rellog/config.kdl
@@ -70,7 +69,10 @@ rellog config-version=1 {
       kind "テスト" // invalid
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.multibyte.expected.txt --
@@ -100,7 +102,10 @@ rellog config-version=1 {
       kind "1change" // invalid
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.number_head.expected.txt --
@@ -130,7 +135,10 @@ rellog config-version=1 {
       kind "_change" // invalid
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.underscore_head.expected.txt --
@@ -160,7 +168,10 @@ rellog config-version=1 {
       kind "-change" // invalid
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.hyphen_head.expected.txt --
@@ -190,7 +201,10 @@ rellog config-version=1 {
       kind ".change" // invalid
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.dot_head.expected.txt --
@@ -220,7 +234,10 @@ rellog config-version=1 {
       kind "fix_bug" // invalid: underscore not allowed
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.underscore_mid.expected.txt --
@@ -250,7 +267,10 @@ rellog config-version=1 {
       kind "fixBug" // invalid: uppercase after head
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.camelcase.expected.txt --
@@ -280,7 +300,10 @@ rellog config-version=1 {
       kind "fixed-" // invalid: trailing hyphen
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.trailing_hyphen.expected.txt --
@@ -310,7 +333,10 @@ rellog config-version=1 {
       kind "change log" // invalid
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.space.expected.txt --
@@ -340,7 +366,10 @@ rellog config-version=1 {
       kind "change/log" // invalid
     }
 
-    target-policy "allow-unknown"
+    targets {
+      target "cli"
+    }
+
   }
 }
 -- rellog.entries.kinds.slash.expected.txt --

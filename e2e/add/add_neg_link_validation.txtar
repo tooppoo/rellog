@@ -1,26 +1,26 @@
 exec rellog init
 ! stderr .
 
-! exec rellog add --kind changed --target rellog --link '' --body 'empty link'
+! exec rellog add --kind changed --target app --link '' --body 'empty link'
 ! stdout .
 stderr 'link URL'
 
-! exec rellog add --kind changed --target rellog --link '   ' --body 'blank link'
+! exec rellog add --kind changed --target app --link '   ' --body 'blank link'
 ! stdout .
 stderr 'link URL'
 
-! exec rellog add --kind changed --target rellog --link docs/design.md --body 'relative link'
+! exec rellog add --kind changed --target app --link docs/design.md --body 'relative link'
 ! stdout .
 stderr 'link URL'
 
-! exec rellog add --kind changed --target rellog --link example.com/design --body 'missing scheme'
+! exec rellog add --kind changed --target app --link example.com/design --body 'missing scheme'
 ! stdout .
 stderr 'link URL'
 
-! exec rellog add --kind changed --target rellog --link https:///design --body 'missing host'
+! exec rellog add --kind changed --target app --link https:///design --body 'missing host'
 ! stdout .
 stderr 'link URL'
 
-! exec rellog add --kind changed --target rellog --link ftp://example.com/design --body 'wrong scheme'
+! exec rellog add --kind changed --target app --link ftp://example.com/design --body 'wrong scheme'
 ! stdout .
 stderr 'link URL'

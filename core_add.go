@@ -66,16 +66,14 @@ func addEntry(opts addOptions) error {
 		return &exitError{ExitCheckFailed, fmt.Sprintf("kind %q is not defined in rellog.entries.kinds.", opts.Kind)}
 	}
 
-	// Validate targets
-	if cfg.targetPolicy != "allow-unknown" {
-		for _, target := range opts.Targets {
-			if !cfg.knownTargets[target] {
-				if cfg.targetPolicy == "warn-unknown" {
-					fmt.Fprintf(os.Stderr, "target %q is not defined in rellog.entries.targets.\n", target)
-				} else {
-					return &exitError{ExitCheckFailed, fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target)}
-				}
-			}
+	// Validate targets: strict structural vocabulary. Targets become
+	// release-note headings, so every entry needs at least one declared target.
+	if len(opts.Targets) == 0 {
+		return &exitError{ExitCheckFailed, "entry must declare at least one target."}
+	}
+	for _, target := range opts.Targets {
+		if !cfg.knownTargets[target] {
+			return &exitError{ExitCheckFailed, fmt.Sprintf("target %q is not defined in rellog.entries.targets.", target)}
 		}
 	}
 

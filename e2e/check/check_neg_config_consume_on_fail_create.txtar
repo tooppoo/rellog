@@ -66,10 +66,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -99,10 +101,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -130,10 +134,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -161,10 +167,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -192,10 +200,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -223,10 +233,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -258,10 +270,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -289,10 +303,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -321,10 +337,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -352,10 +370,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 
@@ -385,10 +405,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "added"
+    }
+
+    targets {
+      target "cli"
     }
   }
 

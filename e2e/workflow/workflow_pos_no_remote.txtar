@@ -3,7 +3,7 @@
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'No remote workflow'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target app --body 'No remote workflow'
 ! stderr .
 
 exec rellog status

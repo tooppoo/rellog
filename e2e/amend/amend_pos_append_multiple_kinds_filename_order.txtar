@@ -3,7 +3,7 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Base entry'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target app --body 'Base entry'
 ! stderr .
 
 exec rellog prepare v1.0.0 --run
@@ -12,13 +12,13 @@ exec rellog prepare v1.0.0 --run
 rm -rf .rellog/consumed
 
 # Pending entries created out of kind order but must be processed in filename order.
-exec rellog add --debug-datetime 20260627T000000.000000001Z --kind fixed --target rellog --body 'Fixed A (first-seen new kind)'
+exec rellog add --debug-datetime 20260627T000000.000000001Z --kind fixed --target app --body 'Fixed A (first-seen new kind)'
 ! stderr .
-exec rellog add --debug-datetime 20260627T000000.000000002Z --kind changed --target rellog --body 'Changed B (existing kind)'
+exec rellog add --debug-datetime 20260627T000000.000000002Z --kind changed --target app --body 'Changed B (existing kind)'
 ! stderr .
-exec rellog add --debug-datetime 20260627T000000.000000003Z --kind added --target rellog --body 'Added C (second new kind)'
+exec rellog add --debug-datetime 20260627T000000.000000003Z --kind added --target app --body 'Added C (second new kind)'
 ! stderr .
-exec rellog add --debug-datetime 20260627T000000.000000004Z --kind fixed --target rellog --body 'Fixed D (same new kind, later filename)'
+exec rellog add --debug-datetime 20260627T000000.000000004Z --kind fixed --target app --body 'Fixed D (same new kind, later filename)'
 ! stderr .
 
 exec rellog amend v1.0.0 --run
@@ -34,58 +34,42 @@ v1.0.0 release amended
 
 ### changed
 
-#### Details
+#### app
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Base entry
 <!-- rellog:body:end -->
+<!-- rellog:entry:end -->
 
-#### Targets
-
-- rellog
-
-
-#### Details
-
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Changed B (existing kind)
 <!-- rellog:body:end -->
-
-#### Targets
-
-- rellog
+<!-- rellog:entry:end -->
 
 ### fixed
 
-#### Details
+#### app
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Fixed A (first-seen new kind)
 <!-- rellog:body:end -->
+<!-- rellog:entry:end -->
 
-#### Targets
-
-- rellog
-
-
-#### Details
-
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Fixed D (same new kind, later filename)
 <!-- rellog:body:end -->
-
-#### Targets
-
-- rellog
+<!-- rellog:entry:end -->
 
 ### added
 
-#### Details
+#### app
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Added C (second new kind)
 <!-- rellog:body:end -->
-
-#### Targets
-
-- rellog
+<!-- rellog:entry:end -->

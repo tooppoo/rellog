@@ -19,7 +19,7 @@ cmp .rellog/consumed/cli/v1.0.0/entries/20260626T123456.000000001Z.json entry.js
 {
   "kind": "changed",
   "targets": [
-    "cli"
+    "app"
   ],
   "links": [],
   "body": "Path separator release id entry"

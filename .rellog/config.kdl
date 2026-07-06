@@ -8,13 +8,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "deny-unknown"
-
     kinds {
       kind "added"
       kind "changed"
       kind "fixed"
     }
+
     targets {
       target "cli"
       target "core"

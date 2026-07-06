@@ -13,10 +13,12 @@ rellog config-version=1 {
   }
 
   entries {
-    target-policy "allow-unknown"
-
     kinds {
       kind "changed"
+    }
+
+    targets {
+      target "rellog"
     }
   }
 }

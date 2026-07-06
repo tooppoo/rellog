@@ -13,7 +13,8 @@ func testFormConfig() entryValidationConfig {
 		allowedKinds: map[string]bool{"added": true, "changed": true, "fixed": true},
 		kindTitles:   map[string]string{},
 		knownTargets: map[string]bool{"api": true, "cli": true},
-		targetPolicy: "warn-unknown",
+		targetOrder:  []string{"api", "cli"},
+		targetTitles: map[string]string{},
 	}
 }
 
@@ -318,11 +319,11 @@ func TestAddFormView(t *testing.T) {
 		t.Error("View() should not render candidates while the list is closed")
 	}
 
-	// Candidate list rendering, including the target-policy hint on targets.
+	// Candidate list rendering on the targets field.
 	m = press(t, m, altDigit('2'))
 	m = press(t, m, key("ctrl+l"))
 	view = m.viewString()
-	for _, want := range []string{"candidates (", "api", "cli", "target-policy: warn-unknown"} {
+	for _, want := range []string{"candidates (", "api", "cli"} {
 		if !strings.Contains(view, want) {
 			t.Errorf("View() with open targets list missing %q", want)
 		}
@@ -332,15 +333,6 @@ func TestAddFormView(t *testing.T) {
 	m = press(t, m, key("ctrl+g"))
 	if view = m.viewString(); !strings.Contains(view, "cancel without saving") {
 		t.Error("View() with help open should render the key binding help")
-	}
-
-	// Kind list has no policy hint.
-	m = press(t, m, key("ctrl+g"))
-	m = press(t, m, key("esc"))
-	m = press(t, m, altDigit('1'))
-	m = press(t, m, key("ctrl+l"))
-	if view = m.viewString(); strings.Contains(view, "target-policy") {
-		t.Error("View() with open kind list must not render the target-policy hint")
 	}
 }
 

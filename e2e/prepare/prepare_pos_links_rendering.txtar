@@ -17,7 +17,7 @@ cmp CHANGELOG.md expected.changelog.md
 -- entry-one.json --
 {
   "kind": "changed",
-  "targets": ["rellog"],
+  "targets": ["app"],
   "links": [
     "https://example.com/first",
     "https://example.com/second",
@@ -28,7 +28,7 @@ cmp CHANGELOG.md expected.changelog.md
 -- entry-two.json --
 {
   "kind": "changed",
-  "targets": [],
+  "targets": ["app"],
   "links": [],
   "body": "Second body"
 }
@@ -37,8 +37,9 @@ cmp CHANGELOG.md expected.changelog.md
 
 ### changed
 
-#### Details
+#### app
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Raw **Markdown** body
 
@@ -48,21 +49,16 @@ Raw **Markdown** body
 > body quote
 <!-- rellog:body:end -->
 
-#### Targets
-
-- rellog
-
-#### Links
-
+Refs:
 - https://example.com/first
 - https://example.com/second
+<!-- rellog:entry:end -->
 
-
-#### Details
-
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Second body
 <!-- rellog:body:end -->
+<!-- rellog:entry:end -->
 create .rellog/release-notes/v1.0.0.md
 update CHANGELOG.md
 delete .rellog/entries/20260626T123456.000000001Z.json
@@ -72,8 +68,9 @@ delete .rellog/entries/20260626T123456.000000002Z.json
 
 ### changed
 
-#### Details
+#### app
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Raw **Markdown** body
 
@@ -83,21 +80,16 @@ Raw **Markdown** body
 > body quote
 <!-- rellog:body:end -->
 
-#### Targets
-
-- rellog
-
-#### Links
-
+Refs:
 - https://example.com/first
 - https://example.com/second
+<!-- rellog:entry:end -->
 
-
-#### Details
-
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Second body
 <!-- rellog:body:end -->
+<!-- rellog:entry:end -->
 -- expected.changelog.md --
 # CHANGELOG
 
@@ -105,8 +97,9 @@ Second body
 
 ### changed
 
-#### Details
+#### app
 
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Raw **Markdown** body
 
@@ -116,18 +109,13 @@ Raw **Markdown** body
 > body quote
 <!-- rellog:body:end -->
 
-#### Targets
-
-- rellog
-
-#### Links
-
+Refs:
 - https://example.com/first
 - https://example.com/second
+<!-- rellog:entry:end -->
 
-
-#### Details
-
+<!-- rellog:entry:start -->
 <!-- rellog:body:start -->
 Second body
 <!-- rellog:body:end -->
+<!-- rellog:entry:end -->

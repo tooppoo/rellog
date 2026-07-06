@@ -15,14 +15,13 @@ exists .rellog/entries/20260626T123456.000000001Z.json
 cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/from_stdin.json
 rm .rellog/entries/20260626T123456.000000001Z.json
 
-# --kind alone: non-interactive; the trap's targets/body/links lines are
-# never read, so the entry has only the flag-provided kind.
+# --kind alone: non-interactive; the trap lines are never read. Targets are
+# strict structural vocabulary, so a kind-only entry now fails on the
+# missing target instead of consuming the trap (which would have succeeded).
 stdin trap.txt
-exec rellog add --kind changed --debug-datetime 20260626T123456.000000002Z
-! stderr .
-exists .rellog/entries/20260626T123456.000000002Z.json
-cmp .rellog/entries/20260626T123456.000000002Z.json .rellog.expected/entries/kind_only.json
-rm .rellog/entries/20260626T123456.000000002Z.json
+! exec rellog add --kind changed --debug-datetime 20260626T123456.000000002Z
+stderr 'entry must declare at least one target\.'
+! exists .rellog/entries/20260626T123456.000000002Z.json
 
 # --target alone: non-interactive; the trap's valid kind line is never read,
 # so validation fails on the empty kind and no entry is written.
@@ -46,24 +45,17 @@ stderr 'kind "" is not defined in rellog\.entries\.kinds\.'
 
 -- trap.txt --
 added
-trap-target
+app
 Trap body
 https://example.com/trap
 -- .rellog.expected/entries/from_stdin.json --
 {
   "kind": "added",
   "targets": [
-    "trap-target"
+    "app"
   ],
   "links": [
     "https://example.com/trap"
   ],
   "body": "Trap body"
-}
--- .rellog.expected/entries/kind_only.json --
-{
-  "kind": "changed",
-  "targets": [],
-  "links": [],
-  "body": ""
 }

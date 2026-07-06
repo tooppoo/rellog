@@ -9,7 +9,7 @@ cmp stderr expected.stderr
 -- entry.json --
 {
   "kind": "changed",
-  "targets": ["rellog"],
+  "targets": ["app"],
   "links": [],
   "references": ["https://example.com/design/1"],
   "body": "Unknown field"

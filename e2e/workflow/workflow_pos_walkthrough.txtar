@@ -18,12 +18,12 @@ exists .rellog/entries
 exists .rellog/release-notes
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --link https://example.com/design/12 --body 'Test Entry 1'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target app --link https://example.com/design/12 --body 'Test Entry 1'
 ! stderr .
 exists .rellog/entries/20260626T123456.000000001Z.json
 cmp .rellog/entries/20260626T123456.000000001Z.json .rellog.expected/entries/20260626T123456.000000001Z.json
 
-exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target rellog --link https://example.com/review/15 --body 'Test Entry 2'
+exec rellog add --debug-datetime 20260626T123456.000000002Z --kind fixed --target app --link https://example.com/review/15 --body 'Test Entry 2'
 ! stderr .
 exists .rellog/entries/20260626T123456.000000002Z.json
 cmp .rellog/entries/20260626T123456.000000002Z.json .rellog.expected/entries/20260626T123456.000000002Z.json
@@ -64,7 +64,7 @@ exec rellog ready v1.0.0
 {
   "kind": "changed",
   "targets": [
-    "rellog"
+    "app"
   ],
   "links": [
     "https://example.com/design/12"
@@ -75,7 +75,7 @@ exec rellog ready v1.0.0
 {
   "kind": "fixed",
   "targets": [
-    "rellog"
+    "app"
   ],
   "links": [
     "https://example.com/review/15"

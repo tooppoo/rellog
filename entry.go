@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -122,7 +123,8 @@ func parseEntryJSON(data []byte) (entry, error) {
 }
 
 // renderReleaseNote generates markdown release note content for the given version and entries.
-// Entries are grouped under their effective kind title (see kindTitle), in first-seen order.
+// Entries are grouped under their effective kind title (see kindTitle), in first-seen order,
+// then under target-set sections within each kind (see renderKindSection).
 func renderReleaseNote(version string, entries []entry, cfg entryValidationConfig) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "%s %s\n", markdownHeading(releaseHeadingLevel), version)
@@ -138,7 +140,7 @@ func renderReleaseNote(version string, entries []entry, cfg entryValidationConfi
 	}
 
 	for _, title := range titleOrder {
-		sb.WriteString(renderKindSection(title, titleEntries[title]))
+		sb.WriteString(renderKindSection(title, titleEntries[title], cfg))
 	}
 	return sb.String()
 }
@@ -152,17 +154,81 @@ func kindTitle(kindID string, cfg entryValidationConfig) string {
 	return kindID
 }
 
-// renderKindSection renders one "### <title>" section with its entries, in the
-// same shape renderReleaseNote produces for a single kind. It is also used by
-// `amend` to append a brand-new kind section into an existing document, so the
-// output must stay byte-identical to what a full regenerate would produce.
-func renderKindSection(title string, entries []entry) string {
+// targetTitle returns the effective title for targetID: the configured title
+// if present, otherwise the target id itself.
+func targetTitle(targetID string, cfg entryValidationConfig) string {
+	if title, ok := cfg.targetTitles[targetID]; ok {
+		return title
+	}
+	return targetID
+}
+
+// targetSetTitle returns the combined target-section heading for an entry's
+// target set: effective target titles joined by " / ". Known targets are
+// ordered by their entries.targets declaration order, so the same target set
+// always renders the same heading regardless of entry declaration order.
+// Undeclared targets (which validation rejects, but rendering must not
+// corrupt) keep their entry order after all declared targets.
+func targetSetTitle(targets []string, cfg entryValidationConfig) string {
+	declIndex := map[string]int{}
+	for i, id := range cfg.targetOrder {
+		declIndex[id] = i
+	}
+
+	ordered := uniqueStrings(targets)
+	sort.SliceStable(ordered, func(i, j int) bool {
+		di, iKnown := declIndex[ordered[i]]
+		dj, jKnown := declIndex[ordered[j]]
+		if iKnown != jKnown {
+			return iKnown
+		}
+		if !iKnown {
+			return false
+		}
+		return di < dj
+	})
+
+	titles := make([]string, len(ordered))
+	for i, id := range ordered {
+		titles[i] = targetTitle(id, cfg)
+	}
+	return strings.Join(titles, " / ")
+}
+
+// renderKindSection renders one "### <title>" section with its entries
+// grouped into "#### <target-set title>" sections, in the same shape
+// renderReleaseNote produces for a single kind. Target-set sections appear in
+// first-seen entry order; entries within one target-set section keep their
+// given (filename) order. It is also used by `amend` to append a brand-new
+// kind section into an existing document, so the output must stay
+// byte-identical to what a full regenerate would produce.
+func renderKindSection(title string, entries []entry, cfg entryValidationConfig) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "\n%s %s\n", markdownHeading(sectionHeadingLevel), title)
-	for i, e := range entries {
-		if i > 0 {
-			sb.WriteString("\n")
+
+	var setOrder []string
+	setEntries := map[string][]entry{}
+	for _, e := range entries {
+		setTitle := targetSetTitle(e.Targets, cfg)
+		if _, seen := setEntries[setTitle]; !seen {
+			setOrder = append(setOrder, setTitle)
 		}
+		setEntries[setTitle] = append(setEntries[setTitle], e)
+	}
+
+	for _, setTitle := range setOrder {
+		sb.WriteString(renderTargetSection(setTitle, setEntries[setTitle]))
+	}
+	return sb.String()
+}
+
+// renderTargetSection renders one "#### <target-set title>" section with its
+// entry blocks. Like renderKindSection, amend reuses it to append a brand-new
+// target section into an existing kind section.
+func renderTargetSection(title string, entries []entry) string {
+	var sb strings.Builder
+	fmt.Fprintf(&sb, "\n%s %s\n", markdownHeading(targetSectionHeadingLevel), title)
+	for _, e := range entries {
 		renderEntryBlock(&sb, e)
 	}
 	return sb.String()

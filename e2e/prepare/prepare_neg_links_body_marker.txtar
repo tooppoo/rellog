@@ -21,20 +21,20 @@ stderr 'rellog reserved marker'
 -- missing_links.json --
 {
   "kind": "changed",
-  "targets": ["rellog"],
+  "targets": ["app"],
   "body": "Missing links"
 }
 -- invalid_links.json --
 {
   "kind": "changed",
-  "targets": ["rellog"],
+  "targets": ["app"],
   "links": ["docs/design.md"],
   "body": "Invalid links"
 }
 -- reserved_marker.json --
 {
   "kind": "changed",
-  "targets": ["rellog"],
+  "targets": ["app"],
   "links": [],
   "body": "Do not write <!-- rellog:body:start --> markers in entry bodies"
 }

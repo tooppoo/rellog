@@ -15,7 +15,7 @@ exists .rellog/entries/20260626T123456.000000001Z.json
 -- entry.json --
 {
   "kind": "changed",
-  "targets": ["rellog"],
+  "targets": ["app"],
   "links": [],
   "body": "Dry-run entry"
 }

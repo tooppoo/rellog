@@ -3,7 +3,7 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target rellog --body 'Prepared output'
+exec rellog add --debug-datetime 20260626T123456.000000001Z --kind changed --target app --body 'Prepared output'
 ! stderr .
 
 exec rellog prepare --run v1.0.0

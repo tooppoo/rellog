@@ -1,0 +1,160 @@
+# Release note rendering groups entries as kind -> target section -> entry:
+# - target headings use the effective target title (target.title when
+#   configured, otherwise the target id)
+# - an entry with multiple targets renders once, under a combined target-set
+#   heading in entries.targets declaration order (never duplicated)
+# - entries are wrapped in rellog:entry markers, bodies in rellog:body
+#   markers, and links render under the plain "Refs:" label
+
+exec rellog init
+! stderr .
+exec cp titled_targets.kdl .rellog/config.kdl
+
+cp entry-cli.json .rellog/entries/20260706T000000.000000001Z.json
+cp entry-actions.json .rellog/entries/20260706T000000.000000002Z.json
+cp entry-combined.json .rellog/entries/20260706T000000.000000003Z.json
+cp entry-docs.json .rellog/entries/20260706T000000.000000004Z.json
+
+exec rellog prepare v0.1.0 --run
+stdout 'v0\.1\.0 release prepared\n'
+! stderr .
+
+cmp .rellog/release-notes/v0.1.0.md expected.release.md
+cmp CHANGELOG.md expected.changelog.md
+
+-- titled_targets.kdl --
+/- kdl-version 2
+
+rellog config-version=1 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+      target "cli" title="CLI"
+      target "actions" title="GitHub Actions"
+      target "docs"
+    }
+  }
+}
+-- entry-cli.json --
+{
+  "kind": "changed",
+  "targets": ["cli"],
+  "links": ["https://github.com/tooppoo/rellog/issues/11"],
+  "body": "implements TUI for interactive addition command `rellog add`"
+}
+-- entry-actions.json --
+{
+  "kind": "changed",
+  "targets": ["actions"],
+  "links": [],
+  "body": "exclude each version label for GitHub Release"
+}
+-- entry-combined.json --
+{
+  "kind": "changed",
+  "targets": ["actions", "cli"],
+  "links": ["https://github.com/tooppoo/rellog/issues/12"],
+  "body": "updates behavior shared by CLI and GitHub Actions"
+}
+-- entry-docs.json --
+{
+  "kind": "changed",
+  "targets": ["docs"],
+  "links": [],
+  "body": "documents the new release note structure"
+}
+-- expected.release.md --
+## v0.1.0
+
+### changed
+
+#### CLI
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+implements TUI for interactive addition command `rellog add`
+<!-- rellog:body:end -->
+
+Refs:
+- https://github.com/tooppoo/rellog/issues/11
+<!-- rellog:entry:end -->
+
+#### GitHub Actions
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+exclude each version label for GitHub Release
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+
+#### CLI / GitHub Actions
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+updates behavior shared by CLI and GitHub Actions
+<!-- rellog:body:end -->
+
+Refs:
+- https://github.com/tooppoo/rellog/issues/12
+<!-- rellog:entry:end -->
+
+#### docs
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+documents the new release note structure
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+-- expected.changelog.md --
+# CHANGELOG
+
+## v0.1.0
+
+### changed
+
+#### CLI
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+implements TUI for interactive addition command `rellog add`
+<!-- rellog:body:end -->
+
+Refs:
+- https://github.com/tooppoo/rellog/issues/11
+<!-- rellog:entry:end -->
+
+#### GitHub Actions
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+exclude each version label for GitHub Release
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+
+#### CLI / GitHub Actions
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+updates behavior shared by CLI and GitHub Actions
+<!-- rellog:body:end -->
+
+Refs:
+- https://github.com/tooppoo/rellog/issues/12
+<!-- rellog:entry:end -->
+
+#### docs
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+documents the new release note structure
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->

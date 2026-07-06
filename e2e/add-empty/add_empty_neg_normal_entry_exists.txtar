@@ -4,7 +4,7 @@ exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
 exec rellog init
 ! stderr .
 
-exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target rellog --body 'Normal entry'
+exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target app --body 'Normal entry'
 ! stderr .
 exists .rellog/entries/20260626T123456.123456789Z.json
 
@@ -19,7 +19,7 @@ cmp .rellog/entries/20260626T123456.123456789Z.json .rellog.expected/entries/202
 {
   "kind": "changed",
   "targets": [
-    "rellog"
+    "app"
   ],
   "links": [],
   "body": "Normal entry"

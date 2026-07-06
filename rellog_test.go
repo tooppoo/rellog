@@ -1,6 +1,7 @@
 package rellog_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/rogpeppe/go-internal/testscript"
@@ -24,6 +25,9 @@ func TestE2E(t *testing.T) {
 		t.Run(dir, func(t *testing.T) {
 			testscript.Run(t, testscript.Params{
 				Dir: dir,
+				// Set RELLOG_UPDATE_SCRIPTS=1 to regenerate `cmp` golden files
+				// embedded in the txtar fixtures after intentional output changes.
+				UpdateScripts: os.Getenv("RELLOG_UPDATE_SCRIPTS") == "1",
 			})
 		})
 	}

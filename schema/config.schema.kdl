@@ -48,16 +48,6 @@ document {
                 max 1
 
                 children {
-                    node target-policy description="How rellog handles entry targets not listed in entries.targets." {
-                        max 1
-                        value {
-                            min 1
-                            max 1
-                            type string
-                            enum "deny-unknown" "warn-unknown" "allow-unknown"
-                        }
-                    }
-
                     node kinds description="Allowed normal changelog entry kinds, in rendering order." {
                         min 1
                         max 1
@@ -82,8 +72,8 @@ document {
                         }
                     }
 
-                    // Required unless target-policy is "allow-unknown"; that conditional rule is enforced by rellog.
-                    node targets description="Known entry targets." {
+                    node targets description="Known entry targets, in target-set heading order. Targets are strict structural vocabulary: every entry target must be declared here." {
+                        min 1
                         max 1
 
                         children {

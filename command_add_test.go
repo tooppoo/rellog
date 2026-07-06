@@ -123,6 +123,7 @@ func TestCmdAddLaunchesFormOnTTY(t *testing.T) {
 	stubAddFormProgram(t, func(m addFormModel, _ io.Reader, _ io.Writer) (addFormModel, error) {
 		formRan = true
 		m.kind.SetValue("changed")
+		m.targets.SetValue("app")
 		m.submitted = true
 		return m, nil
 	})
@@ -246,7 +247,7 @@ func TestRunAddForm(t *testing.T) {
 				t.Error("form model should receive kind candidates from config")
 			}
 			m.kind.SetValue("changed")
-			m.targets.SetValue("cli api")
+			m.targets.SetValue("app")
 			m.body.SetValue("From the form")
 			m.links.SetValue("https://example.com/1, https://example.com/2")
 			m.submitted = true
@@ -267,7 +268,7 @@ func TestRunAddForm(t *testing.T) {
 		if e.Kind != "changed" || e.Body != "From the form" {
 			t.Errorf("entry = %+v", e)
 		}
-		if want := []string{"cli", "api"}; !reflect.DeepEqual(e.Targets, want) {
+		if want := []string{"app"}; !reflect.DeepEqual(e.Targets, want) {
 			t.Errorf("Targets = %v, want %v", e.Targets, want)
 		}
 		if want := []string{"https://example.com/1", "https://example.com/2"}; !reflect.DeepEqual(e.Links, want) {

@@ -9,7 +9,7 @@ exec rellog add-empty --debug-datetime 20260626T000000.000000001Z
 exec rellog prepare v1.0.0 --run
 ! stderr .
 
-exec rellog add --debug-datetime 20260627T000000.000000001Z --kind changed --target rellog --body 'Should conflict'
+exec rellog add --debug-datetime 20260627T000000.000000001Z --kind changed --target app --body 'Should conflict'
 ! stderr .
 
 ! exec rellog amend v1.0.0 --run
