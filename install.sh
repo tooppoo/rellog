@@ -510,9 +510,9 @@ resolve_asset_arch_label() {
 
   case "$canonical_os/$canonical_arch" in
     linux/x86_64) asset_arch_label='x86_64' ;;
-    linux/aarch64) asset_arch_label='aarch64' ;;
+    linux/aarch64) asset_arch_label='arm64' ;;
     darwin/x86_64) asset_arch_label='x86_64' ;;
-    darwin/aarch64) asset_arch_label='aarch64' ;;
+    darwin/aarch64) asset_arch_label='arm64' ;;
     *) fail "unsupported target: $canonical_os/$canonical_arch" ;;
   esac
 
