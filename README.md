@@ -92,6 +92,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 ## Documentation
 
+- [Installation](docs/installation.md)
 - [Commands](docs/commands.md)
 - [Configuration](docs/configuration.md)
 - [GitHub Action: ready](actions/ready/READMD.md)
