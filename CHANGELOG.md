@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v0.1.3
+
+### changed
+
+#### cli / core
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+create `.rellog/.gitignore` and ignore `.rellog/consumed` as defautl
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+
 ## v0.1.2
 
 ### fixed
