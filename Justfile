@@ -54,13 +54,13 @@ release-tag version:
 
     git tag -a {{ version }} -m "rellog {{ version }}"
 
+latest_tag := `git tag | grep -v latest | sort -V | tail -n 1`
 [group('release')]
 release-latest:
-    latest_tag="$(git tag | grep -v latest | sort -V | tail -n 1)"
-    rellog ready "$latest_tag"
+    rellog ready {{ latest_tag }}
 
     git tag -d latest 2>/dev/null || true
-    git tag -a latest -m "rellog latest"
+    git tag -a latest -m "rellog latest({{ latest_tag }})"
 
 [group('release')]
 release-run:
