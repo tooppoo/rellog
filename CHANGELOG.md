@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v0.1.2
+
+### fixed
+
+#### cli / docs
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+update installer version and add installer documents.
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+
 ## v0.1.1
 
 ### fixed
