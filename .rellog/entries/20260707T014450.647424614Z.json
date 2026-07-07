@@ -1,0 +1,9 @@
+{
+  "kind": "fixed",
+  "targets": [
+    "cli",
+    "docs"
+  ],
+  "links": [],
+  "body": "update installer version and add installer documents."
+}

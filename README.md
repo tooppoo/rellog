@@ -92,6 +92,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 
 ## Documentation
 
+- [Installation](docs/installation.md)
 - [Commands](docs/commands.md)
 - [Configuration](docs/configuration.md)
 - [GitHub Action: ready](actions/ready/READMD.md)
@@ -99,7 +100,7 @@ In those cases, commit-history based changelog generators or ecosystem-specific 
 - [Workflow](docs/workflow.md)
 - [Git Ignore policy](docs/ignore-policy.md)
 - [Files](docs/files.md)
-- [Generated release notes](docs/release-notes.md)
+- [Generated release notes](.rellog/release-notes/)
 - [Philosophy](docs/philosophy.md)
 
 ## Project status
