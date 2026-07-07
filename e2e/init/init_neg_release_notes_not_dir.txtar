@@ -1,5 +1,3 @@
-exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
-
 
 mkdir .rellog
 exec touch .rellog/release-notes

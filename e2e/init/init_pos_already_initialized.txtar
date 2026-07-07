@@ -1,5 +1,3 @@
-exec sh -c 'git init && git remote add origin https://github.com/tooppoo/rellog'
-
 
 exec rellog init
 ! stderr .
@@ -9,3 +7,4 @@ exec rellog init
 exists .rellog
 exists .rellog/entries
 exists .rellog/release-notes
+exists .rellog/.gitignore
