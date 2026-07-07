@@ -19,3 +19,7 @@ func releaseNotesDir() string {
 func consumedDir(releaseID string) string {
 	return filepath.Join(baseDir, "consumed", releaseID)
 }
+
+func gitIgnoreFile() string {
+	return filepath.Join(baseDir, ".gitignore")
+}

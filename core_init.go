@@ -5,8 +5,7 @@ import (
 	"os"
 )
 
-func generateInitConfig() string {
-	return `/- kdl-version 2
+const initialConfig = `/- kdl-version 2
 
 rellog config-version=1 {
   paths {
@@ -28,7 +27,10 @@ rellog config-version=1 {
   }
 }
 `
-}
+
+const initialGitignore = `
+consumed/
+`
 
 func initRellog() error {
 	if err := os.MkdirAll(entriesDir(), 0755); err != nil {
@@ -41,9 +43,11 @@ func initRellog() error {
 	if info, err := os.Stat(configFile()); err == nil && info.Mode().IsRegular() {
 		return nil
 	}
-	config := generateInitConfig()
-	if err := os.WriteFile(configFile(), []byte(config), 0644); err != nil {
+	if err := os.WriteFile(configFile(), []byte(initialConfig), 0644); err != nil {
 		return &exitError{ExitInvalidStructure, fmt.Sprintf("failed to create %s: %s", configFile(), err)}
+	}
+	if err := os.WriteFile(gitIgnoreFile(), []byte(initialGitignore), 0644); err != nil {
+		return &exitError{ExitInvalidStructure, fmt.Sprintf("failed to create %s: %s", gitIgnoreFile(), err)}
 	}
 	return nil
 }
