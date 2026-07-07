@@ -1,0 +1,7 @@
+
+mkdir .rellog
+mkdir .rellog/.gitignore
+
+! exec rellog init
+! stdout .
+stderr 'Error: failed to create .rellog/.gitignore:'

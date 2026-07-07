@@ -8,8 +8,10 @@ exec rellog init
 exists .rellog/config.kdl
 exists .rellog/entries
 exists .rellog/release-notes
+exists .rellog/.gitignore
 
 cmp .rellog/config.kdl expected.config.kdl
+cmp .rellog/.gitignore expected.gitignore
 
 -- expected.config.kdl --
 /- kdl-version 2
@@ -33,3 +35,6 @@ rellog config-version=1 {
     }
   }
 }
+-- expected.gitignore --
+
+consumed/
