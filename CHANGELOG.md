@@ -1,5 +1,18 @@
 # CHANGELOG
 
+## v0.1.4
+
+### changed
+
+#### actions
+
+<!-- rellog:entry:start -->
+<!-- rellog:body:start -->
+Manage GitHub actions on another repository.
+this change is accpeted to separate rellog's version and actions version.
+<!-- rellog:body:end -->
+<!-- rellog:entry:end -->
+
 ## v0.1.3
 
 ### changed
