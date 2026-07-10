@@ -54,24 +54,8 @@ release-tag version:
 
     git tag -a {{ version }} -m "rellog {{ version }}"
 
-latest_tag := `git tag | grep -v latest | sort -V | tail -n 1`
-[group('release')]
-release-latest:
-    rellog ready {{ latest_tag }}
-
-    git tag -d latest 2>/dev/null || true
-    git tag -a latest -m "rellog latest({{ latest_tag }})"
-
-[group('release')]
-release-run:
-    git push origin --delete latest
-    git push --tags
-
 [private]
 release-tag-del version:
-    # this command is for testint and debuggint. this would be removed in future.
-    git tag -d latest 2>/dev/null || true
-    git push origin --delete latest 2>/dev/null || true
-
+    # this command is for test and debugg. this would be removed in future.
     git tag -d {{ version }} 2>/dev/null || true
     git push origin --delete {{ version }} 2>/dev/null || true
