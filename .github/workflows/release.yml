@@ -17,9 +17,9 @@ jobs:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
         with:
           fetch-depth: 0
-      - uses: extractions/setup-just@v4
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
 
-      - uses: tooppoo/rellog-actions/setup@0.1.0
+      - uses: tooppoo/rellog-actions/setup@2abfca180ea8f95dc3d77be64b25b4bc33a0b380 # 0.1.0
         with:
           release-id: ${{ github.ref_name }}
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
@@ -51,7 +51,7 @@ jobs:
             > "${{ runner.temp }}/release-notes.md"
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@5daf1e915a5f0af01ddbcd89a43b8061ff4f1a89 # v7
+        uses: goreleaser/goreleaser-action@f06c13b6b1a9625abc9e6e439d9c05a8f2190e94 # v7
         with:
           distribution: goreleaser
           version-file: .tool-versions
