@@ -69,6 +69,21 @@ func checkConfigFile() *fileCheckResult {
 	return nil
 }
 
+func loadValidatedConfig() (*document.Document, error) {
+	data, err := os.ReadFile(configFile())
+	if err != nil {
+		return nil, err
+	}
+	doc, err := kdl.Parse(strings.NewReader(string(data)))
+	if err != nil {
+		return nil, &exitError{ExitCheckFailed, "failed to parse config: " + err.Error()}
+	}
+	if errs := validateRellogConfig(doc); len(errs) > 0 {
+		return nil, &exitError{ExitCheckFailed, errs[0].Code + "\n" + errs[0].Message}
+	}
+	return doc, nil
+}
+
 func nodeName(n *document.Node) string {
 	if n.Name == nil {
 		return ""
@@ -92,11 +107,7 @@ type entryValidationConfig struct {
 }
 
 func readEntryValidationConfig() (entryValidationConfig, error) {
-	data, err := os.ReadFile(configFile())
-	if err != nil {
-		return entryValidationConfig{}, err
-	}
-	doc, err := kdl.Parse(strings.NewReader(string(data)))
+	doc, err := loadValidatedConfig()
 	if err != nil {
 		return entryValidationConfig{}, err
 	}
@@ -171,6 +182,9 @@ func validateRellogConfig(doc *document.Document) []checkError {
 	}
 	if rellogCount != 1 {
 		return []checkError{{"error[rellog.missing]", "configuration file must contain exactly one top-level rellog node."}}
+	}
+	if errs := validateRellogNodeHeader(rellogNode); len(errs) > 0 {
+		return errs
 	}
 
 	allowedRootChildren := map[string]bool{
@@ -317,6 +331,25 @@ func validateRellogConfig(doc *document.Document) []checkError {
 	return validateEntriesConfig(rellogNode)
 }
 
+func validateRellogNodeHeader(rellogNode *document.Node) []checkError {
+	if len(rellogNode.Arguments) > 0 {
+		return []checkError{{"error[rellog.argument_count]", "rellog must not have arguments."}}
+	}
+	configVersion, ok := rellogNode.Properties.Get("config-version")
+	if !ok {
+		return []checkError{{"error[rellog.config-version.missing]", "rellog.config-version is required but not found."}}
+	}
+	for propertyName := range rellogNode.Properties.Unordered() {
+		if propertyName != "config-version" {
+			return []checkError{{"error[rellog.unknown_property]", "unknown property on rellog: " + propertyName}}
+		}
+	}
+	if value, ok := configVersion.Value.(int64); !ok || value != 1 {
+		return []checkError{{"error[rellog.config-version.unsupported]", "rellog supports only config-version=1."}}
+	}
+	return nil
+}
+
 var validOnFailCreate = map[string]bool{
 	"error":  true,
 	"warn":   true,
@@ -326,11 +359,7 @@ var validOnFailCreate = map[string]bool{
 // readConsumeOnFailCreate returns the runtime value of consume.on-fail-create.
 // Defaults to "error" if the node is absent.
 func readConsumeOnFailCreate() (string, error) {
-	data, err := os.ReadFile(configFile())
-	if err != nil {
-		return "", err
-	}
-	doc, err := kdl.Parse(strings.NewReader(string(data)))
+	doc, err := loadValidatedConfig()
 	if err != nil {
 		return "", err
 	}

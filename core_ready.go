@@ -5,8 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	kdl "github.com/njreid/gokdl2"
 )
 
 type readyPaths struct {
@@ -51,13 +49,9 @@ func validateReadyReleaseID(id string) error {
 }
 
 func readReadyPaths() (readyPaths, error) {
-	data, err := os.ReadFile(configFile())
+	doc, err := loadValidatedConfig()
 	if err != nil {
 		return readyPaths{}, err
-	}
-	doc, err := kdl.Parse(strings.NewReader(string(data)))
-	if err != nil {
-		return readyPaths{}, &exitError{ExitCheckFailed, "failed to parse config: " + err.Error()}
 	}
 
 	paths := readyPaths{

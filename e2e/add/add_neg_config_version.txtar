@@ -1,0 +1,32 @@
+exec rellog init
+! stderr .
+
+mv unsupported.kdl .rellog/config.kdl
+! exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target rellog --body 'Must not be written'
+! stdout .
+cmp stderr unsupported.stderr
+! exists .rellog/entries/20260626T123456.123456789Z.json
+
+-- unsupported.kdl --
+/- kdl-version 2
+
+rellog config-version=2 {
+  paths {
+    changelog "CHANGELOG.md"
+    entries ".rellog/entries"
+    release-notes ".rellog/release-notes"
+  }
+
+  entries {
+    kinds {
+      kind "changed"
+    }
+
+    targets {
+      target "rellog"
+    }
+  }
+}
+-- unsupported.stderr --
+Error: error[rellog.config-version.unsupported]
+rellog supports only config-version=1.
