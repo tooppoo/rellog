@@ -4,7 +4,8 @@
   "workspaceFolder": "/workspaces/rellog",
   "remoteUser": "vscode",
   "runArgs": [
-    "--init"
+    "--name", "rellog",
+    "--userns=keep-id"
   ],
   "postCreateCommand": "sh scripts/setup-dev.sh",
   "features": {

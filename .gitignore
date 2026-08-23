@@ -14,3 +14,9 @@ coverage.out.tmp
 
 # tmp file in release
 VERSION
+
+# AI
+.claude/
+.codex/
+.agents/
+
