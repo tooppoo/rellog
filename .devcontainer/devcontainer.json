@@ -7,7 +7,7 @@
     "--name", "rellog",
     "--userns=keep-id"
   ],
-  "postCreateCommand": "sh scripts/setup-dev.sh",
+  "postCreateCommand": "bash scripts/setup-dev.sh",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/devcontainers/features/go:1": {
