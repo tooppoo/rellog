@@ -12,7 +12,8 @@ stderr 'error\[rellog\.entries\.unknown_node\]'
 stderr 'unknown node: entries\.target-policy'
 
 ! exec rellog add --debug-datetime 20260626T123456.123456789Z --kind changed --target api --body 'No longer warned'
-stderr 'target "api" is not defined in rellog\.entries\.targets\.'
+stderr 'error\[rellog\.entries\.unknown_node\]'
+stderr 'unknown node: entries\.target-policy'
 ! exists .rellog/entries/20260626T123456.123456789Z.json
 
 -- warn_unknown_target.kdl --

@@ -507,10 +507,12 @@ func TestReadEntryValidationConfigKindTitle(t *testing.T) {
 		"    release-notes \".rellog/release-notes\"\n" +
 		"  }\n" +
 		"  entries {\n" +
-		"    target-policy \"allow-unknown\"\n" +
 		"    kinds {\n" +
 		"      kind \"fixed\" title=\"  Bug Fixes  \"\n" +
 		"      kind \"changed\"\n" +
+		"    }\n" +
+		"    targets {\n" +
+		"      target \"rellog\"\n" +
 		"    }\n" +
 		"  }\n" +
 		"}\n"
@@ -818,9 +820,11 @@ func writeConsumeConfig(t *testing.T, onFailCreate string) {
 		"    release-notes \".rellog/release-notes\"\n" +
 		"  }\n" +
 		"  entries {\n" +
-		"    target-policy \"allow-unknown\"\n" +
 		"    kinds {\n" +
 		"      kind \"changed\"\n" +
+		"    }\n" +
+		"    targets {\n" +
+		"      target \"rellog\"\n" +
 		"    }\n" +
 		"  }\n" +
 		"  consume {\n" +
