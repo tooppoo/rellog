@@ -124,6 +124,23 @@ document {
                     }
                 }
             }
+
+            node ready description="Release-readiness verification phases." {
+                min 0
+                max 1
+
+                children {
+                    node verify description="Project-defined release-readiness verification steps." {
+                        min 0
+                        max 1
+                        children {
+                            node script description="Project-defined verification executable, run in declaration order." {
+                                value ref=#"[id="repository-relative-path"]"#
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
