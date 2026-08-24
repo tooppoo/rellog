@@ -11,19 +11,6 @@ type preserveConfig struct {
 	RunScripts     []string
 }
 
-func readPreserveConfig() (preserveConfig, error) {
-	doc, err := loadValidatedConfig()
-	if err != nil {
-		return preserveConfig{}, err
-	}
-	for _, node := range doc.Nodes {
-		if nodeName(node) == "rellog" {
-			return decodePreserveConfig(node), nil
-		}
-	}
-	return preserveConfig{}, nil
-}
-
 func decodePreserveConfig(rellogNode *document.Node) preserveConfig {
 	var config preserveConfig
 	for _, node := range rellogNode.Children {
