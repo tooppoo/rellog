@@ -97,6 +97,33 @@ document {
                     }
                 }
             }
+
+            node preserve description="Project artifact release-identity update phases." {
+                min 0
+                max 1
+
+                children {
+                    node preview description="Steps that preview project artifact release-identity updates." {
+                        min 0
+                        max 1
+                        children {
+                            node script description="Project-defined preview executable, run in declaration order." {
+                                value ref=#"[id="repository-relative-path"]"#
+                            }
+                        }
+                    }
+
+                    node run description="Project artifact update steps." {
+                        min 0
+                        max 1
+                        children {
+                            node script description="Project-defined update executable, run in declaration order." {
+                                value ref=#"[id="repository-relative-path"]"#
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
