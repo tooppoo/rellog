@@ -192,6 +192,7 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		"entries":  true,
 		"consume":  true,
 		"preserve": true,
+		"ready":    true,
 	}
 	for _, n := range rellogNode.Children {
 		name := nodeName(n)
@@ -329,6 +330,9 @@ func validateRellogConfig(doc *document.Document) []checkError {
 		return errs
 	}
 	if errs := validatePreserveConfig(rellogNode); len(errs) > 0 {
+		return errs
+	}
+	if errs := validateReadyConfig(rellogNode); len(errs) > 0 {
 		return errs
 	}
 
