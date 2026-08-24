@@ -188,11 +188,12 @@ func validateRellogConfig(doc *document.Document) []checkError {
 	}
 
 	allowedRootChildren := map[string]bool{
-		"paths":    true,
-		"entries":  true,
-		"consume":  true,
-		"preserve": true,
-		"ready":    true,
+		"paths":       true,
+		"entries":     true,
+		"consume":     true,
+		"use-presets": true,
+		"preserve":    true,
+		"ready":       true,
 	}
 	for _, n := range rellogNode.Children {
 		name := nodeName(n)
@@ -327,6 +328,9 @@ func validateRellogConfig(doc *document.Document) []checkError {
 	}
 
 	if errs := validateConsumeConfig(rellogNode); len(errs) > 0 {
+		return errs
+	}
+	if errs := validateUsePresetsConfig(rellogNode); len(errs) > 0 {
 		return errs
 	}
 	if errs := validatePreserveConfig(rellogNode); len(errs) > 0 {
