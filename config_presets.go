@@ -2,10 +2,6 @@ package rellog
 
 import "github.com/njreid/gokdl2/document"
 
-var builtinPresetIDs = map[string]bool{
-	"rust": true,
-}
-
 func decodeUsePresetsConfig(rellogNode *document.Node) []string {
 	var presetIDs []string
 	for _, node := range rellogNode.Children {
@@ -37,7 +33,7 @@ func validateUsePresetsConfig(rellogNode *document.Node) []checkError {
 			return []checkError{{"error[rellog.use-presets.type]", "use-presets must be a string. Set its preset id as a quoted string."}}
 		}
 		presetID := argument.ValueString()
-		if !builtinPresetIDs[presetID] {
+		if _, ok := builtinPresets[presetID]; !ok {
 			return []checkError{{"error[rellog.use-presets.unknown]", "use-presets contains an unknown preset id. Use a supported preset id: rust."}}
 		}
 		if seen[presetID] {
