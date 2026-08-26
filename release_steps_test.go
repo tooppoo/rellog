@@ -20,14 +20,23 @@ func TestBuiltinRustPresetDefinesEveryReleasePhase(t *testing.T) {
 }
 
 func TestPresetRegistryResolvePreservesPresetDeclarationOrder(t *testing.T) {
-	presets := presetRegistry{
-		"first": {
-			PreservePreview: []string{"first-preview-a", "first-preview-b"},
+	presets := newPresetRegistry(
+		testPreset{
+			id: "first",
+			steps: releasePhases{
+				PreservePreview: []releaseStep{
+					{Kind: releaseStepKindBuiltin, Value: "first-preview-a"},
+					{Kind: releaseStepKindBuiltin, Value: "first-preview-b"},
+				},
+			},
 		},
-		"second": {
-			PreservePreview: []string{"second-preview"},
+		testPreset{
+			id: "second",
+			steps: releasePhases{
+				PreservePreview: []releaseStep{{Kind: releaseStepKindBuiltin, Value: "second-preview"}},
+			},
 		},
-	}
+	)
 
 	got := presets.resolve([]string{"second", "first"}, preserveConfig{}, readyConfig{})
 
@@ -111,4 +120,17 @@ func assertReleaseStepsEqual(t *testing.T, field string, got, want []releaseStep
 	if !slices.Equal(got, want) {
 		t.Fatalf("%s = %#v, want %#v", field, got, want)
 	}
+}
+
+type testPreset struct {
+	id    string
+	steps releasePhases
+}
+
+func (preset testPreset) ID() string {
+	return preset.id
+}
+
+func (preset testPreset) ReleaseSteps() releasePhases {
+	return preset.steps
 }
